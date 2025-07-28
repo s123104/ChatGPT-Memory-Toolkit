@@ -623,6 +623,71 @@
     };
   }
 
+  // 訊息監聽器 - 處理來自 popup 的請求
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    log('收到訊息:', message);
+
+    switch (message.action) {
+      case 'ping':
+        // 回應 ping 請求，確認 content script 已載入
+        sendResponse({ success: true, status: 'ready' });
+        break;
+
+      case 'getMemoryData':
+        // 回傳當前記憶資料
+        sendResponse({
+          success: true,
+          data: window.__memoryList || [],
+          usage: window.__memoryUsagePercent || null,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
+
+      case 'exportMemories':
+        // 執行匯出流程
+        (async () => {
+          try {
+            // 檢查當前頁面是否適合匯出
+            if (!location.href.includes('chatgpt.com')) {
+              sendResponse({
+                success: false,
+                error: '請在 ChatGPT 網站上使用此功能',
+              });
+              return;
+            }
+
+            log('開始匯出流程');
+            await mainFlow();
+
+            sendResponse({
+              success: true,
+              markdown: window.__memoryMarkdown || '',
+              data: window.__memoryList || [],
+              usage: window.__memoryUsagePercent || null,
+            });
+          } catch (error) {
+            warn('匯出失敗:', error);
+            sendResponse({
+              success: false,
+              error: error.message || '匯出過程中發生錯誤',
+            });
+          }
+        })();
+        return true; // 保持訊息通道開啟以支援非同步回應
+
+      case 'getMarkdown':
+        // 回傳 Markdown 資料
+        sendResponse({
+          success: true,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
+
+      default:
+        sendResponse({ success: false, error: '未知的操作' });
+    }
+  });
+
   // 初始化
   bootstrap()
     .then(() => log('記憶管理器已啟動'))

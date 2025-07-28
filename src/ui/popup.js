@@ -55,6 +55,16 @@ class PopupManager {
       return;
     }
 
+    // 首先檢查 content script 是否已載入
+    try {
+      await chrome.tabs.sendMessage(this.currentTab.id, { action: 'ping' });
+    } catch (error) {
+      if (error.message.includes('Could not establish connection')) {
+        this.showConnectionError();
+        return;
+      }
+    }
+
     try {
       // 嘗試從 content script 取得記憶資料
       const response = await chrome.tabs.sendMessage(this.currentTab.id, {
@@ -82,8 +92,14 @@ class PopupManager {
       }
     } catch (error) {
       console.warn('[Popup] 無法取得記憶資料:', error);
-      memoryStatusEl.textContent = '請前往記憶管理頁面';
-      memoryStatusEl.style.color = '#f59e0b';
+
+      // 檢查是否是連接錯誤
+      if (error.message.includes('Could not establish connection')) {
+        this.showConnectionError();
+      } else {
+        memoryStatusEl.textContent = '請前往記憶管理頁面';
+        memoryStatusEl.style.color = '#f59e0b';
+      }
     }
   }
 
@@ -119,7 +135,13 @@ class PopupManager {
       }
     } catch (error) {
       console.error('[Popup] 匯出失敗:', error);
-      this.setButtonError(exportBtn, '匯出失敗');
+
+      // 檢查是否是連接錯誤
+      if (error.message.includes('Could not establish connection')) {
+        this.setButtonError(exportBtn, '請重新整理頁面');
+      } else {
+        this.setButtonError(exportBtn, '匯出失敗');
+      }
     } finally {
       setTimeout(() => this.resetButton(exportBtn, '匯出 Markdown'), 2000);
     }
@@ -148,7 +170,13 @@ class PopupManager {
       this.setButtonSuccess(copyBtn, '已複製');
     } catch (error) {
       console.error('[Popup] 複製失敗:', error);
-      this.setButtonError(copyBtn, '複製失敗');
+
+      // 檢查是否是連接錯誤
+      if (error.message.includes('Could not establish connection')) {
+        this.setButtonError(copyBtn, '請重新整理頁面');
+      } else {
+        this.setButtonError(copyBtn, '複製失敗');
+      }
     } finally {
       setTimeout(() => this.resetButton(copyBtn, '複製到剪貼簿'), 1500);
     }
@@ -193,6 +221,22 @@ class PopupManager {
       memoryStatusEl.textContent = message;
       memoryStatusEl.style.color = '#ef4444';
     }
+  }
+
+  showConnectionError() {
+    // 顯示連接錯誤的詳細信息
+    const memoryStatusEl = document.getElementById('memoryStatus');
+    if (memoryStatusEl) {
+      memoryStatusEl.innerHTML =
+        '擴充套件未載入<br><small>請重新整理頁面後再試</small>';
+      memoryStatusEl.style.color = '#f59e0b';
+    }
+
+    // 禁用所有按鈕
+    const exportBtn = document.getElementById('exportBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    if (exportBtn) exportBtn.disabled = true;
+    if (copyBtn) copyBtn.disabled = true;
   }
 }
 
