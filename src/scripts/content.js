@@ -1,873 +1,630 @@
-/**
- * ChatGPT Memory Toolkit - Content Script
- * 內容腳本 - 與 ChatGPT 頁面互動
- */
+// ChatGPT Memory Manager - Content Script
+// 基於 chatgpt-memory-manager.js 的簡化版本
+// 自動檢測記憶已滿並匯出 Markdown 格式
 
-import { APP_CONFIG, CHATGPT_CONFIG } from '../constants/config.js';
-import { contentLogger as logger } from '../utils/logger.js';
-import { memoryDetector } from '../utils/memoryDetector.js';
-import { exportFormatFactory } from '../utils/exportFormats.js';
-
-/**
- * 內容腳本管理器
- */
-class ContentScriptManager {
-  constructor() {
-    this.isInitialized = false;
-    this.memoryData = [];
-    this.currentUsage = null;
-    this.monitoringStopFn = null;
-    this.uiElements = new Map();
-    this.settings = {};
-    
-    this.init();
+(() => {
+  // 防止重複執行
+  if (window.__MEMORY_MANAGER_LOADED__) {
+    console.info('[Memory Manager] 已在運行中');
+    return;
   }
+  window.__MEMORY_MANAGER_LOADED__ = true;
 
-  /**
-   * 初始化內容腳本
-   */
-  async init() {
-    try {
-      if (this.isInitialized) return;
-      
-      logger.info('Initializing content script...');
-      
-      // 檢查頁面是否有效
-      if (!memoryDetector.isValidPage()) {
-        logger.warn('Invalid page, content script will not initialize');
-        return;
-      }
-      
-      // 等待頁面加載完成
-      await this.waitForPageReady();
-      
-      // 載入設定
-      await this.loadSettings();
-      
-      // 設置訊息監聽器
-      this.setupMessageListeners();
-      
-      // 初始化 UI
-      await this.initializeUI();
-      
-      // 開始監控記憶狀態
-      this.startMemoryMonitoring();
-      
-      // 載入記憶資料
-      await this.loadMemoryData();
-      
-      this.isInitialized = true;
-      logger.info('Content script initialized successfully');
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'contentScriptInit' });
+  // 配置設定
+  const CONFIG = {
+    debug: true,
+    triggerText: '儲存的記憶已滿',
+    targetURL: 'https://chatgpt.com/#settings/Personalization',
+
+    // 選擇器
+    personalizationTabSel: '[data-testid="personalization-tab"][role="tab"]',
+    memoryKeywords: ['管理記憶', 'Manage memory', 'Memory', '記憶'],
+    modalTitleKeywords: ['儲存的記憶', 'Saved memories', 'Memories'],
+
+    // 等待時間
+    waitSettingsMs: 15000,
+    waitTabMs: 12000,
+    waitPanelMs: 10000,
+    waitMemoryMs: 15000,
+    waitModalMs: 20000,
+    waitTableMs: 12000,
+    waitRowsMs: 12000,
+
+    clickDelayMs: 100,
+    maxScanMs: 40000,
+    stepRatio: 0.6,
+    idleRoundsToStop: 8,
+    settleMs: 70,
+    endBounceMs: 140,
+  };
+
+  // 工具函數
+  const log = (...args) =>
+    CONFIG.debug && console.log('[Memory Manager]', ...args);
+  const warn = (...args) => console.warn('[Memory Manager]', ...args);
+  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const raf = () => new Promise(resolve => requestAnimationFrame(resolve));
+
+  // 檢查元素是否可見
+  const isVisible = element => {
+    if (!element || !(element instanceof Element)) return false;
+    const style = getComputedStyle(element);
+    if (
+      style.display === 'none' ||
+      style.visibility === 'hidden' ||
+      +style.opacity === 0
+    ) {
+      return false;
     }
-  }
+    const rect = element.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    return !(
+      rect.bottom < 0 ||
+      rect.top > innerHeight ||
+      rect.right < 0 ||
+      rect.left > innerWidth
+    );
+  };
 
-  /**
-   * 等待頁面準備就緒
-   */
-  async waitForPageReady() {
-    return new Promise((resolve) => {
-      if (document.readyState === 'complete') {
-        resolve();
-      } else {
-        window.addEventListener('load', resolve);
-      }
-    });
-  }
+  // 檢查是否出現觸發文字
+  const hasTriggerText = () => {
+    return Array.from(document.querySelectorAll('div')).some(div =>
+      div.textContent?.includes(CONFIG.triggerText)
+    );
+  };
 
-  /**
-   * 載入設定
-   */
-  async loadSettings() {
-    try {
-      const response = await chrome.runtime.sendMessage({
-        action: 'getSettings'
-      });
-      
-      if (response.success) {
-        this.settings = response.data;
-        logger.debug('Settings loaded:', this.settings);
-      }
-    } catch (error) {
-      logger.logError(error, { operation: 'loadSettings' });
-    }
-  }
+  // 等待元素出現
+  function waitFor(checkFunction, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      let done = false;
+      const startTime = performance.now();
 
-  /**
-   * 設置訊息監聽器
-   */
-  setupMessageListeners() {
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-      this.handleMessage(request, sender, sendResponse);
-      return true; // 保持消息通道開放
-    });
-  }
-
-  /**
-   * 處理來自背景腳本的訊息
-   */
-  async handleMessage(request, sender, sendResponse) {
-    try {
-      const { action, data } = request;
-      let response = { success: false };
-      
-      switch (action) {
-        case 'quickExport':
-          response = await this.handleQuickExport();
-          break;
-          
-        case 'showExportDialog':
-          response = await this.showExportDialog();
-          break;
-          
-        case 'refreshMemoryData':
-          response = await this.loadMemoryData();
-          break;
-          
-        case 'getMemoryData':
-          response = { success: true, data: this.memoryData };
-          break;
-          
-        default:
-          logger.warn('Unknown action:', action);
-          response = { success: false, error: 'Unknown action' };
-      }
-      
-      sendResponse(response);
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'handleMessage', request });
-      sendResponse({ success: false, error: error.message });
-    }
-  }
-
-  /**
-   * 處理快速匯出
-   */
-  async handleQuickExport() {
-    try {
-      // 更新記憶資料
-      await this.loadMemoryData();
-      
-      // 檢查是否有資料
-      if (this.memoryData.length === 0) {
-        await this.showNotification({
-          title: '無法匯出',
-          message: '未找到記憶資料，請確保您在記憶管理頁面。'
-        });
-        return { success: false, error: 'No memory data found' };
-      }
-      
-      // 使用預設格式匯出
-      const defaultFormat = this.settings.defaultExportFormat || 'markdown';
-      return await this.exportMemories(defaultFormat);
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'quickExport' });
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * 初始化 UI
-   */
-  async initializeUI() {
-    try {
-      // 檢查是否需要添加 UI 元素
-      if (this.settings.showFloatingButton !== false) {
-        this.createFloatingButton();
-      }
-      
-      // 添加樣式
-      this.injectStyles();
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'initializeUI' });
-    }
-  }
-
-  /**
-   * 創建浮動按鈕
-   */
-  createFloatingButton() {
-    // 檢查是否已存在
-    if (this.uiElements.has('floatingButton')) return;
-    
-    const button = document.createElement('div');
-    button.id = 'chatgpt-memory-toolkit-button';
-    button.innerHTML = `
-      <div class="cmt-button-icon">
-        <svg width="20" height="20" viewBox="0 0 128 128" fill="none">
-          <circle cx="64" cy="64" r="58" fill="#10a37f" opacity="0.95"/>
-          <g transform="translate(64, 45)" fill="white" opacity="0.9">
-            <path d="M -20 -8 C -24 -15, -20 -20, -15 -22 C -10 -24, -5 -20, -2 -15 C 2 -20, 5 -15, 2 -8 C -2 -2, -8 0, -15 -2 C -18 2, -20 -8 Z"/>
-            <path d="M 20 -8 C 24 -15, 20 -20, 15 -22 C 10 -24, 5 -20, 2 -15 C -2 -20, -5 -15, -2 -8 C 2 -2, 8 0, 15 -2 C 18 2, 20 -8 Z"/>
-          </g>
-          <path d="M 64 85 L 64 95 M 56 93 L 64 101 L 72 93" stroke="white" stroke-width="2" fill="none"/>
-        </svg>
-      </div>
-      <div class="cmt-button-text">匯出記憶</div>
-    `;
-    
-    button.addEventListener('click', () => this.showExportDialog());
-    
-    document.body.appendChild(button);
-    this.uiElements.set('floatingButton', button);
-    
-    logger.debug('Floating button created');
-  }
-
-  /**
-   * 注入樣式
-   */
-  injectStyles() {
-    if (document.getElementById('chatgpt-memory-toolkit-styles')) return;
-    
-    const styles = document.createElement('style');
-    styles.id = 'chatgpt-memory-toolkit-styles';
-    styles.textContent = `
-      #chatgpt-memory-toolkit-button {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 10000;
-        background: linear-gradient(135deg, #10a37f, #0d9668);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 16px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(16, 163, 127, 0.3);
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      }
-      
-      #chatgpt-memory-toolkit-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 163, 127, 0.4);
-        background: linear-gradient(135deg, #0d9668, #059669);
-      }
-      
-      #chatgpt-memory-toolkit-button:active {
-        transform: translateY(0);
-        box-shadow: 0 2px 8px rgba(16, 163, 127, 0.3);
-      }
-      
-      .cmt-button-icon svg {
-        width: 20px;
-        height: 20px;
-      }
-      
-      .cmt-export-dialog {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 10001;
-        background: white;
-        border-radius: 16px;
-        padding: 24px;
-        min-width: 400px;
-        max-width: 500px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      }
-      
-      .cmt-export-dialog-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 10000;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-      }
-      
-      .cmt-dialog-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 20px;
-        padding-bottom: 16px;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      
-      .cmt-dialog-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: #1f2937;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      
-      .cmt-close-button {
-        background: none;
-        border: none;
-        font-size: 24px;
-        color: #6b7280;
-        cursor: pointer;
-        padding: 4px;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-      }
-      
-      .cmt-close-button:hover {
-        color: #374151;
-        background: #f3f4f6;
-      }
-      
-      .cmt-format-selector {
-        margin-bottom: 20px;
-      }
-      
-      .cmt-format-label {
-        display: block;
-        font-size: 14px;
-        font-weight: 500;
-        color: #374151;
-        margin-bottom: 8px;
-      }
-      
-      .cmt-format-options {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-        gap: 8px;
-      }
-      
-      .cmt-format-option {
-        padding: 12px 16px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        background: white;
-        font-size: 12px;
-        font-weight: 500;
-        text-transform: uppercase;
-      }
-      
-      .cmt-format-option:hover {
-        border-color: #10a37f;
-        background: #f0fdf4;
-      }
-      
-      .cmt-format-option.selected {
-        border-color: #10a37f;
-        background: #10a37f;
-        color: white;
-      }
-      
-      .cmt-memory-info {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 20px;
-      }
-      
-      .cmt-memory-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 16px;
-        font-size: 14px;
-      }
-      
-      .cmt-stat-item {
-        text-align: center;
-      }
-      
-      .cmt-stat-value {
-        font-size: 18px;
-        font-weight: 600;
-        color: #10a37f;
-        display: block;
-      }
-      
-      .cmt-stat-label {
-        color: #6b7280;
-        font-size: 12px;
-      }
-      
-      .cmt-action-buttons {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-      }
-      
-      .cmt-button {
-        padding: 12px 24px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      
-      .cmt-button-secondary {
-        background: #f3f4f6;
-        color: #374151;
-      }
-      
-      .cmt-button-secondary:hover {
-        background: #e5e7eb;
-      }
-      
-      .cmt-button-primary {
-        background: #10a37f;
-        color: white;
-      }
-      
-      .cmt-button-primary:hover {
-        background: #0d9668;
-      }
-      
-      .cmt-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      
-      .cmt-loading {
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        border: 2px solid transparent;
-        border-top: 2px solid currentColor;
-        border-radius: 50%;
-        animation: cmt-spin 1s linear infinite;
-      }
-      
-      @keyframes cmt-spin {
-        to { transform: rotate(360deg); }
-      }
-    `;
-    
-    document.head.appendChild(styles);
-  }
-
-  /**
-   * 顯示匯出對話框
-   */
-  async showExportDialog() {
-    try {
-      // 更新記憶資料
-      await this.loadMemoryData();
-      
-      // 移除現有對話框
-      this.removeExportDialog();
-      
-      // 創建對話框
-      const overlay = document.createElement('div');
-      overlay.className = 'cmt-export-dialog-overlay';
-      overlay.addEventListener('click', () => this.removeExportDialog());
-      
-      const dialog = document.createElement('div');
-      dialog.className = 'cmt-export-dialog';
-      dialog.addEventListener('click', (e) => e.stopPropagation());
-      
-      const formats = exportFormatFactory.getSupportedFormats();
-      const defaultFormat = this.settings.defaultExportFormat || 'markdown';
-      
-      dialog.innerHTML = `
-        <div class="cmt-dialog-header">
-          <div class="cmt-dialog-title">
-            <svg width="24" height="24" viewBox="0 0 128 128" fill="none">
-              <circle cx="64" cy="64" r="58" fill="#10a37f" opacity="0.95"/>
-              <path d="M 64 85 L 64 95 M 56 93 L 64 101 L 72 93" stroke="white" stroke-width="2" fill="none"/>
-            </svg>
-            匯出 ChatGPT 記憶
-          </div>
-          <button class="cmt-close-button" onclick="this.closest('.cmt-export-dialog-overlay').remove()">×</button>
-        </div>
-        
-        <div class="cmt-memory-info">
-          <div class="cmt-memory-stats">
-            <div class="cmt-stat-item">
-              <span class="cmt-stat-value">${this.memoryData.length}</span>
-              <span class="cmt-stat-label">記憶總數</span>
-            </div>
-            <div class="cmt-stat-item">
-              <span class="cmt-stat-value">${this.currentUsage || 'N/A'}</span>
-              <span class="cmt-stat-label">使用率</span>
-            </div>
-            <div class="cmt-stat-item">
-              <span class="cmt-stat-value">${this.calculateTotalChars()}</span>
-              <span class="cmt-stat-label">總字符數</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="cmt-format-selector">
-          <label class="cmt-format-label">選擇匯出格式：</label>
-          <div class="cmt-format-options">
-            ${formats.map(format => `
-              <div class="cmt-format-option ${format.key === defaultFormat ? 'selected' : ''}" 
-                   data-format="${format.key}">
-                ${format.name}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div class="cmt-action-buttons">
-          <button class="cmt-button cmt-button-secondary" onclick="this.closest('.cmt-export-dialog-overlay').remove()">
-            取消
-          </button>
-          <button class="cmt-button cmt-button-primary" id="cmt-copy-button">
-            複製到剪貼簿
-          </button>
-          <button class="cmt-button cmt-button-primary" id="cmt-download-button">
-            下載檔案
-          </button>
-        </div>
-      `;
-      
-      overlay.appendChild(dialog);
-      document.body.appendChild(overlay);
-      
-      // 設置格式選擇器事件
-      const formatOptions = dialog.querySelectorAll('.cmt-format-option');
-      formatOptions.forEach(option => {
-        option.addEventListener('click', () => {
-          formatOptions.forEach(opt => opt.classList.remove('selected'));
-          option.classList.add('selected');
-        });
-      });
-      
-      // 設置按鈕事件
-      dialog.querySelector('#cmt-copy-button').addEventListener('click', () => {
-        this.copyToClipboard(dialog);
-      });
-      
-      dialog.querySelector('#cmt-download-button').addEventListener('click', () => {
-        this.downloadMemories(dialog);
-      });
-      
-      this.uiElements.set('exportDialog', overlay);
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'showExportDialog' });
-    }
-  }
-
-  /**
-   * 移除匯出對話框
-   */
-  removeExportDialog() {
-    const dialog = this.uiElements.get('exportDialog');
-    if (dialog) {
-      dialog.remove();
-      this.uiElements.delete('exportDialog');
-    }
-  }
-
-  /**
-   * 複製到剪貼簿
-   */
-  async copyToClipboard(dialog) {
-    try {
-      const selectedFormat = dialog.querySelector('.cmt-format-option.selected').dataset.format;
-      const button = dialog.querySelector('#cmt-copy-button');
-      
-      // 顯示載入狀態
-      button.disabled = true;
-      button.innerHTML = '<span class="cmt-loading"></span> 複製中...';
-      
-      const exportResult = await this.exportMemories(selectedFormat, false);
-      
-      if (exportResult.success) {
-        await navigator.clipboard.writeText(exportResult.content);
-        
-        button.innerHTML = '✓ 已複製';
-        setTimeout(() => {
-          this.removeExportDialog();
-        }, 1000);
-      } else {
-        throw new Error(exportResult.error);
-      }
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'copyToClipboard' });
-      
-      const button = dialog.querySelector('#cmt-copy-button');
-      button.innerHTML = '複製失敗';
-      button.disabled = false;
-      
-      setTimeout(() => {
-        button.innerHTML = '複製到剪貼簿';
-      }, 2000);
-    }
-  }
-
-  /**
-   * 下載檔案
-   */
-  async downloadMemories(dialog) {
-    try {
-      const selectedFormat = dialog.querySelector('.cmt-format-option.selected').dataset.format;
-      const button = dialog.querySelector('#cmt-download-button');
-      
-      // 顯示載入狀態
-      button.disabled = true;
-      button.innerHTML = '<span class="cmt-loading"></span> 下載中...';
-      
-      const exportResult = await this.exportMemories(selectedFormat, true);
-      
-      if (exportResult.success) {
-        button.innerHTML = '✓ 下載完成';
-        setTimeout(() => {
-          this.removeExportDialog();
-        }, 1000);
-      } else {
-        throw new Error(exportResult.error);
-      }
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'downloadMemories' });
-      
-      const button = dialog.querySelector('#cmt-download-button');
-      button.innerHTML = '下載失敗';
-      button.disabled = false;
-      
-      setTimeout(() => {
-        button.innerHTML = '下載檔案';
-      }, 2000);
-    }
-  }
-
-  /**
-   * 開始記憶監控
-   */
-  startMemoryMonitoring() {
-    if (this.monitoringStopFn) {
-      this.monitoringStopFn();
-    }
-    
-    this.monitoringStopFn = memoryDetector.startMonitoring((state) => {
-      this.currentUsage = state.usagePercentage;
-      logger.debug('Memory state updated:', state);
-      
-      // 更新 UI 狀態
-      this.updateUIState(state);
-    });
-  }
-
-  /**
-   * 更新 UI 狀態
-   */
-  updateUIState(memoryState) {
-    const button = this.uiElements.get('floatingButton');
-    if (button && memoryState.usagePercentage) {
-      const percentage = parseInt(memoryState.usagePercentage);
-      if (percentage >= 90) {
-        button.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
-      } else if (percentage >= 70) {
-        button.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
-      } else {
-        button.style.background = 'linear-gradient(135deg, #10a37f, #0d9668)';
-      }
-    }
-  }
-
-  /**
-   * 載入記憶資料
-   */
-  async loadMemoryData() {
-    try {
-      logger.time('Load memory data');
-      
-      const memoryItems = [];
-      const selectors = CHATGPT_CONFIG.selectors.memoryItems;
-      
-      // 嘗試不同的選擇器
-      for (const selector of selectors) {
-        const elements = document.querySelectorAll(selector);
-        logger.debug(`Found ${elements.length} elements with selector: ${selector}`);
-        
-        if (elements.length > 0) {
-          elements.forEach((element, index) => {
-            const text = this.extractMemoryText(element);
-            if (text && text.trim().length > 0) {
-              memoryItems.push(text.trim());
-            }
-          });
-          break; // 找到資料就停止
-        }
-      }
-      
-      this.memoryData = [...new Set(memoryItems)]; // 去重
-      
-      logger.timeEnd('Load memory data');
-      logger.info(`Loaded ${this.memoryData.length} memory items`);
-      
-      return { success: true, count: this.memoryData.length };
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'loadMemoryData' });
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * 提取記憶文字
-   */
-  extractMemoryText(element) {
-    // 移除腳本和樣式標籤
-    const clone = element.cloneNode(true);
-    const scriptsAndStyles = clone.querySelectorAll('script, style');
-    scriptsAndStyles.forEach(el => el.remove());
-    
-    // 提取純文字
-    let text = clone.innerText || clone.textContent || '';
-    
-    // 清理文字
-    text = text
-      .replace(/\s+/g, ' ')
-      .replace(/^\s+|\s+$/g, '')
-      .replace(/\n{3,}/g, '\n\n');
-    
-    return text;
-  }
-
-  /**
-   * 匯出記憶
-   */
-  async exportMemories(format, download = false) {
-    try {
-      // 準備匯出資料
-      const exportData = {
-        title: '儲存的記憶',
-        items: this.memoryData,
-        usagePercentage: this.currentUsage,
-        timestamp: new Date().toLocaleString('zh-TW'),
-        totalCount: this.memoryData.length,
-        url: window.location.href
-      };
-      
-      // 使用匯出格式工廠
-      const result = exportFormatFactory.export(format, exportData);
-      
-      if (!result.success) {
-        throw new Error(result.error);
-      }
-      
-      if (download) {
-        // 發送到背景腳本處理下載
-        const response = await chrome.runtime.sendMessage({
-          action: 'exportMemories',
-          data: {
-            format,
-            content: result.content,
-            fileName: result.fileName,
-            mimeType: result.mimeType
+      const check = () => {
+        if (done) return;
+        try {
+          const result = checkFunction();
+          if (result) {
+            done = true;
+            observer.disconnect();
+            resolve(result);
+            return;
           }
-        });
-        
-        if (!response.success) {
-          throw new Error(response.error);
+          if (performance.now() - startTime >= timeoutMs) {
+            done = true;
+            observer.disconnect();
+            reject(new Error('timeout'));
+          }
+        } catch (error) {
+          done = true;
+          observer.disconnect();
+          reject(error);
         }
-        
-        await this.showNotification({
-          title: '匯出成功',
-          message: `已成功匯出 ${format.toUpperCase()} 格式檔案`
-        });
-      }
-      
-      return {
-        success: true,
-        content: result.content,
-        fileName: result.fileName,
-        format
       };
-      
-    } catch (error) {
-      logger.logError(error, { operation: 'exportMemories', format });
-      
-      await this.showNotification({
-        title: '匯出失敗',
-        message: error.message
+
+      const observer = new MutationObserver(check);
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
       });
-      
-      return { success: false, error: error.message };
-    }
+      check(); // 初始檢查
+    });
   }
 
-  /**
-   * 顯示通知
-   */
-  async showNotification(data) {
+  // 等待可見元素
+  function waitForVisible(selectorOrFunction, timeoutMs) {
+    return waitFor(() => {
+      const element =
+        typeof selectorOrFunction === 'string'
+          ? document.querySelector(selectorOrFunction)
+          : selectorOrFunction();
+      return element && isVisible(element) ? element : null;
+    }, timeoutMs);
+  }
+
+  // 模擬人類點擊
+  async function humanClick(element) {
+    if (!(element instanceof Element)) throw new Error('humanClick: 不是元素');
+
+    element.scrollIntoView({ block: 'center', inline: 'center' });
+    await raf();
+
+    const rect = element.getBoundingClientRect();
+    const centerX =
+      rect.left + Math.min(rect.width - 2, Math.max(2, rect.width / 2));
+    const centerY =
+      rect.top + Math.min(rect.height - 2, Math.max(2, rect.height / 2));
+
+    const createMouseEvent = type =>
+      new MouseEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+      });
+
+    const createPointerEvent = type =>
+      new PointerEvent(type, {
+        bubbles: true,
+        cancelable: true,
+        clientX: centerX,
+        clientY: centerY,
+        pointerId: 1,
+        pointerType: 'mouse',
+        isPrimary: true,
+      });
+
+    // 模擬完整的點擊序列
+    element.dispatchEvent(createPointerEvent('pointerover'));
+    element.dispatchEvent(createMouseEvent('mouseover'));
+    element.dispatchEvent(createPointerEvent('pointerenter'));
+    element.dispatchEvent(createMouseEvent('mouseenter'));
+    element.dispatchEvent(createPointerEvent('pointerdown'));
+    element.dispatchEvent(createMouseEvent('mousedown'));
+    element.focus?.();
+    element.dispatchEvent(createPointerEvent('pointerup'));
+    element.dispatchEvent(createMouseEvent('mouseup'));
+    element.dispatchEvent(createMouseEvent('click'));
+
+    await sleep(CONFIG.clickDelayMs);
+  }
+
+  // 開啟個人化設定頁面
+  async function openPersonalizationSettings() {
+    if (!location.href.startsWith(CONFIG.targetURL)) {
+      location.href = CONFIG.targetURL;
+    } else {
+      location.hash = '#settings/Personalization';
+    }
+
+    const tab = await waitForVisible(
+      CONFIG.personalizationTabSel,
+      CONFIG.waitSettingsMs
+    );
+    log('找到個人化分頁', tab);
+
+    if (tab.getAttribute('aria-selected') !== 'true') {
+      await humanClick(tab);
+    }
+
+    const panelId = tab.getAttribute('aria-controls');
+    await waitForVisible(() => {
+      const panel = panelId ? document.getElementById(panelId) : null;
+      return panel &&
+        panel.getAttribute('data-state') === 'active' &&
+        !panel.hidden &&
+        isVisible(panel)
+        ? panel
+        : null;
+    }, CONFIG.waitPanelMs);
+
+    const panel = document.getElementById(panelId);
+    log('個人化面板已啟用', panel);
+    return panel;
+  }
+
+  // 尋找記憶管理相關元素
+  function findMemoryElements(root) {
+    return Array.from(
+      root.querySelectorAll('div,h1,h2,h3,h4,h5,h6,span,p,button,[role]')
+    )
+      .filter(isVisible)
+      .filter(element => {
+        const text = (element.innerText || element.textContent || '').trim();
+        return (
+          text && CONFIG.memoryKeywords.some(keyword => text.includes(keyword))
+        );
+      });
+  }
+
+  // 取得記憶容器
+  function getMemoryContainer(headerElement) {
+    return (
+      headerElement.closest('div.w-full,section,[data-section],.card,.panel') ||
+      headerElement.parentElement ||
+      headerElement
+    );
+  }
+
+  // 提取使用率百分比
+  function extractUsagePercent(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    let node;
+    const texts = [];
+
+    while ((node = walker.nextNode())) {
+      const text = node.textContent?.trim();
+      if (text) texts.push(text);
+    }
+
+    const joinedText = texts.join(' ');
+    const match = joinedText.match(/(\d{1,3})\s*%\s*滿?/);
+    return match
+      ? `${Math.max(0, Math.min(100, parseInt(match[1], 10)))}%`
+      : null;
+  }
+
+  // 尋找管理按鈕
+  function findManageButton(root) {
+    return (
+      Array.from(root.querySelectorAll('button,.btn,[role="button"]'))
+        .filter(isVisible)
+        .find(
+          button =>
+            (button.innerText || button.textContent || '').trim() === '管理'
+        ) || null
+    );
+  }
+
+  // 讀取使用率並點擊管理
+  async function readUsageAndClickManage(panelRoot) {
+    const section = await waitFor(() => {
+      const headers = findMemoryElements(panelRoot);
+      if (!headers.length) return null;
+      headers.sort(
+        (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
+      );
+      return getMemoryContainer(headers[0]);
+    }, CONFIG.waitMemoryMs);
+
+    log('找到記憶管理區塊', section);
+
+    const usagePercent = extractUsagePercent(section);
+    if (usagePercent) {
+      window.__memoryUsagePercent = usagePercent;
+      console.info('[Memory Manager] 記憶使用量：', usagePercent);
+    }
+
+    const manageButton = await waitForVisible(
+      () => findManageButton(section),
+      8000
+    );
+    await humanClick(manageButton);
+    log('已點擊管理按鈕');
+    return usagePercent;
+  }
+
+  // 尋找記憶模態窗
+  function findMemoryModal() {
+    const headings = Array.from(document.querySelectorAll('h1,h2,h3'))
+      .filter(isVisible)
+      .filter(heading =>
+        CONFIG.modalTitleKeywords.some(keyword =>
+          (heading.innerText || heading.textContent || '').includes(keyword)
+        )
+      );
+
+    for (const heading of headings) {
+      const root =
+        heading.closest('.popover,[role="dialog"],[aria-modal="true"]') ||
+        heading.closest('div[id],section,div');
+      if (root && isVisible(root)) return root;
+    }
+    return null;
+  }
+
+  // 等待記憶模態窗出現
+  async function waitForMemoryModal() {
+    const modal = await waitFor(() => findMemoryModal(), CONFIG.waitModalMs);
+    log('記憶模態窗已開啟', modal);
+    return modal;
+  }
+
+  // 定位表格和滾動容器
+  function locateTableAndScroller(modalRoot) {
+    let table = modalRoot.querySelector('table');
+    let scroller =
+      table?.closest('[class*="overflow-y"],[style*="overflow-y"]') || null;
+
+    if (!scroller) {
+      const candidates = Array.from(
+        modalRoot.querySelectorAll(
+          '[class*="overflow"],[style*="overflow"],.overflow-y-auto,.overflow-auto'
+        )
+      );
+      scroller =
+        candidates.find(el => el.querySelector('table')) ||
+        candidates.find(el => el.scrollHeight > el.clientHeight);
+    }
+
+    if (!scroller && table) {
+      let parent = table.parentElement;
+      while (parent && parent !== modalRoot) {
+        if (parent.scrollHeight > parent.clientHeight) {
+          scroller = parent;
+          break;
+        }
+        parent = parent.parentElement;
+      }
+    }
+
+    return { table: table || null, scroller: scroller || modalRoot };
+  }
+
+  // 後備收集方法
+  function collectRowsFallback(modalRoot) {
+    const results = [];
+    const rows = Array.from(modalRoot.querySelectorAll('[role="row"]')).filter(
+      isVisible
+    );
+
+    if (rows.length) {
+      for (const row of rows) {
+        const cell =
+          row.querySelector('[role="cell"], .whitespace-pre-wrap, .py-2') ||
+          row;
+        const text = (cell.innerText || cell.textContent || '')
+          .replace(/\s+\n/g, '\n')
+          .replace(/[ \t]+/g, ' ')
+          .trim();
+        if (text) results.push(text);
+      }
+      return results;
+    }
+
+    Array.from(modalRoot.querySelectorAll('td,.whitespace-pre-wrap,.py-2'))
+      .filter(isVisible)
+      .forEach(element => {
+        const text = (element.innerText || element.textContent || '')
+          .replace(/\s+\n/g, '\n')
+          .replace(/[ \t]+/g, ' ')
+          .trim();
+        if (text) results.push(text);
+      });
+
+    return results;
+  }
+
+  // 等待列表準備就緒
+  async function waitForListReady(modalRoot) {
+    let { table, scroller } = locateTableAndScroller(modalRoot);
+
+    if (!table) {
+      await waitFor(
+        () => (table = modalRoot.querySelector('table')) || null,
+        CONFIG.waitTableMs
+      ).catch(() => {});
+      ({ table, scroller } = locateTableAndScroller(modalRoot));
+    }
+
+    if (table) {
+      await waitFor(
+        () => table.querySelector('tbody > tr'),
+        CONFIG.waitRowsMs
+      ).catch(() => {});
+    }
+
+    if (!table || !table.querySelector('tbody > tr')) {
+      const fallbackResults = collectRowsFallback(modalRoot);
+      if (fallbackResults.length)
+        return { mode: 'fallback', table: null, scroller };
+    }
+
+    return { mode: table ? 'table' : 'fallback', table, scroller };
+  }
+
+  // 取得行文字內容
+  function getRowText(tableRow) {
     try {
-      await chrome.runtime.sendMessage({
-        action: 'showNotification',
-        data
-      });
+      const firstCell =
+        tableRow.querySelector('td:nth-child(1)') ||
+        tableRow.querySelector('td') ||
+        tableRow;
+      const innerElement =
+        firstCell.querySelector('.whitespace-pre-wrap, .py-2') || firstCell;
+      return (innerElement.innerText || innerElement.textContent || '')
+        .replace(/\s+\n/g, '\n')
+        .replace(/[ \t]+/g, ' ')
+        .trim();
+    } catch {
+      return '';
+    }
+  }
+
+  // 收集所有記憶項目
+  async function harvestAllMemories(modalRoot, mode, table, scroller) {
+    const memorySet = new Set();
+
+    const harvestCurrentView = () => {
+      if (mode === 'table' && table) {
+        Array.from(table.querySelectorAll('tbody > tr'))
+          .filter(isVisible)
+          .forEach(row => {
+            const text = getRowText(row);
+            if (text) memorySet.add(text);
+          });
+      } else {
+        collectRowsFallback(modalRoot).forEach(text => memorySet.add(text));
+      }
+    };
+
+    const scrollStep = () => {
+      const deltaY = Math.max(
+        80,
+        Math.floor(scroller.clientHeight * CONFIG.stepRatio)
+      );
+      scroller.dispatchEvent(
+        new WheelEvent('wheel', {
+          bubbles: true,
+          cancelable: true,
+          deltaX: 0,
+          deltaY: deltaY,
+        })
+      );
+    };
+
+    const keyStep = () => {
+      scroller.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'PageDown',
+          code: 'PageDown',
+          bubbles: true,
+        })
+      );
+    };
+
+    const startTime = performance.now();
+    let lastCount = -1;
+    let idleRounds = 0;
+
+    // 從頂部開始
+    scroller.scrollTop = 0;
+    await sleep(CONFIG.endBounceMs);
+    harvestCurrentView();
+
+    while (performance.now() - startTime < CONFIG.maxScanMs) {
+      // 滾動到下一個位置
+      scroller.scrollTop = Math.min(
+        scroller.scrollTop +
+          Math.floor(scroller.clientHeight * CONFIG.stepRatio),
+        scroller.scrollHeight
+      );
+      await raf();
+      await sleep(CONFIG.settleMs);
+
+      // 如果是表格模式，確保最後一行可見
+      if (mode === 'table' && table) {
+        const rows = table.querySelectorAll('tbody > tr');
+        const lastRow = rows[rows.length - 1];
+        if (lastRow) {
+          lastRow.scrollIntoView({ block: 'end' });
+          await raf();
+          await sleep(40);
+        }
+      }
+
+      // 額外的滾動操作
+      scrollStep();
+      await sleep(30);
+      keyStep();
+      await sleep(30);
+
+      harvestCurrentView();
+
+      const currentCount = memorySet.size;
+      if (currentCount === lastCount) {
+        idleRounds++;
+      } else {
+        idleRounds = 0;
+        lastCount = currentCount;
+      }
+
+      const isAtBottom =
+        Math.abs(
+          scroller.scrollTop + scroller.clientHeight - scroller.scrollHeight
+        ) < 2;
+
+      if (
+        (idleRounds >= CONFIG.idleRoundsToStop && isAtBottom) ||
+        idleRounds >= CONFIG.idleRoundsToStop + 4
+      ) {
+        break;
+      }
+    }
+
+    // 最後回到頂部再收集一次
+    scroller.scrollTop = 0;
+    await sleep(CONFIG.endBounceMs);
+    harvestCurrentView();
+
+    return Array.from(memorySet);
+  }
+
+  // 建立 Markdown 格式
+  function buildMarkdown({ title, usageText, items }) {
+    const header = `# ${title || '儲存的記憶'}`;
+    const usage = usageText ? `\n> 使用量：${usageText}\n` : '';
+    const itemList = items.length
+      ? '\n' + items.map((text, index) => `${index + 1}. ${text}`).join('\n')
+      : '\n（無資料）';
+    return `${header}${usage}\n共 ${items.length} 筆\n${itemList}\n`;
+  }
+
+  // 收集記憶並轉換為 Markdown
+  async function scrapeMemoriesToMarkdown() {
+    const modal = await waitForMemoryModal();
+
+    const heading = Array.from(modal.querySelectorAll('h1,h2,h3')).find(h =>
+      CONFIG.modalTitleKeywords.some(keyword =>
+        (h.innerText || '').includes(keyword)
+      )
+    );
+    const titleText = (heading?.innerText || '儲存的記憶').trim();
+
+    const usageBox = modal.querySelector(
+      '.rounded-lg.border.p-1,.rounded-lg.border'
+    );
+    const usageText = usageBox ? extractUsagePercent(usageBox) : null;
+
+    const { mode, table, scroller } = await waitForListReady(modal);
+    log('收集模式：', mode);
+
+    const items = await harvestAllMemories(modal, mode, table, scroller);
+    const markdown = buildMarkdown({ title: titleText, usageText, items });
+
+    console.log(markdown);
+    window.__memoryList = items;
+    window.__memoryMarkdown = markdown;
+
+    try {
+      await navigator.clipboard.writeText(markdown);
+      console.info('[Memory Manager] Markdown 已複製到剪貼簿');
     } catch (error) {
-      logger.logError(error, { operation: 'showNotification', data });
+      console.warn('[Memory Manager] 無法複製到剪貼簿:', error);
     }
+
+    log(`完成：共收集 ${items.length} 筆記憶`);
+    return markdown;
   }
 
-  /**
-   * 計算總字符數
-   */
-  calculateTotalChars() {
-    return this.memoryData.reduce((total, item) => total + item.length, 0);
+  // 主要流程
+  async function mainFlow() {
+    log('偵測到「儲存的記憶已滿」→ 開始自動匯出流程');
+    const panel = await openPersonalizationSettings();
+    await readUsageAndClickManage(panel);
+    await scrapeMemoriesToMarkdown();
+    console.log(
+      '%c[Memory Manager] 自動匯出完成',
+      'color:#16a34a;font-weight:bold;'
+    );
   }
 
-  /**
-   * 清理資源
-   */
-  cleanup() {
-    // 停止監控
-    if (this.monitoringStopFn) {
-      this.monitoringStopFn();
-      this.monitoringStopFn = null;
+  // 啟動監控
+  async function bootstrap() {
+    if (hasTriggerText()) {
+      try {
+        await mainFlow();
+      } catch (error) {
+        warn('自動匯出失敗：', error);
+      }
+      return;
     }
-    
-    // 移除 UI 元素
-    this.uiElements.forEach((element) => {
-      if (element && element.parentNode) {
-        element.parentNode.removeChild(element);
+
+    log('開始監控記憶狀態');
+    const observer = new MutationObserver(async () => {
+      if (hasTriggerText()) {
+        observer.disconnect();
+        try {
+          await mainFlow();
+        } catch (error) {
+          warn('自動匯出失敗：', error);
+        }
       }
     });
-    this.uiElements.clear();
-    
-    logger.info('Content script cleaned up');
+
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    window.stopMemoryWatcher = () => {
+      observer.disconnect();
+      delete window.__MEMORY_MANAGER_LOADED__;
+      log('已停止監控');
+    };
   }
-}
 
-// 創建內容腳本管理器實例
-let contentManager = null;
-
-// 頁面載入時初始化
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    contentManager = new ContentScriptManager();
-  });
-} else {
-  contentManager = new ContentScriptManager();
-}
-
-// 頁面卸載時清理
-window.addEventListener('beforeunload', () => {
-  if (contentManager) {
-    contentManager.cleanup();
-  }
-});
-
-// 匯出供測試使用
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = ContentScriptManager;
-}
+  // 初始化
+  bootstrap()
+    .then(() => log('記憶管理器已啟動'))
+    .catch(error => warn('初始化失敗', error));
+})();
