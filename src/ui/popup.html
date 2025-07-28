@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Memory Toolkit</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <!-- Header -->
+        <header class="popup-header">
+            <div class="logo">
+                <img src="../assets/icons/icon32.png" alt="Logo" class="logo-icon">
+                <div class="logo-text">
+                    <h1>Memory Toolkit</h1>
+                    <p>ChatGPT 記憶管理工具</p>
+                </div>
+            </div>
+            <div class="version">v1.0.0</div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="popup-main">
+            <!-- Status Section -->
+            <section class="status-section">
+                <div class="status-card" id="memory-status">
+                    <div class="status-icon">
+                        <div class="brain-icon">
+                            <svg width="24" height="24" viewBox="0 0 128 128" fill="none">
+                                <circle cx="64" cy="64" r="58" fill="#10a37f" opacity="0.95"/>
+                                <g transform="translate(64, 45)" fill="white" opacity="0.9">
+                                    <path d="M -20 -8 C -24 -15, -20 -20, -15 -22 C -10 -24, -5 -20, -2 -15 C 2 -20, 5 -15, 2 -8 C -2 -2, -8 0, -15 -2 C -18 2, -20 -8 Z"/>
+                                    <path d="M 20 -8 C 24 -15, 20 -20, 15 -22 C 10 -24, 5 -20, 2 -15 C -2 -20, -5 -15, -2 -8 C 2 -2, 8 0, 15 -2 C 18 2, 20 -8 Z"/>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="status-info">
+                        <div class="status-title">記憶狀態</div>
+                        <div class="status-details">
+                            <span class="usage-text" id="usage-text">檢測中...</span>
+                            <span class="count-text" id="count-text">0 筆記憶</span>
+                        </div>
+                    </div>
+                    <div class="status-indicator" id="status-indicator">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="actions-section">
+                <h2 class="section-title">快速操作</h2>
+                
+                <!-- Export Formats -->
+                <div class="format-grid" id="format-grid">
+                    <button class="format-btn" data-format="markdown" title="Markdown 格式，適合文檔編輯">
+                        <div class="format-icon">MD</div>
+                        <span>Markdown</span>
+                    </button>
+                    <button class="format-btn" data-format="json" title="JSON 格式，適合程式處理">
+                        <div class="format-icon">JSON</div>
+                        <span>JSON</span>
+                    </button>
+                    <button class="format-btn" data-format="csv" title="CSV 格式，適合試算表">
+                        <div class="format-icon">CSV</div>
+                        <span>CSV</span>
+                    </button>
+                    <button class="format-btn" data-format="txt" title="純文字格式">
+                        <div class="format-icon">TXT</div>
+                        <span>Text</span>
+                    </button>
+                    <button class="format-btn" data-format="html" title="HTML 格式，適合網頁瀏覽">
+                        <div class="format-icon">HTML</div>
+                        <span>HTML</span>
+                    </button>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" id="copy-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        複製到剪貴簿
+                    </button>
+                    <button class="btn btn-primary" id="download-btn" disabled>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        下載檔案
+                    </button>
+                </div>
+            </section>
+
+            <!-- Recent Exports -->
+            <section class="recent-section" id="recent-section" style="display: none;">
+                <h2 class="section-title">最近匯出</h2>
+                <div class="recent-list" id="recent-list">
+                    <!-- Recent exports will be populated here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="popup-footer">
+            <div class="footer-links">
+                <button class="link-btn" id="settings-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m11-7a4 4 0 0 0-8 0m8 0a4 4 0 0 0 8 0m-8 14a4 4 0 0 0 8 0m-8 0a4 4 0 0 0-8 0"></path>
+                    </svg>
+                    設定
+                </button>
+                <button class="link-btn" id="help-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <point cx="12" cy="17" r="1"></point>
+                    </svg>
+                    說明
+                </button>
+                <button class="link-btn" id="refresh-btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23,4 23,10 17,10"></polyline>
+                        <polyline points="1,20 1,14 7,14"></polyline>
+                        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                    </svg>
+                    重新整理
+                </button>
+            </div>
+        </footer>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner large"></div>
+                <p class="loading-text">處理中...</p>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast-container"></div>
+    </div>
+
+    <script type="module" src="popup.js"></script>
+</body>
+</html>
