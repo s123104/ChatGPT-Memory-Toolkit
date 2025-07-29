@@ -669,17 +669,6 @@
               <span class="usage-value">100%</span>
             </div>
           </div>
-
-          <div class="memory-modal-options">
-            <div class="memory-modal-option" id="remindLaterOption">
-              <input type="checkbox" id="remindLaterCheck">
-              <div class="memory-modal-option-text">今天不再提醒（24小時後重新提醒）</div>
-            </div>
-            <div class="memory-modal-option" id="neverRemindOption">
-              <input type="checkbox" id="neverRemindCheck">
-              <div class="memory-modal-option-text">永遠不再主動提示（可在設定中重新開啟）</div>
-            </div>
-          </div>
         </div>
 
         <div class="memory-modal-actions">
@@ -717,6 +706,7 @@
         z-index: 10000;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         animation: modalFadeIn 0.3s ease-out;
+        pointer-events: auto;
       }
 
       .memory-modal-content {
@@ -729,6 +719,9 @@
         border: 1px solid var(--modal-border-light, #e2e8f0);
         overflow: hidden;
         animation: modalSlideIn 0.3s ease-out;
+        position: relative;
+        z-index: 10001;
+        pointer-events: auto;
       }
 
       .memory-modal-header {
@@ -917,6 +910,9 @@
         flex: 1;
         justify-content: center;
         min-height: 44px;
+        position: relative;
+        z-index: 10001;
+        pointer-events: auto;
       }
 
       .memory-modal-btn.primary {
@@ -1034,26 +1030,13 @@
     document
       .getElementById('modalCancelBtn')
       .addEventListener('click', async () => {
-        // 處理用戶選擇
-        if (remindLaterCheck.checked) {
-          // 設置24小時後再提醒
-          const tomorrow = new Date();
-          tomorrow.setHours(tomorrow.getHours() + 24);
-          await chrome.storage.local.set({
-            memoryFullReminderDisabled: tomorrow.getTime(),
-          });
-          log('已設置24小時內不再提醒');
-        } else if (neverRemindCheck.checked) {
-          // 永遠不再提醒，同時更新設定
-          await chrome.storage.local.set({
-            settings: {
-              ...(await chrome.storage.local.get('settings')).settings,
-              autoShowModal: false,
-            },
-            memoryFullReminderDisabled: 'never',
-          });
-          log('已設置永遠不再提醒，並更新設定');
-        }
+        // 設置24小時後再提醒
+        const tomorrow = new Date();
+        tomorrow.setHours(tomorrow.getHours() + 24);
+        await chrome.storage.local.set({
+          memoryFullReminderDisabled: tomorrow.getTime(),
+        });
+        log('已設置24小時內不再提醒');
 
         modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
         setTimeout(() => {

@@ -27,6 +27,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🐛 **Version Sync** - Fixed version synchronization between package.json and manifest.json
 - 🔧 **Modal Persistence** - Resolved issues with modal showing repeatedly after dismissal
 
+## [1.2.0] - 2025-07-29
+
+### Added
+
+- 🎨 **Enhanced Modal UI** - Redesigned memory full modal with modern app-style interface
+- 🚀 **Export Result Modal** - New modal showing export results with multiple action options
+- ⏰ **24-Hour Reminder Control** - Smart reminder system with 24-hour snooze functionality
+- 📋 **Multiple Export Formats** - Copy as Markdown, plain text, or download as TXT file
+- 🔄 **Improved Button Interactions** - Fixed modal button click issues and enhanced UX
+
+### Changed
+
+- 🎨 **Modal Design** - Updated to match popup.html/popup.css design consistency
+- 🔧 **Event Handling** - Improved modal event listeners and button functionality
+- 📱 **Responsive Design** - Better mobile and tablet support for modals
+
+### Fixed
+
+- 🐛 **Modal Button Issues** - Resolved button click problems in memory full modal
+- 🔧 **Event Listener Cleanup** - Proper cleanup of modal styles and event handlers
+
 ## [1.1.0] - 2025-01-29
 
 ### Added
