@@ -669,6 +669,17 @@
               <span class="usage-value">100%</span>
             </div>
           </div>
+
+          <div class="memory-modal-options">
+            <div class="memory-modal-option" id="remindLaterOption">
+              <input type="checkbox" id="remindLaterCheck">
+              <div class="memory-modal-option-text">今天不再提醒（24小時後重新提醒）</div>
+            </div>
+            <div class="memory-modal-option" id="neverRemindOption">
+              <input type="checkbox" id="neverRemindCheck">
+              <div class="memory-modal-option-text">永遠不再主動提示（可在設定中重新開啟）</div>
+            </div>
+          </div>
         </div>
 
         <div class="memory-modal-actions">
@@ -709,13 +720,13 @@
       }
 
       .memory-modal-content {
-        background: #ffffff;
+        background: var(--modal-bg-primary, #ffffff);
         border-radius: 16px;
         padding: 0;
         max-width: 420px;
         width: 90%;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--modal-border-light, #e2e8f0);
         overflow: hidden;
         animation: modalSlideIn 0.3s ease-out;
       }
@@ -725,8 +736,8 @@
         align-items: center;
         gap: 16px;
         padding: 24px;
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-bottom: 1px solid #e2e8f0;
+        background: var(--modal-header-bg, linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%));
+        border-bottom: 1px solid var(--modal-border-light, #e2e8f0);
       }
 
       .memory-modal-icon {
@@ -749,14 +760,14 @@
         margin: 0;
         font-size: 20px;
         font-weight: 600;
-        color: #1e293b;
+        color: var(--modal-text-primary, #1e293b);
         line-height: 1.2;
       }
 
       .memory-modal-subtitle {
         margin: 4px 0 0 0;
         font-size: 14px;
-        color: #64748b;
+        color: var(--modal-text-secondary, #64748b);
         font-weight: 500;
       }
 
@@ -779,6 +790,7 @@
 
       .memory-modal-body {
         padding: 24px;
+        background: var(--modal-bg-primary, #ffffff);
       }
 
       .memory-alert-content {
@@ -801,21 +813,22 @@
 
       .memory-alert-text p {
         margin: 0;
-        color: #475569;
+        color: var(--modal-text-secondary, #475569);
         line-height: 1.6;
         font-size: 15px;
       }
 
       .memory-usage-info {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+        background: var(--modal-bg-secondary, #f8fafc);
+        border: 1px solid var(--modal-border-light, #e2e8f0);
         border-radius: 12px;
         padding: 16px;
+        margin-bottom: 20px;
       }
 
       .usage-bar {
         height: 8px;
-        background: #e2e8f0;
+        background: var(--modal-border-light, #e2e8f0);
         border-radius: 4px;
         overflow: hidden;
         margin-bottom: 12px;
@@ -836,7 +849,7 @@
 
       .usage-label {
         font-size: 14px;
-        color: #64748b;
+        color: var(--modal-text-secondary, #64748b);
         font-weight: 500;
       }
 
@@ -846,12 +859,48 @@
         color: #dc2626;
       }
 
+      .memory-modal-options {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .memory-modal-option {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: var(--modal-bg-secondary, #f8fafc);
+        border: 1px solid var(--modal-border-light, #e2e8f0);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .memory-modal-option:hover {
+        background: var(--modal-bg-tertiary, #f1f5f9);
+        border-color: var(--modal-border-medium, #cbd5e1);
+      }
+
+      .memory-modal-option input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: #667eea;
+      }
+
+      .memory-modal-option-text {
+        flex: 1;
+        font-size: 14px;
+        color: var(--modal-text-primary, #1e293b);
+      }
+
       .memory-modal-actions {
         display: flex;
         gap: 12px;
         padding: 20px 24px 24px;
-        background: #f8fafc;
-        border-top: 1px solid #e2e8f0;
+        background: var(--modal-footer-bg, #f8fafc);
+        border-top: 1px solid var(--modal-border-light, #e2e8f0);
       }
 
       .memory-modal-btn {
@@ -882,15 +931,15 @@
       }
 
       .memory-modal-btn.secondary {
-        background: #ffffff;
-        color: #475569;
-        border: 1px solid #d1d5db;
+        background: var(--modal-bg-primary, #ffffff);
+        color: var(--modal-text-secondary, #475569);
+        border: 1px solid var(--modal-border-light, #d1d5db);
         box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       }
 
       .memory-modal-btn.secondary:hover {
-        background: #f8fafc;
-        border-color: #9ca3af;
+        background: var(--modal-bg-secondary, #f8fafc);
+        border-color: var(--modal-border-medium, #9ca3af);
       }
 
       .memory-modal-btn:active {
@@ -926,6 +975,21 @@
         to { transform: rotate(360deg); }
       }
 
+      /* 深色模式支援 */
+      @media (prefers-color-scheme: dark) {
+        .memory-modal-overlay {
+          --modal-bg-primary: #1e293b;
+          --modal-bg-secondary: #334155;
+          --modal-bg-tertiary: #475569;
+          --modal-header-bg: linear-gradient(135deg, #334155 0%, #475569 100%);
+          --modal-footer-bg: #334155;
+          --modal-text-primary: #f1f5f9;
+          --modal-text-secondary: #cbd5e1;
+          --modal-border-light: #475569;
+          --modal-border-medium: #64748b;
+        }
+      }
+
       @media (max-width: 480px) {
         .memory-modal-content {
           margin: 20px;
@@ -950,14 +1014,53 @@
     document.head.appendChild(style);
     document.body.appendChild(modal);
 
-    // 添加事件監聽器
-    document.getElementById('modalCancelBtn').addEventListener('click', () => {
-      modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
-      setTimeout(() => {
-        modal.remove();
-        style.remove();
-      }, 200);
+    // 添加選項互斥邏輯
+    const remindLaterCheck = document.getElementById('remindLaterCheck');
+    const neverRemindCheck = document.getElementById('neverRemindCheck');
+
+    remindLaterCheck.addEventListener('change', () => {
+      if (remindLaterCheck.checked) {
+        neverRemindCheck.checked = false;
+      }
     });
+
+    neverRemindCheck.addEventListener('change', () => {
+      if (neverRemindCheck.checked) {
+        remindLaterCheck.checked = false;
+      }
+    });
+
+    // 添加事件監聽器
+    document
+      .getElementById('modalCancelBtn')
+      .addEventListener('click', async () => {
+        // 處理用戶選擇
+        if (remindLaterCheck.checked) {
+          // 設置24小時後再提醒
+          const tomorrow = new Date();
+          tomorrow.setHours(tomorrow.getHours() + 24);
+          await chrome.storage.local.set({
+            memoryFullReminderDisabled: tomorrow.getTime(),
+          });
+          log('已設置24小時內不再提醒');
+        } else if (neverRemindCheck.checked) {
+          // 永遠不再提醒，同時更新設定
+          await chrome.storage.local.set({
+            settings: {
+              ...(await chrome.storage.local.get('settings')).settings,
+              autoShowModal: false,
+            },
+            memoryFullReminderDisabled: 'never',
+          });
+          log('已設置永遠不再提醒，並更新設定');
+        }
+
+        modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
+        setTimeout(() => {
+          modal.remove();
+          style.remove();
+        }, 200);
+      });
 
     document
       .getElementById('modalExportBtn')
@@ -1340,11 +1443,42 @@
   // 檢查設定並決定是否顯示模態窗
   async function checkAndShowModal() {
     try {
-      // 從 storage 取得設定
-      const result = await chrome.storage.local.get('settings');
+      // 從 storage 取得設定和提醒狀態
+      const result = await chrome.storage.local.get([
+        'settings',
+        'memoryFullReminderDisabled',
+      ]);
       const settings = result.settings || { autoShowModal: true };
+      const reminderDisabled = result.memoryFullReminderDisabled;
 
-      if (settings.autoShowModal && hasTriggerText()) {
+      // 檢查是否應該顯示模態窗
+      if (!settings.autoShowModal) {
+        log('自動提醒已在設定中關閉');
+        return;
+      }
+
+      // 檢查是否在禁用期間內
+      if (reminderDisabled) {
+        if (reminderDisabled === 'never') {
+          log('用戶選擇永遠不再提醒');
+          return;
+        }
+
+        const disabledUntil = new Date(reminderDisabled);
+        const now = new Date();
+
+        if (now < disabledUntil) {
+          const hoursLeft = Math.ceil((disabledUntil - now) / (1000 * 60 * 60));
+          log(`提醒已暫停，還有 ${hoursLeft} 小時後恢復`);
+          return;
+        } else {
+          // 過期了，清除禁用狀態
+          await chrome.storage.local.remove('memoryFullReminderDisabled');
+          log('提醒暫停期已過，恢復正常提醒');
+        }
+      }
+
+      if (hasTriggerText()) {
         showAutoExportModal();
       }
     } catch (error) {

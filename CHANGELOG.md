@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-01-29
+
+### Added
+
+- 🌙 **Dark Mode Support** - Modal windows now follow system dark mode preferences with purple theme
+- 🔕 **Smart Reminder Control** - Users can choose "remind later" (24h) or "never remind" options
+- 💾 **Local Memory Persistence** - Modal preferences are stored locally and sync with settings
+- 🎨 **Enhanced Modal Design** - Consistent styling with popup interface using CSS variables
+- ⚙️ **Settings Integration** - "Never remind" option automatically updates extension settings
+- 📱 **Improved Responsive Design** - Better mobile and tablet support for modal windows
+
+### Changed
+
+- 🎯 **Version Management** - Implemented semantic versioning with automated sync across files
+- 🔄 **Modal Behavior** - Non-intrusive reminder system respects user preferences
+- 🎨 **Visual Consistency** - All modals now match the main popup's design language
+
+### Fixed
+
+- 🐛 **Version Sync** - Fixed version synchronization between package.json and manifest.json
+- 🔧 **Modal Persistence** - Resolved issues with modal showing repeatedly after dismissal
+
 ## [1.1.0] - 2025-01-29
 
 ### Added
