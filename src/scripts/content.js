@@ -720,34 +720,64 @@
     const style = document.createElement('style');
     style.id = 'memoryModalStyles';
     style.textContent = `
+      :root {
+        --modal-bg-primary: #ffffff;
+        --modal-bg-secondary: #f8fafc;
+        --modal-bg-tertiary: #f1f5f9;
+        --modal-text-primary: #1e293b;
+        --modal-text-secondary: #64748b;
+        --modal-text-tertiary: #94a3b8;
+        --modal-border-light: #e2e8f0;
+        --modal-border-medium: #cbd5e1;
+        --modal-primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --modal-warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --modal-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --modal-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --modal-bg-primary: #1e293b;
+          --modal-bg-secondary: #0f172a;
+          --modal-bg-tertiary: #334155;
+          --modal-text-primary: #f1f5f9;
+          --modal-text-secondary: #cbd5e1;
+          --modal-text-tertiary: #64748b;
+          --modal-border-light: #334155;
+          --modal-border-medium: #475569;
+          --modal-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+          --modal-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+      }
+
       .memory-modal-overlay {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         display: flex;
         align-items: center;
         justify-content: center;
         z-index: 999999;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        animation: modalFadeIn 0.3s ease-out;
+        animation: modalFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: auto;
       }
 
       .memory-modal-content {
-        background: var(--modal-bg-primary, #ffffff);
-        border-radius: 16px;
+        background: var(--modal-bg-primary);
+        border-radius: 20px;
         padding: 0;
-        max-width: 420px;
+        max-width: 440px;
         width: 90%;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
-        border: 1px solid var(--modal-border-light, #e2e8f0);
+        box-shadow: var(--modal-shadow-lg);
+        border: 1px solid var(--modal-border-light);
         overflow: hidden;
-        animation: modalSlideIn 0.3s ease-out;
+        animation: modalSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         position: relative;
         z-index: 1000000;
         pointer-events: auto;
@@ -1661,8 +1691,97 @@
     return true; // 保持訊息通道開啟以支援非同步回應
   });
 
+  // 開發者測試指令
+  window.memoryManagerDev = {
+    // 清除24小時不再提醒設定
+    clearReminderBlock: async () => {
+      try {
+        await chrome.storage.local.remove('memoryFullReminderDisabled');
+        console.log('✅ 已清除24小時不再提醒設定，模態窗將重新顯示');
+        return true;
+      } catch (error) {
+        console.error('❌ 清除設定失敗:', error);
+        return false;
+      }
+    },
+
+    // 強制顯示模態窗（測試用）
+    forceShowModal: () => {
+      isModalShowing = false; // 重置標記
+      showAutoExportModal();
+      console.log('🔧 強制顯示模態窗（測試模式）');
+    },
+
+    // 檢查當前提醒狀態
+    checkReminderStatus: async () => {
+      try {
+        const result = await chrome.storage.local.get(
+          'memoryFullReminderDisabled'
+        );
+        const disabled = result.memoryFullReminderDisabled;
+
+        if (!disabled) {
+          console.log('✅ 提醒功能正常，未被暫停');
+          return { status: 'active', message: '提醒功能正常' };
+        }
+
+        if (disabled === 'never') {
+          console.log('🚫 提醒已永久關閉');
+          return { status: 'never', message: '提醒已永久關閉' };
+        }
+
+        const disabledUntil = new Date(disabled);
+        const now = new Date();
+
+        if (now < disabledUntil) {
+          const hoursLeft = Math.ceil((disabledUntil - now) / (1000 * 60 * 60));
+          console.log(`⏰ 提醒已暫停，還有 ${hoursLeft} 小時後恢復`);
+          return {
+            status: 'paused',
+            message: `提醒已暫停，還有 ${hoursLeft} 小時後恢復`,
+            resumeTime: disabledUntil,
+          };
+        } else {
+          console.log('✅ 暫停期已過，提醒功能已恢復');
+          return { status: 'expired', message: '暫停期已過，提醒功能已恢復' };
+        }
+      } catch (error) {
+        console.error('❌ 檢查狀態失敗:', error);
+        return { status: 'error', message: '檢查狀態失敗' };
+      }
+    },
+
+    // 重置模態窗顯示標記
+    resetModalFlag: () => {
+      isModalShowing = false;
+      console.log('🔄 已重置模態窗顯示標記');
+    },
+
+    // 顯示幫助信息
+    help: () => {
+      console.log(`
+🛠️ ChatGPT Memory Manager 開發者工具
+
+可用指令：
+• memoryManagerDev.clearReminderBlock()     - 清除24小時不再提醒設定
+• memoryManagerDev.forceShowModal()         - 強制顯示模態窗（測試用）
+• memoryManagerDev.checkReminderStatus()    - 檢查當前提醒狀態
+• memoryManagerDev.resetModalFlag()         - 重置模態窗顯示標記
+• memoryManagerDev.help()                   - 顯示此幫助信息
+
+使用範例：
+await memoryManagerDev.clearReminderBlock();
+memoryManagerDev.forceShowModal();
+      `);
+    },
+  };
+
   // 初始化
   bootstrap()
-    .then(() => log('記憶管理器已啟動'))
+    .then(() => {
+      log('記憶管理器已啟動');
+      console.log('🚀 ChatGPT Memory Manager 已啟動');
+      console.log('💡 開發者工具可用: memoryManagerDev.help()');
+    })
     .catch(error => warn('初始化失敗', error));
 })();
