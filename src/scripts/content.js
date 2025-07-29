@@ -703,7 +703,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 10000;
+        z-index: 999999;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         animation: modalFadeIn 0.3s ease-out;
         pointer-events: auto;
@@ -720,7 +720,7 @@
         overflow: hidden;
         animation: modalSlideIn 0.3s ease-out;
         position: relative;
-        z-index: 10001;
+        z-index: 1000000;
         pointer-events: auto;
       }
 
@@ -894,6 +894,9 @@
         padding: 20px 24px 24px;
         background: var(--modal-footer-bg, #f8fafc);
         border-top: 1px solid var(--modal-border-light, #e2e8f0);
+        position: relative;
+        z-index: 1000001;
+        pointer-events: auto;
       }
 
       .memory-modal-btn {
@@ -905,14 +908,17 @@
         border-radius: 10px;
         font-size: 14px;
         font-weight: 500;
-        cursor: pointer;
+        cursor: pointer !important;
         transition: all 0.2s ease;
         flex: 1;
         justify-content: center;
         min-height: 44px;
         position: relative;
-        z-index: 10001;
-        pointer-events: auto;
+        z-index: 1000001;
+        pointer-events: auto !important;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
       }
 
       .memory-modal-btn.primary {
@@ -944,6 +950,15 @@
 
       .memory-modal-btn svg {
         flex-shrink: 0;
+        pointer-events: none;
+      }
+
+      .memory-modal-btn span {
+        pointer-events: none;
+      }
+
+      .memory-modal-btn * {
+        pointer-events: none;
       }
 
       @keyframes modalFadeIn {
@@ -1026,68 +1041,94 @@
       }
     });
 
-    // 添加事件監聽器
-    document
-      .getElementById('modalCancelBtn')
-      .addEventListener('click', async () => {
-        // 設置24小時後再提醒
-        const tomorrow = new Date();
-        tomorrow.setHours(tomorrow.getHours() + 24);
-        await chrome.storage.local.set({
-          memoryFullReminderDisabled: tomorrow.getTime(),
-        });
-        log('已設置24小時內不再提醒');
+    // 等待DOM渲染完成後添加事件監聽器
+    setTimeout(() => {
+      // 取消按鈕事件處理
+      const cancelBtn = document.getElementById('modalCancelBtn');
+      if (cancelBtn) {
+        // 移除可能存在的事件監聽器
+        const newCancelBtn = cancelBtn.cloneNode(true);
+        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+        
+        newCancelBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          try {
+            // 設置24小時後再提醒
+            const tomorrow = new Date();
+            tomorrow.setHours(tomorrow.getHours() + 24);
+            await chrome.storage.local.set({
+              memoryFullReminderDisabled: tomorrow.getTime(),
+            });
+            log('已設置24小時內不再提醒');
+          } catch (error) {
+            log('設置提醒失敗:', error);
+          }
 
-        modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
-        setTimeout(() => {
-          modal.remove();
-          style.remove();
-        }, 200);
-      });
-
-    document
-      .getElementById('modalExportBtn')
-      .addEventListener('click', async () => {
-        const exportBtn = document.getElementById('modalExportBtn');
-        exportBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
-          <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
-        </svg>
-        <span>匯出中...</span>
-      `;
-        exportBtn.disabled = true;
-
-        try {
-          await mainFlow();
-          // 匯出成功後顯示結果模態窗
-          showExportResultModal();
-          modal.remove();
-          style.remove();
-        } catch (error) {
-          warn('模態窗匯出失敗:', error);
-          exportBtn.innerHTML = `
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
-          </svg>
-          <span>匯出失敗</span>
-        `;
+          modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
           setTimeout(() => {
             modal.remove();
             style.remove();
-          }, 2000);
-        }
-      });
+          }, 200);
+        }, { passive: false, capture: true });
+      }
 
-    // 點擊背景關閉
+      // 匯出按鈕事件處理
+      const exportBtn = document.getElementById('modalExportBtn');
+      if (exportBtn) {
+        // 移除可能存在的事件監聽器
+        const newExportBtn = exportBtn.cloneNode(true);
+        exportBtn.parentNode.replaceChild(newExportBtn, exportBtn);
+        
+        newExportBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          newExportBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+              <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+            </svg>
+            <span>匯出中...</span>
+          `;
+          newExportBtn.disabled = true;
+
+          try {
+            await mainFlow();
+            // 匯出成功後顯示結果模態窗
+            showExportResultModal();
+            modal.remove();
+            style.remove();
+          } catch (error) {
+            warn('模態窗匯出失敗:', error);
+            newExportBtn.innerHTML = `
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+              </svg>
+              <span>匯出失敗</span>
+            `;
+            setTimeout(() => {
+              modal.remove();
+              style.remove();
+            }, 2000);
+          }
+        }, { passive: false, capture: true });
+      }
+    }, 100);
+
+    // 點擊背景關閉 - 但不影響按鈕點擊
     modal.addEventListener('click', e => {
-      if (e.target === modal) {
+      // 只有點擊到 overlay 本身才關閉，避免事件冒泡影響按鈕
+      if (e.target === modal && !e.target.closest('.memory-modal-content')) {
+        e.preventDefault();
+        e.stopPropagation();
         modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
         setTimeout(() => {
           modal.remove();
           style.remove();
         }, 200);
       }
-    });
+    }, { capture: false });
   }
 
   // 顯示匯出結果模態窗
@@ -1411,16 +1452,19 @@
         style.remove();
       });
 
-    // 點擊背景關閉
+    // 點擊背景關閉 - 但不影響按鈕點擊
     modal.addEventListener('click', e => {
-      if (e.target === modal) {
+      // 只有點擊到 overlay 本身才關閉，避免事件冒泡影響按鈕
+      if (e.target === modal && !e.target.closest('.memory-modal-content')) {
+        e.preventDefault();
+        e.stopPropagation();
         modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
         setTimeout(() => {
           modal.remove();
           style.remove();
         }, 200);
       }
-    });
+    }, { capture: false });
   }
 
   // 檢查設定並決定是否顯示模態窗
