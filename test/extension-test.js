@@ -8,7 +8,7 @@ class ExtensionTester {
   }
 
   init() {
-    console.log('🧪 開始測試 ChatGPT Memory Manager 擴充套件');
+    console.log(' 開始測試 ChatGPT Memory Manager 擴充套件');
     this.runTests();
   }
 
@@ -116,15 +116,15 @@ class ExtensionTester {
   }
 
   showResults() {
-    console.log('\n📊 測試結果摘要:');
+    console.log('\n 測試結果摘要:');
     console.log('='.repeat(50));
 
     let passedCount = 0;
     let totalCount = this.testResults.length;
 
     this.testResults.forEach((result, index) => {
-      const status = result.passed ? '✅ 通過' : '❌ 失敗';
-      const icon = result.passed ? '✅' : '❌';
+      const status = result.passed ? '- [x] 通過' : '- [ ] 失敗';
+      const icon = result.passed ? '- [x]' : '- [ ]';
 
       console.log(`${index + 1}. ${result.name}: ${status}`);
       console.log(`   ${result.message}`);
@@ -137,9 +137,9 @@ class ExtensionTester {
     console.log(`總計: ${passedCount}/${totalCount} 項測試通過`);
 
     if (passedCount === totalCount) {
-      console.log('🎉 所有測試都通過了！擴充套件運作正常。');
+      console.log(' 所有測試都通過了！擴充套件運作正常。');
     } else {
-      console.log('⚠️  有部分測試失敗，請檢查擴充套件配置。');
+      console.log('  有部分測試失敗，請檢查擴充套件配置。');
     }
 
     // 將結果儲存到全域變數以供檢查
@@ -178,6 +178,6 @@ setTimeout(() => {
 // 提供手動測試介面
 window.testExtension = ExtensionTester.runSingleTest;
 
-console.log('🔧 擴充套件測試工具已載入');
-console.log('💡 使用 testExtension("testName") 執行單項測試');
+console.log(' 擴充套件測試工具已載入');
+console.log(' 使用 testExtension("testName") 執行單項測試');
 console.log('   可用測試: content, memory, message, dom');
