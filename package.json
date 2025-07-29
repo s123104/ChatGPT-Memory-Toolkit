@@ -1,16 +1,20 @@
 {
   "name": "chatgpt-memory-manager",
-  "version": "1.3.0",
+  "version": "1.4.1",
+  "type": "module",
   "description": "專業的 ChatGPT 記憶管理 Chrome 擴充套件，支援智能檢測、多格式匯出、歷史記錄管理和自動提醒功能",
   "main": "src/scripts/content.js",
   "scripts": {
     "build": "node scripts/build.js",
-    "lint": "eslint src/**/*.js",
-    "format": "prettier --write src/**/*.{js,html,css}",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:format": "npm run lint:fix && npm run format",
     "dev": "npm run lint && npm run build",
-    "version:update": "node scripts/update-version.js",
-    "version:update:auto": "node scripts/update-version.js --auto-commit",
-    "version:update:full": "node scripts/update-version.js --auto-commit --auto-tag",
+    "version:update": "node scripts/update-version.cjs",
+    "version:update:auto": "node scripts/update-version.cjs --auto-commit",
+    "version:update:full": "node scripts/update-version.cjs --auto-commit --auto-tag",
     "version:patch": "npm version patch --no-git-tag-version && npm run version:update",
     "version:patch:auto": "npm version patch --no-git-tag-version && npm run version:update:full",
     "version:minor": "npm version minor --no-git-tag-version && npm run version:update",
@@ -32,11 +36,16 @@
   "author": "ChatGPT Memory Toolkit Team",
   "license": "MIT",
   "devDependencies": {
-    "eslint": "^8.57.0",
-    "prettier": "^3.0.0"
+    "eslint": "^9.21.0",
+    "@eslint/js": "^9.21.0",
+    "globals": "^15.15.0",
+    "eslint-plugin-security": "^3.0.1",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.18.0"
   },
   "browserslist": [
     "last 2 Chrome versions"

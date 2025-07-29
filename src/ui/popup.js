@@ -195,7 +195,9 @@ class ModernPopupManager {
 
   async handleExport() {
     const exportBtn = document.getElementById('exportBtn');
-    if (!exportBtn || exportBtn.disabled) return;
+    if (!exportBtn || exportBtn.disabled) {
+      return;
+    }
 
     if (!this.currentTab?.url?.includes('chatgpt.com')) {
       this.showError('請前往 ChatGPT 網站');
@@ -218,7 +220,9 @@ class ModernPopupManager {
         if (response.markdown) {
           window.__lastMarkdown = response.markdown;
           const copyBtn = document.getElementById('copyBtn');
-          if (copyBtn) copyBtn.disabled = false;
+          if (copyBtn) {
+            copyBtn.disabled = false;
+          }
 
           // 儲存到歷史記錄
           await this.saveToHistory({
@@ -246,7 +250,9 @@ class ModernPopupManager {
 
   async handleCopy() {
     const copyBtn = document.getElementById('copyBtn');
-    if (!copyBtn || copyBtn.disabled) return;
+    if (!copyBtn || copyBtn.disabled) {
+      return;
+    }
 
     try {
       let markdown = window.__lastMarkdown;
@@ -281,7 +287,9 @@ class ModernPopupManager {
 
   async handleRefresh() {
     const refreshBtn = document.getElementById('refreshBtn');
-    if (!refreshBtn) return;
+    if (!refreshBtn) {
+      return;
+    }
 
     // 添加旋轉動畫
     refreshBtn.style.transform = 'rotate(360deg)';
@@ -299,7 +307,7 @@ class ModernPopupManager {
     if (this.currentTab?.url?.includes('chatgpt.com')) {
       // 在當前分頁中添加hash參數
       const currentUrl = this.currentTab.url;
-      const newUrl = currentUrl.split('#')[0] + '#settings/Personalization';
+      const newUrl = `${currentUrl.split('#')[0]}#settings/Personalization`;
       chrome.tabs.update(this.currentTab.id, {
         url: newUrl,
       });
@@ -327,7 +335,9 @@ class ModernPopupManager {
     button.classList.remove('loading', 'error');
     button.classList.add('success');
     const textEl = button.querySelector('.btn-text');
-    if (textEl) textEl.textContent = text;
+    if (textEl) {
+      textEl.textContent = text;
+    }
   }
 
   setButtonError(button, text) {
@@ -335,14 +345,18 @@ class ModernPopupManager {
     button.classList.remove('loading', 'success');
     button.classList.add('error');
     const textEl = button.querySelector('.btn-text');
-    if (textEl) textEl.textContent = text;
+    if (textEl) {
+      textEl.textContent = text;
+    }
   }
 
   resetButton(button, originalText) {
     button.disabled = false;
     button.classList.remove('loading', 'success', 'error');
     const textEl = button.querySelector('.btn-text');
-    if (textEl) textEl.textContent = originalText;
+    if (textEl) {
+      textEl.textContent = originalText;
+    }
   }
 
   showError(message) {
@@ -371,8 +385,12 @@ class ModernPopupManager {
     // 禁用所有按鈕
     const exportBtn = document.getElementById('exportBtn');
     const copyBtn = document.getElementById('copyBtn');
-    if (exportBtn) exportBtn.disabled = true;
-    if (copyBtn) copyBtn.disabled = true;
+    if (exportBtn) {
+      exportBtn.disabled = true;
+    }
+    if (copyBtn) {
+      copyBtn.disabled = true;
+    }
   }
 
   updateConnectionStatus(connected) {
@@ -474,7 +492,9 @@ class ModernPopupManager {
 
   // 儲存到歷史記錄
   async saveToHistory(memoryData) {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       await this.storageManager.saveMemoryHistory(memoryData);
@@ -509,7 +529,9 @@ class ModernPopupManager {
 
   // 載入歷史記錄
   async loadHistory() {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       const history = await this.storageManager.getMemoryHistory();
@@ -578,7 +600,9 @@ class ModernPopupManager {
 
   // 取得內容預覽
   getPreview(content) {
-    if (!content) return '無內容';
+    if (!content) {
+      return '無內容';
+    }
 
     // 移除 Markdown 標記並取得前 100 個字元
     const plainText = content
@@ -590,13 +614,15 @@ class ModernPopupManager {
       .trim();
 
     return plainText.length > 100
-      ? plainText.substring(0, 100) + '...'
+      ? `${plainText.substring(0, 100)}...`
       : plainText;
   }
 
   // 載入歷史項目
   async loadHistoryItem(id) {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       const history = await this.storageManager.getMemoryHistory();
@@ -605,7 +631,9 @@ class ModernPopupManager {
       if (item) {
         window.__lastMarkdown = item.content;
         const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) copyBtn.disabled = false;
+        if (copyBtn) {
+          copyBtn.disabled = false;
+        }
 
         // 顯示載入成功的提示
         this.showToast('歷史記錄已載入');
@@ -617,7 +645,9 @@ class ModernPopupManager {
 
   // 複製歷史項目
   async copyHistoryItem(id) {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       const history = await this.storageManager.getMemoryHistory();
@@ -635,7 +665,9 @@ class ModernPopupManager {
 
   // 刪除歷史項目
   async deleteHistoryItem(id) {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       await this.storageManager.deleteHistoryItem(id);
@@ -649,7 +681,9 @@ class ModernPopupManager {
 
   // 清空歷史記錄
   async clearHistory() {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     if (confirm('確定要清空所有歷史記錄嗎？此操作無法復原。')) {
       try {
@@ -688,7 +722,9 @@ class ModernPopupManager {
 
   // 載入設定
   async loadSettings() {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       this.settings = await this.storageManager.getSettings();
@@ -700,12 +736,15 @@ class ModernPopupManager {
       const maxHistorySelect = document.getElementById('maxHistorySelect');
       const autoCleanupToggle = document.getElementById('autoCleanupToggle');
 
-      if (autoShowModalToggle)
+      if (autoShowModalToggle) {
         autoShowModalToggle.checked = this.settings.autoShowModal;
-      if (maxHistorySelect)
+      }
+      if (maxHistorySelect) {
         maxHistorySelect.value = this.settings.maxHistoryItems;
-      if (autoCleanupToggle)
+      }
+      if (autoCleanupToggle) {
         autoCleanupToggle.checked = this.settings.autoCleanup;
+      }
 
       await this.updateStorageInfo();
     } catch (error) {
@@ -715,7 +754,9 @@ class ModernPopupManager {
 
   // 更新設定
   async updateSetting(key, value) {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       this.settings[key] = value;
@@ -728,7 +769,9 @@ class ModernPopupManager {
 
   // 更新儲存資訊
   async updateStorageInfo() {
-    if (!this.storageManager) return;
+    if (!this.storageManager) {
+      return;
+    }
 
     try {
       const usage = await this.storageManager.getStorageUsage();

@@ -67,7 +67,7 @@ class StorageManager {
       const timestamp = new Date().toISOString();
       const historyItem = {
         id: this.generateId(),
-        timestamp: timestamp,
+        timestamp,
         date: new Date().toLocaleDateString('zh-TW'),
         time: new Date().toLocaleTimeString('zh-TW', {
           hour: '2-digit',
@@ -93,7 +93,7 @@ class StorageManager {
         updatedHistory = [...existingHistory];
         updatedHistory[existingIndex] = {
           ...updatedHistory[existingIndex],
-          timestamp: timestamp,
+          timestamp,
           date: historyItem.date,
           time: historyItem.time,
         };
@@ -197,7 +197,9 @@ class StorageManager {
   // 生成內容雜湊值
   generateContentHash(content) {
     let hash = 0;
-    if (content.length === 0) return hash.toString();
+    if (content.length === 0) {
+      return hash.toString();
+    }
 
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
@@ -225,7 +227,7 @@ class StorageManager {
         exportDate: new Date().toISOString(),
         version: '1.0.0',
         totalItems: history.length,
-        history: history,
+        history,
       };
 
       return JSON.stringify(exportData, null, 2);

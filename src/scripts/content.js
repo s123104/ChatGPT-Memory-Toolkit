@@ -47,7 +47,9 @@
 
   // 檢查元素是否可見
   const isVisible = element => {
-    if (!element || !(element instanceof Element)) return false;
+    if (!element || !(element instanceof Element)) {
+      return false;
+    }
     const style = getComputedStyle(element);
     if (
       style.display === 'none' ||
@@ -57,7 +59,9 @@
       return false;
     }
     const rect = element.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return false;
+    if (rect.width === 0 || rect.height === 0) {
+      return false;
+    }
     return !(
       rect.bottom < 0 ||
       rect.top > innerHeight ||
@@ -80,7 +84,9 @@
       const startTime = performance.now();
 
       const check = () => {
-        if (done) return;
+        if (done) {
+          return;
+        }
         try {
           const result = checkFunction();
           if (result) {
@@ -123,7 +129,9 @@
 
   // 模擬人類點擊
   async function humanClick(element) {
-    if (!(element instanceof Element)) throw new Error('humanClick: 不是元素');
+    if (!(element instanceof Element)) {
+      throw new Error('humanClick: 不是元素');
+    }
 
     element.scrollIntoView({ block: 'center', inline: 'center' });
     await raf();
@@ -174,7 +182,7 @@
     if (location.href.includes('chatgpt.com')) {
       // 獲取當前 URL（不包含 hash 部分）
       const currentUrl = location.origin + location.pathname + location.search;
-      const targetUrl = currentUrl + '#settings/Personalization';
+      const targetUrl = `${currentUrl}#settings/Personalization`;
 
       log('跳轉到個人化設定:', targetUrl);
 
@@ -244,7 +252,9 @@
 
     while ((node = walker.nextNode())) {
       const text = node.textContent?.trim();
-      if (text) texts.push(text);
+      if (text) {
+        texts.push(text);
+      }
     }
 
     const joinedText = texts.join(' ');
@@ -270,7 +280,9 @@
   async function readUsageAndClickManage(panelRoot) {
     const section = await waitFor(() => {
       const headers = findMemoryElements(panelRoot);
-      if (!headers.length) return null;
+      if (!headers.length) {
+        return null;
+      }
       headers.sort(
         (a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top
       );
@@ -308,7 +320,9 @@
       const root =
         heading.closest('.popover,[role="dialog"],[aria-modal="true"]') ||
         heading.closest('div[id],section,div');
-      if (root && isVisible(root)) return root;
+      if (root && isVisible(root)) {
+        return root;
+      }
     }
     return null;
   }
@@ -367,7 +381,9 @@
           .replace(/\s+\n/g, '\n')
           .replace(/[ \t]+/g, ' ')
           .trim();
-        if (text) results.push(text);
+        if (text) {
+          results.push(text);
+        }
       }
       return results;
     }
@@ -379,7 +395,9 @@
           .replace(/\s+\n/g, '\n')
           .replace(/[ \t]+/g, ' ')
           .trim();
-        if (text) results.push(text);
+        if (text) {
+          results.push(text);
+        }
       });
 
     return results;
@@ -406,8 +424,9 @@
 
     if (!table || !table.querySelector('tbody > tr')) {
       const fallbackResults = collectRowsFallback(modalRoot);
-      if (fallbackResults.length)
+      if (fallbackResults.length) {
         return { mode: 'fallback', table: null, scroller };
+      }
     }
 
     return { mode: table ? 'table' : 'fallback', table, scroller };
@@ -441,7 +460,9 @@
           .filter(isVisible)
           .forEach(row => {
             const text = getRowText(row);
-            if (text) memorySet.add(text);
+            if (text) {
+              memorySet.add(text);
+            }
           });
       } else {
         collectRowsFallback(modalRoot).forEach(text => memorySet.add(text));
@@ -458,7 +479,7 @@
           bubbles: true,
           cancelable: true,
           deltaX: 0,
-          deltaY: deltaY,
+          deltaY,
         })
       );
     };
@@ -545,7 +566,7 @@
     const header = `# ${title || '儲存的記憶'}`;
     const usage = usageText ? `\n> 使用量：${usageText}\n` : '';
     const itemList = items.length
-      ? '\n' + items.map((text, index) => `${index + 1}. ${text}`).join('\n')
+      ? `\n${items.map((text, index) => `${index + 1}. ${text}`).join('\n')}`
       : '\n（無資料）';
     return `${header}${usage}\n共 ${items.length} 筆\n${itemList}\n`;
   }
@@ -620,12 +641,19 @@
     return currentStatus;
   }
 
+  // 防止模態窗重複顯示的全域標記
+  let isModalShowing = false;
+
   // 顯示自動提醒模態窗
   function showAutoExportModal() {
-    // 檢查是否已經有模態窗
-    if (document.getElementById('memoryFullModal')) {
+    // 檢查是否已經有模態窗或正在顯示
+    if (document.getElementById('memoryFullModal') || isModalShowing) {
+      log('模態窗已在顯示中，跳過重複顯示');
       return;
     }
+
+    // 設置顯示標記
+    isModalShowing = true;
 
     const modal = document.createElement('div');
     modal.id = 'memoryFullModal';
@@ -698,8 +726,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -715,7 +744,7 @@
         padding: 0;
         max-width: 420px;
         width: 90%;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.1);
         border: 1px solid var(--modal-border-light, #e2e8f0);
         overflow: hidden;
         animation: modalSlideIn 0.3s ease-out;
@@ -729,7 +758,17 @@
         align-items: center;
         gap: 16px;
         padding: 24px;
-        background: var(--modal-header-bg, linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%));
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        position: relative;
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent);
+        }
         border-bottom: 1px solid var(--modal-border-light, #e2e8f0);
       }
 
@@ -737,12 +776,13 @@
         width: 48px;
         height: 48px;
         border-radius: 12px;
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3);
+        box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.2);
       }
 
       .memory-modal-title-section {
@@ -779,6 +819,7 @@
 
       .memory-status-dot.warning {
         background: #f59e0b;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
       }
 
       .memory-modal-body {
@@ -797,6 +838,7 @@
         width: 24px;
         height: 24px;
         color: #f59e0b;
+        filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
         margin-top: 2px;
       }
 
@@ -829,7 +871,8 @@
 
       .usage-fill {
         height: 100%;
-        background: linear-gradient(90deg, #f59e0b 0%, #dc2626 100%);
+        background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
         border-radius: 4px;
         transition: width 0.3s ease;
       }
@@ -922,14 +965,16 @@
       }
 
       .memory-modal-btn.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
-        box-shadow: 0 4px 6px -1px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
 
       .memory-modal-btn.primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 8px -1px rgba(102, 126, 234, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       }
 
       .memory-modal-btn.secondary {
@@ -1025,110 +1070,88 @@
     document.head.appendChild(style);
     document.body.appendChild(modal);
 
-    // 添加選項互斥邏輯
-    const remindLaterCheck = document.getElementById('remindLaterCheck');
-    const neverRemindCheck = document.getElementById('neverRemindCheck');
-
-    remindLaterCheck.addEventListener('change', () => {
-      if (remindLaterCheck.checked) {
-        neverRemindCheck.checked = false;
-      }
-    });
-
-    neverRemindCheck.addEventListener('change', () => {
-      if (neverRemindCheck.checked) {
-        remindLaterCheck.checked = false;
-      }
-    });
-
-    // 等待DOM渲染完成後添加事件監聽器
-    setTimeout(() => {
-      // 取消按鈕事件處理
-      const cancelBtn = document.getElementById('modalCancelBtn');
-      if (cancelBtn) {
-        // 移除可能存在的事件監聽器
-        const newCancelBtn = cancelBtn.cloneNode(true);
-        cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
-        
-        newCancelBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          try {
-            // 設置24小時後再提醒
-            const tomorrow = new Date();
-            tomorrow.setHours(tomorrow.getHours() + 24);
-            await chrome.storage.local.set({
-              memoryFullReminderDisabled: tomorrow.getTime(),
-            });
-            log('已設置24小時內不再提醒');
-          } catch (error) {
-            log('設置提醒失敗:', error);
-          }
-
-          modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
-          setTimeout(() => {
-            modal.remove();
-            style.remove();
-          }, 200);
-        }, { passive: false, capture: true });
-      }
-
-      // 匯出按鈕事件處理
-      const exportBtn = document.getElementById('modalExportBtn');
-      if (exportBtn) {
-        // 移除可能存在的事件監聽器
-        const newExportBtn = exportBtn.cloneNode(true);
-        exportBtn.parentNode.replaceChild(newExportBtn, exportBtn);
-        
-        newExportBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          newExportBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
-              <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
-            </svg>
-            <span>匯出中...</span>
-          `;
-          newExportBtn.disabled = true;
-
-          try {
-            await mainFlow();
-            // 匯出成功後顯示結果模態窗
-            showExportResultModal();
-            modal.remove();
-            style.remove();
-          } catch (error) {
-            warn('模態窗匯出失敗:', error);
-            newExportBtn.innerHTML = `
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
-              </svg>
-              <span>匯出失敗</span>
-            `;
-            setTimeout(() => {
-              modal.remove();
-              style.remove();
-            }, 2000);
-          }
-        }, { passive: false, capture: true });
-      }
-    }, 100);
-
-    // 點擊背景關閉 - 但不影響按鈕點擊
-    modal.addEventListener('click', e => {
-      // 只有點擊到 overlay 本身才關閉，避免事件冒泡影響按鈕
-      if (e.target === modal && !e.target.closest('.memory-modal-content')) {
+    // 立即添加事件監聽器
+    const cancelBtn = document.getElementById('modalCancelBtn');
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', async e => {
         e.preventDefault();
         e.stopPropagation();
+
+        try {
+          // 設置24小時後再提醒
+          const tomorrow = new Date();
+          tomorrow.setHours(tomorrow.getHours() + 24);
+          await chrome.storage.local.set({
+            memoryFullReminderDisabled: tomorrow.getTime(),
+          });
+          log('已設置24小時內不再提醒');
+        } catch (error) {
+          log('設置提醒失敗:', error);
+        }
+
+        // 重置顯示標記
+        isModalShowing = false;
+        modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
+        setTimeout(() => {
+          modal.remove();
+          style.remove();
+        }, 200);
+      });
+    }
+
+    // 匯出按鈕事件處理
+    const exportBtn = document.getElementById('modalExportBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', async e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        exportBtn.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="animation: spin 1s linear infinite;">
+            <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+          </svg>
+          <span>匯出中...</span>
+        `;
+        exportBtn.disabled = true;
+
+        try {
+          await mainFlow();
+          // 匯出成功後顯示結果模態窗
+          showExportResultModal();
+          // 重置顯示標記
+          isModalShowing = false;
+          modal.remove();
+          style.remove();
+        } catch (error) {
+          warn('模態窗匯出失敗:', error);
+          exportBtn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+            </svg>
+            <span>匯出失敗</span>
+          `;
+          setTimeout(() => {
+            // 重置顯示標記
+            isModalShowing = false;
+            modal.remove();
+            style.remove();
+          }, 2000);
+        }
+      });
+    }
+
+    // 點擊背景關閉
+    modal.addEventListener('click', e => {
+      if (e.target === modal) {
+        // 重置顯示標記
+        isModalShowing = false;
         modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
         setTimeout(() => {
           modal.remove();
           style.remove();
         }, 200);
       }
-    }, { capture: false });
+    });
   }
 
   // 顯示匯出結果模態窗
@@ -1249,7 +1272,8 @@
     style.textContent = `
       .memory-modal-icon.success {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.2);
       }
 
       .memory-status-dot.success {
@@ -1315,21 +1339,23 @@
         gap: 8px;
         padding: 12px 16px;
         border: 1px solid #e2e8f0;
-        background: #ffffff;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
         color: #475569;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 13px;
         font-weight: 500;
         cursor: pointer;
         transition: all 0.2s ease;
         justify-content: center;
+        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
       }
 
       .export-action-btn:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-color: #3b82f6;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.2);
+        color: #3b82f6;
       }
 
       .export-action-btn:active {
@@ -1341,9 +1367,10 @@
       }
 
       .export-action-btn.success {
-        background: #dcfce7;
-        border-color: #16a34a;
-        color: #15803d;
+        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        border-color: #10b981;
+        color: #047857;
+        box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
       }
 
       @media (max-width: 480px) {
@@ -1453,18 +1480,22 @@
       });
 
     // 點擊背景關閉 - 但不影響按鈕點擊
-    modal.addEventListener('click', e => {
-      // 只有點擊到 overlay 本身才關閉，避免事件冒泡影響按鈕
-      if (e.target === modal && !e.target.closest('.memory-modal-content')) {
-        e.preventDefault();
-        e.stopPropagation();
-        modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
-        setTimeout(() => {
-          modal.remove();
-          style.remove();
-        }, 200);
-      }
-    }, { capture: false });
+    modal.addEventListener(
+      'click',
+      e => {
+        // 只有點擊到 overlay 本身才關閉，避免事件冒泡影響按鈕
+        if (e.target === modal && !e.target.closest('.memory-modal-content')) {
+          e.preventDefault();
+          e.stopPropagation();
+          modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
+          setTimeout(() => {
+            modal.remove();
+            style.remove();
+          }, 200);
+        }
+      },
+      { capture: false }
+    );
   }
 
   // 檢查設定並決定是否顯示模態窗
@@ -1554,78 +1585,80 @@
     log('收到訊息:', message);
 
     switch (message.action) {
-    case 'ping':
-      // 回應 ping 請求，確認 content script 已載入
-      sendResponse({ success: true, status: 'ready' });
-      break;
+      case 'ping':
+        // 回應 ping 請求，確認 content script 已載入
+        sendResponse({ success: true, status: 'ready' });
+        break;
 
-    case 'getMemoryStatus': {
-      // 回傳當前記憶狀態（不觸發匯出）
-      const status = checkMemoryStatus();
-      sendResponse({
-        success: true,
-        isFull: status.isFull,
-        timestamp: status.timestamp,
-        data: window.__memoryList || [],
-        usage: window.__memoryUsagePercent || null,
-        markdown: window.__memoryMarkdown || null,
-      });
-      break;
-    }
+      case 'getMemoryStatus': {
+        // 回傳當前記憶狀態（不觸發匯出）
+        const status = checkMemoryStatus();
+        sendResponse({
+          success: true,
+          isFull: status.isFull,
+          timestamp: status.timestamp,
+          data: window.__memoryList || [],
+          usage: window.__memoryUsagePercent || null,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
+      }
 
-    case 'getMemoryData':
-      // 回傳當前記憶資料（向後相容）
-      sendResponse({
-        success: true,
-        data: window.__memoryList || [],
-        usage: window.__memoryUsagePercent || null,
-        markdown: window.__memoryMarkdown || null,
-      });
-      break;
+      case 'getMemoryData':
+        // 回傳當前記憶資料（向後相容）
+        sendResponse({
+          success: true,
+          data: window.__memoryList || [],
+          usage: window.__memoryUsagePercent || null,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
 
-    case 'exportMemories':
-      // 執行匯出流程
-      (async () => {
-        try {
-          // 檢查當前頁面是否適合匯出
-          if (!location.href.includes('chatgpt.com')) {
+      case 'exportMemories':
+        // 執行匯出流程
+        (async () => {
+          try {
+            // 檢查當前頁面是否適合匯出
+            if (!location.href.includes('chatgpt.com')) {
+              sendResponse({
+                success: false,
+                error: '請在 ChatGPT 網站上使用此功能',
+              });
+              return;
+            }
+
+            log('開始匯出流程');
+            await mainFlow();
+
+            sendResponse({
+              success: true,
+              markdown: window.__memoryMarkdown || '',
+              data: window.__memoryList || [],
+              usage: window.__memoryUsagePercent || null,
+            });
+          } catch (error) {
+            warn('匯出失敗:', error);
             sendResponse({
               success: false,
-              error: '請在 ChatGPT 網站上使用此功能',
+              error: error.message || '匯出過程中發生錯誤',
             });
-            return;
           }
+        })();
+        return true; // 保持訊息通道開啟以支援非同步回應
 
-          log('開始匯出流程');
-          await mainFlow();
+      case 'getMarkdown':
+        // 回傳 Markdown 資料
+        sendResponse({
+          success: true,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
 
-          sendResponse({
-            success: true,
-            markdown: window.__memoryMarkdown || '',
-            data: window.__memoryList || [],
-            usage: window.__memoryUsagePercent || null,
-          });
-        } catch (error) {
-          warn('匯出失敗:', error);
-          sendResponse({
-            success: false,
-            error: error.message || '匯出過程中發生錯誤',
-          });
-        }
-      })();
-      return true; // 保持訊息通道開啟以支援非同步回應
-
-    case 'getMarkdown':
-      // 回傳 Markdown 資料
-      sendResponse({
-        success: true,
-        markdown: window.__memoryMarkdown || null,
-      });
-      break;
-
-    default:
-      sendResponse({ success: false, error: '未知的操作' });
+      default:
+        sendResponse({ success: false, error: '未知的操作' });
     }
+
+    return true; // 保持訊息通道開啟以支援非同步回應
   });
 
   // 初始化

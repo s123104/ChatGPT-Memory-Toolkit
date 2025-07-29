@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // Build configuration
 const BUILD_DIR = 'build';
@@ -70,7 +70,7 @@ function build() {
     }
   }
 
-  console.log(`\n✅ Build completed successfully!`);
+  console.log('\n✅ Build completed successfully!');
   console.log(`📦 Extension files are in: ${path.resolve(BUILD_DIR)}`);
   console.log('\n📋 To load the extension in Chrome:');
   console.log('1. Open Chrome and go to chrome://extensions/');
