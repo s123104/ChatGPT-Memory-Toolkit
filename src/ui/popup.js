@@ -100,41 +100,20 @@ class ModernPopupManager {
         const count = this.memoryData.length;
         const isFull = response.isFull || false;
 
-        // 狀態顯示將在下面根據使用量設置
+        // 更新狀態顯示
+        memoryStatusEl.textContent = isFull ? '記憶已滿' : '記憶正常';
 
-        // 解析使用量百分比
-        let usageNumber = 0;
-        if (usage && usage !== '--') {
-          const match = usage.match(/(\d+)%?/);
-          if (match) {
-            usageNumber = parseInt(match[1], 10);
-          }
-        }
-
-        // 根據使用量設置狀態卡片樣式
-        if (usageNumber >= 100 || isFull) {
-          statusCard.className = 'status-card modern error';
-          statusDot.className = 'status-dot error';
-          memoryStatusEl.textContent = '記憶已滿';
-        } else if (usageNumber >= 80) {
+        // 更新狀態卡片樣式
+        if (isFull) {
           statusCard.className = 'status-card modern warning';
           statusDot.className = 'status-dot warning';
-          memoryStatusEl.textContent = '記憶接近滿載';
         } else {
           statusCard.className = 'status-card modern success';
           statusDot.className = 'status-dot';
-          memoryStatusEl.textContent = '記憶正常';
         }
 
-        // 設置使用量顏色
-        usagePercentEl.textContent = usage;
-        if (usageNumber >= 100) {
-          usagePercentEl.style.color = 'var(--error-color)';
-        } else if (usageNumber >= 80) {
-          usagePercentEl.style.color = 'var(--warning-color)';
-        } else {
-          usagePercentEl.style.color = 'var(--success-color)';
-        }
+        // 更新使用量顯示和顏色
+        this.updateUsageDisplay(usagePercentEl, usage);
         memoryCountEl.textContent = count > 0 ? `${count} 筆` : '--';
 
         // 更新最後檢查時間
@@ -277,9 +256,11 @@ class ModernPopupManager {
 
   handleSettings() {
     if (this.currentTab?.url?.includes('chatgpt.com')) {
-      // 在當前分頁中開啟設定頁面
+      // 在當前分頁中添加hash參數
+      const currentUrl = this.currentTab.url;
+      const newUrl = currentUrl.split('#')[0] + '#settings/Personalization';
       chrome.tabs.update(this.currentTab.id, {
-        url: 'https://chatgpt.com/#settings/Personalization',
+        url: newUrl,
       });
       window.close();
     } else {
@@ -353,45 +334,6 @@ class ModernPopupManager {
     if (copyBtn) copyBtn.disabled = true;
   }
 
-  showNotOnChatGPT() {
-    const memoryStatusEl = document.getElementById('memoryStatus');
-    const statusCard = document.getElementById('statusCard');
-    const statusDot = document.getElementById('statusDot');
-    const actionSection = document.querySelector('.action-section');
-
-    if (memoryStatusEl) {
-      memoryStatusEl.textContent = '請前往 ChatGPT 網站';
-      statusCard.className = 'status-card modern warning';
-      statusDot.className = 'status-dot warning';
-    }
-
-    // 替換操作按鈕為前往 ChatGPT 按鈕
-    if (actionSection) {
-      actionSection.innerHTML = `
-        <button class="action-btn primary modern" id="gotoChatGPTBtn">
-          <div class="btn-content">
-            <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
-              <path fill="currentColor" d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
-            </svg>
-            <span class="btn-text">前往 ChatGPT 網站</span>
-          </div>
-          <div class="btn-ripple"></div>
-        </button>
-      `;
-
-      // 添加點擊事件
-      const gotoChatGPTBtn = document.getElementById('gotoChatGPTBtn');
-      if (gotoChatGPTBtn) {
-        gotoChatGPTBtn.addEventListener('click', () => {
-          chrome.tabs.create({ url: 'https://chatgpt.com' });
-          window.close();
-        });
-      }
-    }
-
-    this.updateConnectionStatus(false);
-  }
-
   updateConnectionStatus(connected) {
     const connectionStatus = document.getElementById('connectionStatus');
     if (connectionStatus) {
@@ -419,6 +361,70 @@ class ModernPopupManager {
         minute: '2-digit',
       });
     }
+  }
+
+  updateUsageDisplay(element, usage) {
+    element.textContent = usage;
+    
+    // 解析百分比並設置顏色
+    if (usage && usage !== '--') {
+      const percentage = parseInt(usage.replace('%', ''));
+      if (!isNaN(percentage)) {
+        element.classList.remove('usage-normal', 'usage-warning', 'usage-critical');
+        
+        if (percentage >= 100) {
+          element.classList.add('usage-critical');
+        } else if (percentage >= 80) {
+          element.classList.add('usage-warning');
+        } else {
+          element.classList.add('usage-normal');
+        }
+      }
+    }
+  }
+
+  showNotOnChatGPT() {
+    const memoryStatusEl = document.getElementById('memoryStatus');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
+    const actionSection = document.querySelector('.action-section');
+
+    if (memoryStatusEl) {
+      memoryStatusEl.textContent = '請前往 ChatGPT 網站';
+      statusCard.className = 'status-card modern warning';
+      statusDot.className = 'status-dot warning';
+    }
+
+    // 隱藏原本的按鈕，顯示 ChatGPT 導航按鈕
+    if (actionSection) {
+      actionSection.innerHTML = `
+        <button class="action-btn primary modern" id="goChatGPTBtn">
+          <div class="btn-content">
+            <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
+              <path
+                fill="currentColor"
+                d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+              />
+            </svg>
+            <span class="btn-text">前往 ChatGPT 網站</span>
+          </div>
+          <div class="btn-ripple"></div>
+        </button>
+      `;
+
+      // 添加點擊事件
+      const goChatGPTBtn = document.getElementById('goChatGPTBtn');
+      if (goChatGPTBtn) {
+        goChatGPTBtn.addEventListener('click', () => {
+          chrome.tabs.create({
+            url: 'https://chatgpt.com/',
+          });
+          window.close();
+        });
+      }
+    }
+
+    this.updateConnectionStatus(false);
   }
 
   // 清理資源
