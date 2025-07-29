@@ -1,32 +1,39 @@
 # Changelog
 
-本項目的所有重要變更都會記錄在此文件中。
+All notable changes to this project will be documented in this file.
 
-版本格式遵循 [Semantic Versioning](https://semver.org/lang/zh-TW/)。
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2024-01-15
+## [1.1.0] - 2025-01-29
 
-- feat: 新增歷史記錄管理功能
-- feat: 新增應用設定頁面
-- feat: 新增自動提醒模態窗
-- feat: 新增儲存使用量監控
-- improvement: 優化 UI 設計和用戶體驗
-- improvement: 改善記憶檢測精確度
-- improvement: 更新版本管理系統
-- fix: 修復導航邏輯問題
-- fix: 修復排版和樣式問題
+### Added
 
-## [1.0.0] - 2024-01-01
+- 📚 **History Management** - Complete export history tracking with preview and management
+- ⚙️ **Settings Panel** - Customizable auto-alerts and history limits
+- 🔔 **Auto Modal Alerts** - Smart notifications when memory is full
+- 📊 **Storage Monitoring** - Real-time Chrome storage usage tracking
+- 🛠️ **Development Tools** - ESLint, Prettier, and automated build system
 
-- feat: 初始發布版本
-- feat: ChatGPT 記憶自動檢測
-- feat: Markdown 格式匯出
-- feat: 一鍵複製到剪貼簿
-- feat: 現代化 UI 設計
+### Changed
 
+- 🎨 **Modern UI** - Redesigned popup interface with Material Design
+- 🧠 **Enhanced Detection** - Improved memory full detection logic
+- 📦 **Code Structure** - Complete project restructure with modular architecture
+- 🚀 **Build System** - Automated build process with quality checks
 
-## 版本說明
+### Fixed
 
-- **Major (主版本)**: 破壞性變更或重大功能重寫
-- **Minor (次版本)**: 新功能添加，向後相容  
-- **Patch (修訂版本)**: 錯誤修復和小幅改進
+- 🐛 **Export Stability** - Resolved memory export reliability issues
+- 🔧 **Popup Display** - Fixed popup window display problems
+- 📱 **Responsive Design** - Improved UI responsiveness across different screen sizes
+
+## [1.0.0] - 2024-01-15
+
+### Added
+
+- 🎉 **Initial Release**
+- 📤 **Basic Export** - Export ChatGPT memory in Markdown format
+- 🔍 **Auto Detection** - Automatically detect when memory is full
+- 📋 **Clipboard Copy** - Automatic clipboard integration
+- 🎯 **Chrome Extension** - Full Chrome extension implementation
