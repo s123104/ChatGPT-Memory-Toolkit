@@ -110,14 +110,28 @@
         <!-- Memory Info Grid -->
         <div class="info-grid">
           <div class="info-card">
-            <div class="info-icon">📊</div>
+            <div class="info-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"
+                />
+              </svg>
+            </div>
             <div class="info-content">
               <div class="info-label">使用量</div>
               <div class="info-value" id="usagePercent">--</div>
             </div>
           </div>
           <div class="info-card">
-            <div class="info-icon">💾</div>
+            <div class="info-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z"
+                />
+              </svg>
+            </div>
             <div class="info-content">
               <div class="info-label">記憶數量</div>
               <div class="info-value" id="memoryCount">--</div>
@@ -177,15 +191,31 @@
         <!-- Help Section -->
         <div class="help-section">
           <div class="help-item">
-            <div class="help-icon">💡</div>
+            <div class="help-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+            </div>
             <div class="help-text">
-              <strong>自動檢測：</strong>當記憶已滿時會自動匯出
+              <div class="help-title">自動檢測</div>
+              <div class="help-desc">當記憶已滿時會自動匯出</div>
             </div>
           </div>
           <div class="help-item">
-            <div class="help-icon">🎯</div>
+            <div class="help-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4L13.09,8.26L22,12L13.09,15.74L12,20L10.91,15.74L2,12L10.91,8.26L12,4Z"
+                />
+              </svg>
+            </div>
             <div class="help-text">
-              <strong>使用方式：</strong>前往 ChatGPT 記憶管理頁面
+              <div class="help-title">使用方式</div>
+              <div class="help-desc">前往 ChatGPT 記憶管理頁面</div>
             </div>
           </div>
         </div>

@@ -170,10 +170,15 @@
 
   // 開啟個人化設定頁面
   async function openPersonalizationSettings() {
-    if (!location.href.startsWith(CONFIG.targetURL)) {
-      location.href = CONFIG.targetURL;
+    // 如果在 ChatGPT 網站，只需要添加 hash
+    if (location.href.includes('chatgpt.com')) {
+      // 如果當前 URL 沒有 settings hash，則添加
+      if (!location.hash.includes('settings/Personalization')) {
+        location.hash = '#settings/Personalization';
+      }
     } else {
-      location.hash = '#settings/Personalization';
+      // 如果不在 ChatGPT 網站，則跳轉到完整 URL
+      location.href = CONFIG.targetURL;
     }
 
     const tab = await waitForVisible(

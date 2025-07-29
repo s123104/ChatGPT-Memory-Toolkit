@@ -80,10 +80,7 @@ class ModernPopupManager {
 
     // 檢查是否在 ChatGPT 網站
     if (!this.currentTab.url?.includes('chatgpt.com')) {
-      memoryStatusEl.textContent = '請前往 ChatGPT 網站';
-      statusCard.className = 'status-card modern warning';
-      statusDot.className = 'status-dot warning';
-      this.updateConnectionStatus(false);
+      this.showNotOnChatGPT();
       return;
     }
 
@@ -103,19 +100,41 @@ class ModernPopupManager {
         const count = this.memoryData.length;
         const isFull = response.isFull || false;
 
-        // 更新狀態顯示
-        memoryStatusEl.textContent = isFull ? '記憶已滿' : '記憶正常';
+        // 狀態顯示將在下面根據使用量設置
 
-        // 更新狀態卡片樣式
-        if (isFull) {
+        // 解析使用量百分比
+        let usageNumber = 0;
+        if (usage && usage !== '--') {
+          const match = usage.match(/(\d+)%?/);
+          if (match) {
+            usageNumber = parseInt(match[1], 10);
+          }
+        }
+
+        // 根據使用量設置狀態卡片樣式
+        if (usageNumber >= 100 || isFull) {
+          statusCard.className = 'status-card modern error';
+          statusDot.className = 'status-dot error';
+          memoryStatusEl.textContent = '記憶已滿';
+        } else if (usageNumber >= 80) {
           statusCard.className = 'status-card modern warning';
           statusDot.className = 'status-dot warning';
+          memoryStatusEl.textContent = '記憶接近滿載';
         } else {
           statusCard.className = 'status-card modern success';
           statusDot.className = 'status-dot';
+          memoryStatusEl.textContent = '記憶正常';
         }
 
+        // 設置使用量顏色
         usagePercentEl.textContent = usage;
+        if (usageNumber >= 100) {
+          usagePercentEl.style.color = 'var(--error-color)';
+        } else if (usageNumber >= 80) {
+          usagePercentEl.style.color = 'var(--warning-color)';
+        } else {
+          usagePercentEl.style.color = 'var(--success-color)';
+        }
         memoryCountEl.textContent = count > 0 ? `${count} 筆` : '--';
 
         // 更新最後檢查時間
@@ -332,6 +351,45 @@ class ModernPopupManager {
     const copyBtn = document.getElementById('copyBtn');
     if (exportBtn) exportBtn.disabled = true;
     if (copyBtn) copyBtn.disabled = true;
+  }
+
+  showNotOnChatGPT() {
+    const memoryStatusEl = document.getElementById('memoryStatus');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
+    const actionSection = document.querySelector('.action-section');
+
+    if (memoryStatusEl) {
+      memoryStatusEl.textContent = '請前往 ChatGPT 網站';
+      statusCard.className = 'status-card modern warning';
+      statusDot.className = 'status-dot warning';
+    }
+
+    // 替換操作按鈕為前往 ChatGPT 按鈕
+    if (actionSection) {
+      actionSection.innerHTML = `
+        <button class="action-btn primary modern" id="gotoChatGPTBtn">
+          <div class="btn-content">
+            <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
+              <path fill="currentColor" d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"/>
+            </svg>
+            <span class="btn-text">前往 ChatGPT 網站</span>
+          </div>
+          <div class="btn-ripple"></div>
+        </button>
+      `;
+
+      // 添加點擊事件
+      const gotoChatGPTBtn = document.getElementById('gotoChatGPTBtn');
+      if (gotoChatGPTBtn) {
+        gotoChatGPTBtn.addEventListener('click', () => {
+          chrome.tabs.create({ url: 'https://chatgpt.com' });
+          window.close();
+        });
+      }
+    }
+
+    this.updateConnectionStatus(false);
   }
 
   updateConnectionStatus(connected) {
