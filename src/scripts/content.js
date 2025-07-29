@@ -579,9 +579,7 @@
     try {
       await navigator.clipboard.writeText(markdown);
       console.info('[Memory Manager] Markdown 已複製到剪貼簿');
-    } catch (error) {
-      console.warn('[Memory Manager] 無法複製到剪貼簿:', error);
-    }
+    } catch (error) {}
 
     log(`完成：共收集 ${items.length} 筆記憶`);
     return markdown;
