@@ -1710,7 +1710,9 @@
       const settings = result.settings || {};
 
       // 只有在開發者模式啟用時才設置開發者工具
+      console.log('🔍 檢查開發者模式設定:', settings.developerMode);
       if (settings.developerMode) {
+        console.log('✅ 開發者模式已啟用，設置開發者工具...');
         window.memoryManagerDev = {
           // 清除24小時不再提醒設定
           clearReminderBlock: async () => {
