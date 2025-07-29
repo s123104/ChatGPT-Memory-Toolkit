@@ -3,26 +3,26 @@ module.exports = {
     browser: true,
     es2021: true,
     webextensions: true,
-    jest: true
+    jest: true,
   },
-  extends: [
-    'eslint:recommended'
-  ],
+  extends: ['eslint:recommended'],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
   },
   globals: {
-    chrome: 'readonly'
+    chrome: 'readonly',
+    StorageManager: 'readonly',
   },
   rules: {
-    'indent': ['error', 2],
-    'linebreak-style': ['error', 'unix'],
-    'quotes': ['error', 'single'],
-    'semi': ['error', 'always'],
-    'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
-    'no-console': 'warn',
+    indent: ['error', 2],
+    'linebreak-style': 'off', // Disable for Windows compatibility
+    quotes: ['error', 'single'],
+    semi: ['error', 'always'],
+    'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    'no-console': 'off', // Allow console for extension debugging
     'prefer-const': 'error',
-    'no-var': 'error'
-  }
+    'no-var': 'error',
+    'no-empty': ['error', { allowEmptyCatch: true }],
+  },
 };

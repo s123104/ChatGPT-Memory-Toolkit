@@ -1,0 +1,40 @@
+{
+  "version": "1.1.0",
+  "name": "ChatGPT Memory Toolkit",
+  "description": "專業的 ChatGPT 記憶管理 Chrome 擴充套件，支援智能檢測、多格式匯出、歷史記錄管理和自動提醒功能",
+  "author": "ChatGPT Memory Toolkit Team",
+  "buildDate": "2024-01-15",
+  "changelog": {
+    "1.1.0": {
+      "date": "2024-01-15",
+      "type": "minor",
+      "changes": [
+        "feat: 新增歷史記錄管理功能",
+        "feat: 新增應用設定頁面",
+        "feat: 新增自動提醒模態窗",
+        "feat: 新增儲存使用量監控",
+        "improvement: 優化 UI 設計和用戶體驗",
+        "improvement: 改善記憶檢測精確度",
+        "improvement: 更新版本管理系統",
+        "fix: 修復導航邏輯問題",
+        "fix: 修復排版和樣式問題"
+      ]
+    },
+    "1.0.0": {
+      "date": "2024-01-01", 
+      "type": "major",
+      "changes": [
+        "feat: 初始發布版本",
+        "feat: ChatGPT 記憶自動檢測",
+        "feat: Markdown 格式匯出",
+        "feat: 一鍵複製到剪貼簿",
+        "feat: 現代化 UI 設計"
+      ]
+    }
+  },
+  "semantic": {
+    "major": "破壞性變更或重大功能重寫",
+    "minor": "新功能添加，向後相容",
+    "patch": "錯誤修復和小幅改進"
+  }
+}

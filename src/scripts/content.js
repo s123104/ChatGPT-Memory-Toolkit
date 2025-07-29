@@ -322,7 +322,7 @@
 
   // 定位表格和滾動容器
   function locateTableAndScroller(modalRoot) {
-    let table = modalRoot.querySelector('table');
+    const table = modalRoot.querySelector('table');
     let scroller =
       table?.closest('[class*="overflow-y"],[style*="overflow-y"]') || null;
 
@@ -390,10 +390,10 @@
     let { table, scroller } = locateTableAndScroller(modalRoot);
 
     if (!table) {
-      await waitFor(
-        () => (table = modalRoot.querySelector('table')) || null,
-        CONFIG.waitTableMs
-      ).catch(() => {});
+      await waitFor(() => {
+        const foundTable = modalRoot.querySelector('table');
+        return foundTable || null;
+      }, CONFIG.waitTableMs).catch(() => {});
       ({ table, scroller } = locateTableAndScroller(modalRoot));
     }
 
@@ -426,7 +426,7 @@
         .replace(/\s+\n/g, '\n')
         .replace(/[ \t]+/g, ' ')
         .trim();
-    } catch {
+    } catch (error) {
       return '';
     }
   }
@@ -629,72 +629,23 @@
 
     const modal = document.createElement('div');
     modal.id = 'memoryFullModal';
-    modal.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      ">
-        <div style="
-          background: white;
-          border-radius: 12px;
-          padding: 24px;
-          max-width: 400px;
-          width: 90%;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        ">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="
-              width: 40px;
-              height: 40px;
-              border-radius: 8px;
-              background: #f59e0b;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: white;
-              font-size: 20px;
-            ">⚠️</div>
-            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">記憶已滿</h3>
-          </div>
-          <p style="margin: 0 0 20px 0; color: #6b7280; line-height: 1.5;">
-            您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。
-          </p>
-          <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button id="modalCancelBtn" style="
-              padding: 8px 16px;
-              border: 1px solid #d1d5db;
-              background: #f9fafb;
-              color: #374151;
-              border-radius: 6px;
-              font-size: 14px;
-              font-weight: 500;
-              cursor: pointer;
-              transition: all 0.2s ease;
-            ">稍後處理</button>
-            <button id="modalExportBtn" style="
-              padding: 8px 16px;
-              border: none;
-              background: #667eea;
-              color: white;
-              border-radius: 6px;
-              font-size: 14px;
-              font-weight: 500;
-              cursor: pointer;
-              transition: all 0.2s ease;
-            ">立即匯出</button>
-          </div>
-        </div>
-      </div>
-    `;
+    const modalHTML = [
+      '<div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 10000; font-family: -apple-system, BlinkMacSystemFont, \'Segoe UI\', Roboto, sans-serif;">',
+      '  <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">',
+      '    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">',
+      '      <div style="width: 40px; height: 40px; border-radius: 8px; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;">⚠️</div>',
+      '      <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">記憶已滿</h3>',
+      '    </div>',
+      '    <p style="margin: 0 0 20px 0; color: #6b7280; line-height: 1.5;">您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。</p>',
+      '    <div style="display: flex; gap: 12px; justify-content: flex-end;">',
+      '      <button id="modalCancelBtn" style="padding: 8px 16px; border: 1px solid #d1d5db; background: #f9fafb; color: #374151; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">稍後處理</button>',
+      '      <button id="modalExportBtn" style="padding: 8px 16px; border: none; background: #667eea; color: white; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;">立即匯出</button>',
+      '    </div>',
+      '  </div>',
+      '</div>',
+    ].join('\n');
+
+    modal.innerHTML = modalHTML;
 
     document.body.appendChild(modal);
 
@@ -774,80 +725,81 @@
   }
 
   // 訊息監聽器 - 處理來自 popup 的請求
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     log('收到訊息:', message);
 
     switch (message.action) {
-      case 'ping':
-        // 回應 ping 請求，確認 content script 已載入
-        sendResponse({ success: true, status: 'ready' });
-        break;
+    case 'ping':
+      // 回應 ping 請求，確認 content script 已載入
+      sendResponse({ success: true, status: 'ready' });
+      break;
 
-      case 'getMemoryStatus':
-        // 回傳當前記憶狀態（不觸發匯出）
-        const status = checkMemoryStatus();
-        sendResponse({
-          success: true,
-          isFull: status.isFull,
-          timestamp: status.timestamp,
-          data: window.__memoryList || [],
-          usage: window.__memoryUsagePercent || null,
-          markdown: window.__memoryMarkdown || null,
-        });
-        break;
+    case 'getMemoryStatus': {
+      // 回傳當前記憶狀態（不觸發匯出）
+      const status = checkMemoryStatus();
+      sendResponse({
+        success: true,
+        isFull: status.isFull,
+        timestamp: status.timestamp,
+        data: window.__memoryList || [],
+        usage: window.__memoryUsagePercent || null,
+        markdown: window.__memoryMarkdown || null,
+      });
+      break;
+    }
 
-      case 'getMemoryData':
-        // 回傳當前記憶資料（向後相容）
-        sendResponse({
-          success: true,
-          data: window.__memoryList || [],
-          usage: window.__memoryUsagePercent || null,
-          markdown: window.__memoryMarkdown || null,
-        });
-        break;
+    case 'getMemoryData':
+      // 回傳當前記憶資料（向後相容）
+      sendResponse({
+        success: true,
+        data: window.__memoryList || [],
+        usage: window.__memoryUsagePercent || null,
+        markdown: window.__memoryMarkdown || null,
+      });
+      break;
 
-      case 'exportMemories':
-        // 執行匯出流程
-        (async () => {
-          try {
-            // 檢查當前頁面是否適合匯出
-            if (!location.href.includes('chatgpt.com')) {
-              sendResponse({
-                success: false,
-                error: '請在 ChatGPT 網站上使用此功能',
-              });
-              return;
-            }
-
-            log('開始匯出流程');
-            await mainFlow();
-
-            sendResponse({
-              success: true,
-              markdown: window.__memoryMarkdown || '',
-              data: window.__memoryList || [],
-              usage: window.__memoryUsagePercent || null,
-            });
-          } catch (error) {
-            warn('匯出失敗:', error);
+    case 'exportMemories':
+      // 執行匯出流程
+      (async () => {
+        try {
+          // 檢查當前頁面是否適合匯出
+          if (!location.href.includes('chatgpt.com')) {
             sendResponse({
               success: false,
-              error: error.message || '匯出過程中發生錯誤',
+              error: '請在 ChatGPT 網站上使用此功能',
             });
+            return;
           }
-        })();
-        return true; // 保持訊息通道開啟以支援非同步回應
 
-      case 'getMarkdown':
-        // 回傳 Markdown 資料
-        sendResponse({
-          success: true,
-          markdown: window.__memoryMarkdown || null,
-        });
-        break;
+          log('開始匯出流程');
+          await mainFlow();
 
-      default:
-        sendResponse({ success: false, error: '未知的操作' });
+          sendResponse({
+            success: true,
+            markdown: window.__memoryMarkdown || '',
+            data: window.__memoryList || [],
+            usage: window.__memoryUsagePercent || null,
+          });
+        } catch (error) {
+          warn('匯出失敗:', error);
+          sendResponse({
+            success: false,
+            error: error.message || '匯出過程中發生錯誤',
+          });
+        }
+      })();
+      return true; // 保持訊息通道開啟以支援非同步回應
+
+    case 'getMarkdown':
+      // 回傳 Markdown 資料
+      sendResponse({
+        success: true,
+        markdown: window.__memoryMarkdown || null,
+      });
+      break;
+
+    default:
+      sendResponse({ success: false, error: '未知的操作' });
     }
   });
 

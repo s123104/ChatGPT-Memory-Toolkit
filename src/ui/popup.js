@@ -88,7 +88,7 @@ class ModernPopupManager {
   addRippleEffect() {
     const buttons = document.querySelectorAll('.action-btn.modern');
     buttons.forEach(button => {
-      button.addEventListener('click', e => {
+      button.addEventListener('click', _e => {
         const ripple = button.querySelector('.btn-ripple');
         if (ripple) {
           ripple.style.animation = 'none';
@@ -443,18 +443,18 @@ class ModernPopupManager {
     // 隱藏原本的按鈕，顯示 ChatGPT 導航按鈕
     if (actionSection) {
       actionSection.innerHTML = `
-        <button class="action-btn primary modern" id="goChatGPTBtn">
-          <div class="btn-content">
-            <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
-              <path
-                fill="currentColor"
-                d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
-              />
-            </svg>
-            <span class="btn-text">前往 ChatGPT 網站</span>
-          </div>
-          <div class="btn-ripple"></div>
-        </button>
+<button class="action-btn primary modern" id="goChatGPTBtn">
+  <div class="btn-content">
+    <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
+      <path
+        fill="currentColor"
+        d="M14,3V5H17.59L7.76,14.83L9.17,16.24L19,6.41V10H21V3M19,19H5V5H12V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19V19Z"
+      />
+    </svg>
+    <span class="btn-text">前往 ChatGPT 網站</span>
+  </div>
+  <div class="btn-ripple"></div>
+</button>
       `;
 
       // 添加點擊事件
@@ -517,13 +517,13 @@ class ModernPopupManager {
 
       if (history.length === 0) {
         historyList.innerHTML = `
-          <div class="history-empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
-              <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
-            </svg>
-            <div class="empty-text">尚無歷史記錄</div>
-            <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
-          </div>
+<div class="history-empty">
+  <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
+    <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+  </svg>
+  <div class="empty-text">尚無歷史記錄</div>
+  <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
+</div>
         `;
         return;
       }
@@ -531,32 +531,32 @@ class ModernPopupManager {
       const historyHTML = history
         .map(
           item => `
-        <div class="history-item" data-id="${item.id}">
-          <div class="history-icon">${item.date.split('/')[1]}/${item.date.split('/')[2]}</div>
-          <div class="history-content">
-            <div class="history-meta">
-              <span class="history-date">${item.date}</span>
-              <span class="history-time">${item.time}</span>
-            </div>
-            <div class="history-stats">
-              <span>使用量: ${item.usage}</span>
-              <span>數量: ${item.count} 筆</span>
-            </div>
-            <div class="history-preview">${this.getPreview(item.content)}</div>
-          </div>
-          <div class="history-actions">
-            <button class="history-action-btn" onclick="popupManager.copyHistoryItem('${item.id}')" title="複製">
-              <svg width="12" height="12" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
-              </svg>
-            </button>
-            <button class="history-action-btn" onclick="popupManager.deleteHistoryItem('${item.id}')" title="刪除">
-              <svg width="12" height="12" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+<div class="history-item" data-id="${item.id}">
+  <div class="history-icon">${item.date.split('/')[1]}/${item.date.split('/')[2]}</div>
+  <div class="history-content">
+    <div class="history-meta">
+      <span class="history-date">${item.date}</span>
+      <span class="history-time">${item.time}</span>
+    </div>
+    <div class="history-stats">
+      <span>使用量: ${item.usage}</span>
+      <span>數量: ${item.count} 筆</span>
+    </div>
+    <div class="history-preview">${this.getPreview(item.content)}</div>
+  </div>
+  <div class="history-actions">
+    <button class="history-action-btn" onclick="popupManager.copyHistoryItem('${item.id}')" title="複製">
+      <svg width="12" height="12" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+      </svg>
+    </button>
+    <button class="history-action-btn" onclick="popupManager.deleteHistoryItem('${item.id}')" title="刪除">
+      <svg width="12" height="12" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+      </svg>
+    </button>
+  </div>
+</div>
       `
         )
         .join('');
