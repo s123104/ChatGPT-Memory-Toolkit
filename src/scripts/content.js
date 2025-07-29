@@ -1556,8 +1556,8 @@
         const now = new Date();
 
         if (now < disabledUntil) {
-          const hoursLeft = Math.ceil((disabledUntil - now) / (1000 * 60 * 60));
-          log(`提醒已暫停，還有 ${hoursLeft} 小時後恢復`);
+          // 只在調試模式下顯示暫停信息，不要持續顯示
+          // log(`提醒已暫停，還有 ${Math.ceil((disabledUntil - now) / (1000 * 60 * 60))} 小時後恢復`);
           return;
         } else {
           // 過期了，清除禁用狀態
@@ -1684,6 +1684,18 @@
         });
         break;
 
+      case 'updateDeveloperMode':
+        // 更新開發者模式
+        (async () => {
+          try {
+            await setupDeveloperTools();
+            sendResponse({ success: true });
+          } catch (error) {
+            sendResponse({ success: false, error: error.message });
+          }
+        })();
+        return true; // 保持訊息通道開啟
+
       default:
         sendResponse({ success: false, error: '未知的操作' });
     }
@@ -1691,75 +1703,87 @@
     return true; // 保持訊息通道開啟以支援非同步回應
   });
 
-  // 開發者測試指令
-  window.memoryManagerDev = {
-    // 清除24小時不再提醒設定
-    clearReminderBlock: async () => {
-      try {
-        await chrome.storage.local.remove('memoryFullReminderDisabled');
-        console.log('✅ 已清除24小時不再提醒設定，模態窗將重新顯示');
-        return true;
-      } catch (error) {
-        console.error('❌ 清除設定失敗:', error);
-        return false;
-      }
-    },
+  // 開發者測試指令 - 只在開發者模式啟用時可用
+  const setupDeveloperTools = async () => {
+    try {
+      const result = await chrome.storage.local.get('settings');
+      const settings = result.settings || {};
 
-    // 強制顯示模態窗（測試用）
-    forceShowModal: () => {
-      isModalShowing = false; // 重置標記
-      showAutoExportModal();
-      console.log('🔧 強制顯示模態窗（測試模式）');
-    },
+      // 只有在開發者模式啟用時才設置開發者工具
+      if (settings.developerMode) {
+        window.memoryManagerDev = {
+          // 清除24小時不再提醒設定
+          clearReminderBlock: async () => {
+            try {
+              await chrome.storage.local.remove('memoryFullReminderDisabled');
+              console.log('✅ 已清除24小時不再提醒設定，模態窗將重新顯示');
+              return true;
+            } catch (error) {
+              console.error('❌ 清除設定失敗:', error);
+              return false;
+            }
+          },
 
-    // 檢查當前提醒狀態
-    checkReminderStatus: async () => {
-      try {
-        const result = await chrome.storage.local.get(
-          'memoryFullReminderDisabled'
-        );
-        const disabled = result.memoryFullReminderDisabled;
+          // 強制顯示模態窗（測試用）
+          forceShowModal: () => {
+            isModalShowing = false; // 重置標記
+            showAutoExportModal();
+            console.log('🔧 強制顯示模態窗（測試模式）');
+          },
 
-        if (!disabled) {
-          console.log('✅ 提醒功能正常，未被暫停');
-          return { status: 'active', message: '提醒功能正常' };
-        }
+          // 檢查當前提醒狀態
+          checkReminderStatus: async () => {
+            try {
+              const result = await chrome.storage.local.get(
+                'memoryFullReminderDisabled'
+              );
+              const disabled = result.memoryFullReminderDisabled;
 
-        if (disabled === 'never') {
-          console.log('🚫 提醒已永久關閉');
-          return { status: 'never', message: '提醒已永久關閉' };
-        }
+              if (!disabled) {
+                console.log('✅ 提醒功能正常，未被暫停');
+                return { status: 'active', message: '提醒功能正常' };
+              }
 
-        const disabledUntil = new Date(disabled);
-        const now = new Date();
+              if (disabled === 'never') {
+                console.log('🚫 提醒已永久關閉');
+                return { status: 'never', message: '提醒已永久關閉' };
+              }
 
-        if (now < disabledUntil) {
-          const hoursLeft = Math.ceil((disabledUntil - now) / (1000 * 60 * 60));
-          console.log(`⏰ 提醒已暫停，還有 ${hoursLeft} 小時後恢復`);
-          return {
-            status: 'paused',
-            message: `提醒已暫停，還有 ${hoursLeft} 小時後恢復`,
-            resumeTime: disabledUntil,
-          };
-        } else {
-          console.log('✅ 暫停期已過，提醒功能已恢復');
-          return { status: 'expired', message: '暫停期已過，提醒功能已恢復' };
-        }
-      } catch (error) {
-        console.error('❌ 檢查狀態失敗:', error);
-        return { status: 'error', message: '檢查狀態失敗' };
-      }
-    },
+              const disabledUntil = new Date(disabled);
+              const now = new Date();
 
-    // 重置模態窗顯示標記
-    resetModalFlag: () => {
-      isModalShowing = false;
-      console.log('🔄 已重置模態窗顯示標記');
-    },
+              if (now < disabledUntil) {
+                const hoursLeft = Math.ceil(
+                  (disabledUntil - now) / (1000 * 60 * 60)
+                );
+                console.log(`⏰ 提醒已暫停，還有 ${hoursLeft} 小時後恢復`);
+                return {
+                  status: 'paused',
+                  message: `提醒已暫停，還有 ${hoursLeft} 小時後恢復`,
+                  resumeTime: disabledUntil,
+                };
+              } else {
+                console.log('✅ 暫停期已過，提醒功能已恢復');
+                return {
+                  status: 'expired',
+                  message: '暫停期已過，提醒功能已恢復',
+                };
+              }
+            } catch (error) {
+              console.error('❌ 檢查狀態失敗:', error);
+              return { status: 'error', message: '檢查狀態失敗' };
+            }
+          },
 
-    // 顯示幫助信息
-    help: () => {
-      console.log(`
+          // 重置模態窗顯示標記
+          resetModalFlag: () => {
+            isModalShowing = false;
+            console.log('🔄 已重置模態窗顯示標記');
+          },
+
+          // 顯示幫助信息
+          help: () => {
+            console.log(`
 🛠️ ChatGPT Memory Manager 開發者工具
 
 可用指令：
@@ -1773,15 +1797,29 @@
 await memoryManagerDev.clearReminderBlock();
 memoryManagerDev.forceShowModal();
       `);
-    },
+          },
+        };
+
+        console.log('🔧 開發者工具已啟用: memoryManagerDev.help()');
+      } else {
+        // 開發者模式未啟用時，不設置開發者工具
+        if (window.memoryManagerDev) {
+          delete window.memoryManagerDev;
+        }
+      }
+    } catch (error) {
+      log('設置開發者工具失敗:', error);
+    }
   };
 
   // 初始化
   bootstrap()
-    .then(() => {
+    .then(async () => {
       log('記憶管理器已啟動');
       console.log('🚀 ChatGPT Memory Manager 已啟動');
-      console.log('💡 開發者工具可用: memoryManagerDev.help()');
+
+      // 設置開發者工具
+      await setupDeveloperTools();
     })
     .catch(error => warn('初始化失敗', error));
 })();

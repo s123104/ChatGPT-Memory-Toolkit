@@ -69,6 +69,7 @@ class ModernPopupManager {
     const autoShowModalToggle = document.getElementById('autoShowModalToggle');
     const maxHistorySelect = document.getElementById('maxHistorySelect');
     const autoCleanupToggle = document.getElementById('autoCleanupToggle');
+    const developerModeToggle = document.getElementById('developerModeToggle');
 
     closeSettingsBtn?.addEventListener('click', () => this.toggleSettings());
     autoShowModalToggle?.addEventListener('change', e =>
@@ -79,6 +80,9 @@ class ModernPopupManager {
     );
     autoCleanupToggle?.addEventListener('change', e =>
       this.updateSetting('autoCleanup', e.target.checked)
+    );
+    developerModeToggle?.addEventListener('change', e =>
+      this.updateDeveloperMode(e.target.checked)
     );
 
     // 添加按鈕點擊效果
@@ -735,6 +739,9 @@ class ModernPopupManager {
       );
       const maxHistorySelect = document.getElementById('maxHistorySelect');
       const autoCleanupToggle = document.getElementById('autoCleanupToggle');
+      const developerModeToggle = document.getElementById(
+        'developerModeToggle'
+      );
 
       if (autoShowModalToggle) {
         autoShowModalToggle.checked = this.settings.autoShowModal;
@@ -744,6 +751,9 @@ class ModernPopupManager {
       }
       if (autoCleanupToggle) {
         autoCleanupToggle.checked = this.settings.autoCleanup;
+      }
+      if (developerModeToggle) {
+        developerModeToggle.checked = this.settings.developerMode || false;
       }
 
       await this.updateStorageInfo();
@@ -764,6 +774,34 @@ class ModernPopupManager {
       this.showToast('設定已儲存');
     } catch (error) {
       console.error('[Popup] 更新設定失敗:', error);
+    }
+  }
+
+  // 更新開發者模式
+  async updateDeveloperMode(enabled) {
+    if (!this.storageManager) {
+      return;
+    }
+
+    try {
+      this.settings.developerMode = enabled;
+      await this.storageManager.saveSettings(this.settings);
+
+      // 通知 content script 更新開發者工具
+      if (this.currentTab?.url?.includes('chatgpt.com')) {
+        try {
+          await chrome.tabs.sendMessage(this.currentTab.id, {
+            action: 'updateDeveloperMode',
+            enabled: enabled,
+          });
+        } catch (error) {
+          // 忽略通訊錯誤
+        }
+      }
+
+      this.showToast(enabled ? '開發者模式已啟用' : '開發者模式已關閉');
+    } catch (error) {
+      console.error('[Popup] 更新開發者模式失敗:', error);
     }
   }
 

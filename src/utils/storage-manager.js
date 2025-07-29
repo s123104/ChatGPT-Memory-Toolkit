@@ -13,6 +13,7 @@ class StorageManager {
       autoShowModal: true, // 記憶已滿時是否自動顯示模態窗
       maxHistoryItems: 50, // 最大歷史記錄數量
       autoCleanup: true, // 是否自動清理舊記錄
+      developerMode: false, // 開發者模式
     };
   }
 
