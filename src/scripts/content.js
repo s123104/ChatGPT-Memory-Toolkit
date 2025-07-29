@@ -622,16 +622,138 @@
     return currentStatus;
   }
 
+  // 顯示自動提醒模態窗
+  function showAutoExportModal() {
+    // 檢查是否已經有模態窗
+    if (document.getElementById('memoryFullModal')) {
+      return;
+    }
+
+    const modal = document.createElement('div');
+    modal.id = 'memoryFullModal';
+    modal.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      ">
+        <div style="
+          background: white;
+          border-radius: 12px;
+          padding: 24px;
+          max-width: 400px;
+          width: 90%;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        ">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              background: #f59e0b;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 20px;
+            ">⚠️</div>
+            <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #111827;">記憶已滿</h3>
+          </div>
+          <p style="margin: 0 0 20px 0; color: #6b7280; line-height: 1.5;">
+            您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="modalCancelBtn" style="
+              padding: 8px 16px;
+              border: 1px solid #d1d5db;
+              background: #f9fafb;
+              color: #374151;
+              border-radius: 6px;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            ">稍後處理</button>
+            <button id="modalExportBtn" style="
+              padding: 8px 16px;
+              border: none;
+              background: #667eea;
+              color: white;
+              border-radius: 6px;
+              font-size: 14px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            ">立即匯出</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // 添加事件監聽器
+    document.getElementById('modalCancelBtn').addEventListener('click', () => {
+      modal.remove();
+    });
+
+    document
+      .getElementById('modalExportBtn')
+      .addEventListener('click', async () => {
+        modal.remove();
+        try {
+          await mainFlow();
+        } catch (error) {
+          warn('模態窗匯出失敗:', error);
+        }
+      });
+
+    // 點擊背景關閉
+    modal.addEventListener('click', e => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+  }
+
+  // 檢查設定並決定是否顯示模態窗
+  async function checkAndShowModal() {
+    try {
+      // 從 storage 取得設定
+      const result = await chrome.storage.local.get('settings');
+      const settings = result.settings || { autoShowModal: true };
+
+      if (settings.autoShowModal && hasTriggerText()) {
+        showAutoExportModal();
+      }
+    } catch (error) {
+      // 如果無法取得設定，預設顯示模態窗
+      if (hasTriggerText()) {
+        showAutoExportModal();
+      }
+    }
+  }
+
   // 啟動監控 - 只監控狀態，不自動執行匯出
   async function bootstrap() {
     log('開始監控記憶狀態（被動模式）');
 
     // 初始檢查
     checkMemoryStatus();
+    await checkAndShowModal();
 
     // 持續監控狀態變化
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver(async () => {
       checkMemoryStatus();
+      await checkAndShowModal();
     });
 
     observer.observe(document.documentElement, {
@@ -640,8 +762,9 @@
     });
 
     // 定期檢查（每30秒）
-    const statusInterval = setInterval(() => {
+    const statusInterval = setInterval(async () => {
       checkMemoryStatus();
+      await checkAndShowModal();
     }, 30000);
 
     window.stopMemoryWatcher = () => {

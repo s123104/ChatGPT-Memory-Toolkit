@@ -5,7 +5,7 @@
   "description": "簡潔的 ChatGPT 記憶管理工具 - 自動檢測記憶已滿並匯出 Markdown 格式",
   "author": "ChatGPT Memory Manager",
 
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
 
   "host_permissions": ["https://chatgpt.com/*"],
 

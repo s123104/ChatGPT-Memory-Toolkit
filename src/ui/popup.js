@@ -8,14 +8,21 @@ class ModernPopupManager {
     this.isInitialized = false;
     this.statusCheckInterval = null;
     this.lastStatusCheck = null;
+    this.storageManager = null;
+    this.settings = {};
     this.init();
   }
 
   async init() {
     try {
+      // 初始化儲存管理器
+      this.storageManager = new StorageManager();
+      this.settings = await this.storageManager.initializeSettings();
+
       await this.getCurrentTab();
       this.setupEventListeners();
       await this.updateStatus();
+      await this.updateStorageInfo();
       this.startStatusMonitoring();
       this.isInitialized = true;
       this.updateConnectionStatus(true);
@@ -40,12 +47,39 @@ class ModernPopupManager {
     const exportBtn = document.getElementById('exportBtn');
     const copyBtn = document.getElementById('copyBtn');
     const refreshBtn = document.getElementById('refreshBtn');
+    const historyBtn = document.getElementById('historyBtn');
+    const appSettingsBtn = document.getElementById('appSettingsBtn');
     const settingsBtn = document.getElementById('settingsBtn');
 
     exportBtn?.addEventListener('click', () => this.handleExport());
     copyBtn?.addEventListener('click', () => this.handleCopy());
     refreshBtn?.addEventListener('click', () => this.handleRefresh());
+    historyBtn?.addEventListener('click', () => this.toggleHistory());
+    appSettingsBtn?.addEventListener('click', () => this.toggleSettings());
     settingsBtn?.addEventListener('click', () => this.handleSettings());
+
+    // 歷史記憶區按鈕
+    const closeHistoryBtn = document.getElementById('closeHistoryBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    closeHistoryBtn?.addEventListener('click', () => this.toggleHistory());
+    clearHistoryBtn?.addEventListener('click', () => this.clearHistory());
+
+    // 設定區按鈕
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const autoShowModalToggle = document.getElementById('autoShowModalToggle');
+    const maxHistorySelect = document.getElementById('maxHistorySelect');
+    const autoCleanupToggle = document.getElementById('autoCleanupToggle');
+
+    closeSettingsBtn?.addEventListener('click', () => this.toggleSettings());
+    autoShowModalToggle?.addEventListener('change', e =>
+      this.updateSetting('autoShowModal', e.target.checked)
+    );
+    maxHistorySelect?.addEventListener('change', e =>
+      this.updateSetting('maxHistoryItems', parseInt(e.target.value))
+    );
+    autoCleanupToggle?.addEventListener('change', e =>
+      this.updateSetting('autoCleanup', e.target.checked)
+    );
 
     // 添加按鈕點擊效果
     this.addRippleEffect();
@@ -180,11 +214,18 @@ class ModernPopupManager {
         this.setButtonSuccess(exportBtn, '匯出成功');
         await this.updateStatus(); // 更新狀態
 
-        // 如果有 markdown 資料，啟用複製按鈕
+        // 如果有 markdown 資料，啟用複製按鈕並儲存到歷史
         if (response.markdown) {
           window.__lastMarkdown = response.markdown;
           const copyBtn = document.getElementById('copyBtn');
           if (copyBtn) copyBtn.disabled = false;
+
+          // 儲存到歷史記錄
+          await this.saveToHistory({
+            markdown: response.markdown,
+            usage: response.usage,
+            count: response.data?.length || 0,
+          });
         }
       } else {
         throw new Error(response?.error || '匯出失敗');
@@ -365,13 +406,17 @@ class ModernPopupManager {
 
   updateUsageDisplay(element, usage) {
     element.textContent = usage;
-    
+
     // 解析百分比並設置顏色
     if (usage && usage !== '--') {
       const percentage = parseInt(usage.replace('%', ''));
       if (!isNaN(percentage)) {
-        element.classList.remove('usage-normal', 'usage-warning', 'usage-critical');
-        
+        element.classList.remove(
+          'usage-normal',
+          'usage-warning',
+          'usage-critical'
+        );
+
         if (percentage >= 100) {
           element.classList.add('usage-critical');
         } else if (percentage >= 80) {
@@ -425,6 +470,317 @@ class ModernPopupManager {
     }
 
     this.updateConnectionStatus(false);
+  }
+
+  // 儲存到歷史記錄
+  async saveToHistory(memoryData) {
+    if (!this.storageManager) return;
+
+    try {
+      await this.storageManager.saveMemoryHistory(memoryData);
+      await this.updateStorageInfo();
+    } catch (error) {
+      console.error('[Popup] 儲存歷史記錄失敗:', error);
+    }
+  }
+
+  // 切換歷史記憶區
+  async toggleHistory() {
+    const historySection = document.getElementById('historySection');
+    const settingsSection = document.getElementById('settingsSection');
+
+    if (historySection.style.display === 'none') {
+      // 關閉設定區
+      settingsSection.style.display = 'none';
+      settingsSection.classList.remove('show');
+
+      // 開啟歷史區
+      historySection.style.display = 'block';
+      historySection.classList.add('show');
+
+      // 載入歷史記錄
+      await this.loadHistory();
+    } else {
+      // 關閉歷史區
+      historySection.style.display = 'none';
+      historySection.classList.remove('show');
+    }
+  }
+
+  // 載入歷史記錄
+  async loadHistory() {
+    if (!this.storageManager) return;
+
+    try {
+      const history = await this.storageManager.getMemoryHistory();
+      const historyList = document.getElementById('historyList');
+
+      if (history.length === 0) {
+        historyList.innerHTML = `
+          <div class="history-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
+              <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+            </svg>
+            <div class="empty-text">尚無歷史記錄</div>
+            <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
+          </div>
+        `;
+        return;
+      }
+
+      const historyHTML = history
+        .map(
+          item => `
+        <div class="history-item" data-id="${item.id}">
+          <div class="history-icon">${item.date.split('/')[1]}/${item.date.split('/')[2]}</div>
+          <div class="history-content">
+            <div class="history-meta">
+              <span class="history-date">${item.date}</span>
+              <span class="history-time">${item.time}</span>
+            </div>
+            <div class="history-stats">
+              <span>使用量: ${item.usage}</span>
+              <span>數量: ${item.count} 筆</span>
+            </div>
+            <div class="history-preview">${this.getPreview(item.content)}</div>
+          </div>
+          <div class="history-actions">
+            <button class="history-action-btn" onclick="popupManager.copyHistoryItem('${item.id}')" title="複製">
+              <svg width="12" height="12" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+              </svg>
+            </button>
+            <button class="history-action-btn" onclick="popupManager.deleteHistoryItem('${item.id}')" title="刪除">
+              <svg width="12" height="12" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `
+        )
+        .join('');
+
+      historyList.innerHTML = historyHTML;
+
+      // 添加點擊事件
+      historyList.querySelectorAll('.history-item').forEach(item => {
+        item.addEventListener('click', e => {
+          if (!e.target.closest('.history-actions')) {
+            this.loadHistoryItem(item.dataset.id);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[Popup] 載入歷史記錄失敗:', error);
+    }
+  }
+
+  // 取得內容預覽
+  getPreview(content) {
+    if (!content) return '無內容';
+
+    // 移除 Markdown 標記並取得前 100 個字元
+    const plainText = content
+      .replace(/^#.*$/gm, '') // 移除標題
+      .replace(/>\s*使用量：.*$/gm, '') // 移除使用量行
+      .replace(/^共\s*\d+\s*筆$/gm, '') // 移除統計行
+      .replace(/^\d+\.\s*/gm, '') // 移除編號
+      .replace(/\n+/g, ' ') // 替換換行為空格
+      .trim();
+
+    return plainText.length > 100
+      ? plainText.substring(0, 100) + '...'
+      : plainText;
+  }
+
+  // 載入歷史項目
+  async loadHistoryItem(id) {
+    if (!this.storageManager) return;
+
+    try {
+      const history = await this.storageManager.getMemoryHistory();
+      const item = history.find(h => h.id === id);
+
+      if (item) {
+        window.__lastMarkdown = item.content;
+        const copyBtn = document.getElementById('copyBtn');
+        if (copyBtn) copyBtn.disabled = false;
+
+        // 顯示載入成功的提示
+        this.showToast('歷史記錄已載入');
+      }
+    } catch (error) {
+      console.error('[Popup] 載入歷史項目失敗:', error);
+    }
+  }
+
+  // 複製歷史項目
+  async copyHistoryItem(id) {
+    if (!this.storageManager) return;
+
+    try {
+      const history = await this.storageManager.getMemoryHistory();
+      const item = history.find(h => h.id === id);
+
+      if (item && item.content) {
+        await navigator.clipboard.writeText(item.content);
+        this.showToast('已複製到剪貼簿');
+      }
+    } catch (error) {
+      console.error('[Popup] 複製歷史項目失敗:', error);
+      this.showToast('複製失敗');
+    }
+  }
+
+  // 刪除歷史項目
+  async deleteHistoryItem(id) {
+    if (!this.storageManager) return;
+
+    try {
+      await this.storageManager.deleteHistoryItem(id);
+      await this.loadHistory();
+      await this.updateStorageInfo();
+      this.showToast('已刪除');
+    } catch (error) {
+      console.error('[Popup] 刪除歷史項目失敗:', error);
+    }
+  }
+
+  // 清空歷史記錄
+  async clearHistory() {
+    if (!this.storageManager) return;
+
+    if (confirm('確定要清空所有歷史記錄嗎？此操作無法復原。')) {
+      try {
+        await this.storageManager.clearHistory();
+        await this.loadHistory();
+        await this.updateStorageInfo();
+        this.showToast('歷史記錄已清空');
+      } catch (error) {
+        console.error('[Popup] 清空歷史記錄失敗:', error);
+      }
+    }
+  }
+
+  // 切換設定區
+  async toggleSettings() {
+    const settingsSection = document.getElementById('settingsSection');
+    const historySection = document.getElementById('historySection');
+
+    if (settingsSection.style.display === 'none') {
+      // 關閉歷史區
+      historySection.style.display = 'none';
+      historySection.classList.remove('show');
+
+      // 開啟設定區
+      settingsSection.style.display = 'block';
+      settingsSection.classList.add('show');
+
+      // 載入設定
+      await this.loadSettings();
+    } else {
+      // 關閉設定區
+      settingsSection.style.display = 'none';
+      settingsSection.classList.remove('show');
+    }
+  }
+
+  // 載入設定
+  async loadSettings() {
+    if (!this.storageManager) return;
+
+    try {
+      this.settings = await this.storageManager.getSettings();
+
+      // 更新 UI
+      const autoShowModalToggle = document.getElementById(
+        'autoShowModalToggle'
+      );
+      const maxHistorySelect = document.getElementById('maxHistorySelect');
+      const autoCleanupToggle = document.getElementById('autoCleanupToggle');
+
+      if (autoShowModalToggle)
+        autoShowModalToggle.checked = this.settings.autoShowModal;
+      if (maxHistorySelect)
+        maxHistorySelect.value = this.settings.maxHistoryItems;
+      if (autoCleanupToggle)
+        autoCleanupToggle.checked = this.settings.autoCleanup;
+
+      await this.updateStorageInfo();
+    } catch (error) {
+      console.error('[Popup] 載入設定失敗:', error);
+    }
+  }
+
+  // 更新設定
+  async updateSetting(key, value) {
+    if (!this.storageManager) return;
+
+    try {
+      this.settings[key] = value;
+      await this.storageManager.saveSettings(this.settings);
+      this.showToast('設定已儲存');
+    } catch (error) {
+      console.error('[Popup] 更新設定失敗:', error);
+    }
+  }
+
+  // 更新儲存資訊
+  async updateStorageInfo() {
+    if (!this.storageManager) return;
+
+    try {
+      const usage = await this.storageManager.getStorageUsage();
+      const storageBar = document.getElementById('storageBar');
+      const storageText = document.getElementById('storageText');
+
+      if (storageBar) {
+        storageBar.style.width = `${usage.percentage}%`;
+
+        // 根據使用量設定顏色
+        if (usage.percentage > 80) {
+          storageBar.style.background = 'var(--error-color)';
+        } else if (usage.percentage > 60) {
+          storageBar.style.background = 'var(--warning-color)';
+        } else {
+          storageBar.style.background = 'var(--primary-color)';
+        }
+      }
+
+      if (storageText) {
+        const usedMB = (usage.used / 1024 / 1024).toFixed(1);
+        const totalMB = (usage.total / 1024 / 1024).toFixed(0);
+        storageText.textContent = `${usedMB} / ${totalMB} MB`;
+      }
+    } catch (error) {
+      console.error('[Popup] 更新儲存資訊失敗:', error);
+    }
+  }
+
+  // 顯示提示訊息
+  showToast(message) {
+    // 簡單的提示實現
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--text-primary);
+      color: var(--bg-card);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1001;
+      animation: slideIn 0.3s ease;
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+      toast.remove();
+    }, 2000);
   }
 
   // 清理資源
