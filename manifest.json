@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatGPT Memory Toolkit",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "專業的 ChatGPT 記憶管理 Chrome 擴充套件，支援智能檢測、多格式匯出、歷史記錄管理和自動提醒功能",
   "author": "ChatGPT Memory Toolkit Team",
   "permissions": [
