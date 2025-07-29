@@ -1,11 +1,13 @@
-// ChatGPT Memory Manager - Popup Script
-// 簡潔的彈出視窗邏輯
+// Modern ChatGPT Memory Manager - Popup Script
+// 現代化 app 風格的彈出視窗邏輯
 
-class PopupManager {
+class ModernPopupManager {
   constructor() {
     this.currentTab = null;
     this.memoryData = [];
     this.isInitialized = false;
+    this.statusCheckInterval = null;
+    this.lastStatusCheck = null;
     this.init();
   }
 
@@ -14,10 +16,13 @@ class PopupManager {
       await this.getCurrentTab();
       this.setupEventListeners();
       await this.updateStatus();
+      this.startStatusMonitoring();
       this.isInitialized = true;
+      this.updateConnectionStatus(true);
     } catch (error) {
       console.error('[Popup] 初始化失敗:', error);
       this.showError('初始化失敗');
+      this.updateConnectionStatus(false);
     }
   }
 
@@ -31,17 +36,42 @@ class PopupManager {
   }
 
   setupEventListeners() {
+    // 主要按鈕
     const exportBtn = document.getElementById('exportBtn');
     const copyBtn = document.getElementById('copyBtn');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
 
     exportBtn?.addEventListener('click', () => this.handleExport());
     copyBtn?.addEventListener('click', () => this.handleCopy());
+    refreshBtn?.addEventListener('click', () => this.handleRefresh());
+    settingsBtn?.addEventListener('click', () => this.handleSettings());
+
+    // 添加按鈕點擊效果
+    this.addRippleEffect();
+  }
+
+  addRippleEffect() {
+    const buttons = document.querySelectorAll('.action-btn.modern');
+    buttons.forEach(button => {
+      button.addEventListener('click', e => {
+        const ripple = button.querySelector('.btn-ripple');
+        if (ripple) {
+          ripple.style.animation = 'none';
+          ripple.offsetHeight; // 觸發重排
+          ripple.style.animation = null;
+        }
+      });
+    });
   }
 
   async updateStatus() {
     const memoryStatusEl = document.getElementById('memoryStatus');
     const usagePercentEl = document.getElementById('usagePercent');
     const memoryCountEl = document.getElementById('memoryCount');
+    const lastCheckEl = document.getElementById('lastCheck');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
 
     if (!this.currentTab) {
       this.showError('無法取得當前分頁');
@@ -51,44 +81,56 @@ class PopupManager {
     // 檢查是否在 ChatGPT 網站
     if (!this.currentTab.url?.includes('chatgpt.com')) {
       memoryStatusEl.textContent = '請前往 ChatGPT 網站';
-      memoryStatusEl.style.color = '#f59e0b';
+      statusCard.className = 'status-card modern warning';
+      statusDot.className = 'status-dot warning';
+      this.updateConnectionStatus(false);
       return;
     }
 
-    // 首先檢查 content script 是否已載入
     try {
+      // 首先檢查 content script 是否已載入
       await chrome.tabs.sendMessage(this.currentTab.id, { action: 'ping' });
-    } catch (error) {
-      if (error.message.includes('Could not establish connection')) {
-        this.showConnectionError();
-        return;
-      }
-    }
+      this.updateConnectionStatus(true);
 
-    try {
-      // 嘗試從 content script 取得記憶資料
+      // 獲取記憶狀態
       const response = await chrome.tabs.sendMessage(this.currentTab.id, {
-        action: 'getMemoryData',
+        action: 'getMemoryStatus',
       });
 
       if (response?.success) {
         this.memoryData = response.data || [];
         const usage = response.usage || '--';
         const count = this.memoryData.length;
+        const isFull = response.isFull || false;
 
-        memoryStatusEl.textContent = count > 0 ? '已檢測到記憶' : '等待檢測...';
-        memoryStatusEl.style.color = count > 0 ? '#10b981' : '#6b7280';
+        // 更新狀態顯示
+        memoryStatusEl.textContent = isFull ? '記憶已滿' : '記憶正常';
+
+        // 更新狀態卡片樣式
+        if (isFull) {
+          statusCard.className = 'status-card modern warning';
+          statusDot.className = 'status-dot warning';
+        } else {
+          statusCard.className = 'status-card modern success';
+          statusDot.className = 'status-dot';
+        }
+
         usagePercentEl.textContent = usage;
         memoryCountEl.textContent = count > 0 ? `${count} 筆` : '--';
+
+        // 更新最後檢查時間
+        this.lastStatusCheck = new Date();
+        lastCheckEl.textContent = this.formatTime(this.lastStatusCheck);
 
         // 如果有資料，啟用複製按鈕
         const copyBtn = document.getElementById('copyBtn');
         if (copyBtn) {
-          copyBtn.disabled = count === 0;
+          copyBtn.disabled = count === 0 && !response.markdown;
         }
       } else {
         memoryStatusEl.textContent = '等待檢測...';
-        memoryStatusEl.style.color = '#6b7280';
+        statusCard.className = 'status-card modern';
+        statusDot.className = 'status-dot';
       }
     } catch (error) {
       console.warn('[Popup] 無法取得記憶資料:', error);
@@ -98,8 +140,24 @@ class PopupManager {
         this.showConnectionError();
       } else {
         memoryStatusEl.textContent = '請前往記憶管理頁面';
-        memoryStatusEl.style.color = '#f59e0b';
+        statusCard.className = 'status-card modern warning';
+        statusDot.className = 'status-dot warning';
       }
+      this.updateConnectionStatus(false);
+    }
+  }
+
+  startStatusMonitoring() {
+    // 每 10 秒檢查一次狀態
+    this.statusCheckInterval = setInterval(() => {
+      this.updateStatus();
+    }, 10000);
+  }
+
+  stopStatusMonitoring() {
+    if (this.statusCheckInterval) {
+      clearInterval(this.statusCheckInterval);
+      this.statusCheckInterval = null;
     }
   }
 
@@ -143,7 +201,7 @@ class PopupManager {
         this.setButtonError(exportBtn, '匯出失敗');
       }
     } finally {
-      setTimeout(() => this.resetButton(exportBtn, '匯出 Markdown'), 2000);
+      setTimeout(() => this.resetButton(exportBtn, '匯出記憶'), 2000);
     }
   }
 
@@ -178,7 +236,38 @@ class PopupManager {
         this.setButtonError(copyBtn, '複製失敗');
       }
     } finally {
-      setTimeout(() => this.resetButton(copyBtn, '複製到剪貼簿'), 1500);
+      setTimeout(() => this.resetButton(copyBtn, '複製內容'), 1500);
+    }
+  }
+
+  async handleRefresh() {
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (!refreshBtn) return;
+
+    // 添加旋轉動畫
+    refreshBtn.style.transform = 'rotate(360deg)';
+    refreshBtn.style.transition = 'transform 0.5s ease-in-out';
+
+    setTimeout(() => {
+      refreshBtn.style.transform = '';
+      refreshBtn.style.transition = '';
+    }, 500);
+
+    await this.updateStatus();
+  }
+
+  handleSettings() {
+    if (this.currentTab?.url?.includes('chatgpt.com')) {
+      // 在當前分頁中開啟設定頁面
+      chrome.tabs.update(this.currentTab.id, {
+        url: 'https://chatgpt.com/#settings/Personalization',
+      });
+      window.close();
+    } else {
+      // 開啟新分頁
+      chrome.tabs.create({
+        url: 'https://chatgpt.com/#settings/Personalization',
+      });
     }
   }
 
@@ -217,19 +306,25 @@ class PopupManager {
 
   showError(message) {
     const memoryStatusEl = document.getElementById('memoryStatus');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
+
     if (memoryStatusEl) {
       memoryStatusEl.textContent = message;
-      memoryStatusEl.style.color = '#ef4444';
+      statusCard.className = 'status-card modern warning';
+      statusDot.className = 'status-dot error';
     }
   }
 
   showConnectionError() {
-    // 顯示連接錯誤的詳細信息
     const memoryStatusEl = document.getElementById('memoryStatus');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
+
     if (memoryStatusEl) {
-      memoryStatusEl.innerHTML =
-        '擴充套件未載入<br><small>請重新整理頁面後再試</small>';
-      memoryStatusEl.style.color = '#f59e0b';
+      memoryStatusEl.textContent = '擴充套件未載入';
+      statusCard.className = 'status-card modern warning';
+      statusDot.className = 'status-dot error';
     }
 
     // 禁用所有按鈕
@@ -238,11 +333,52 @@ class PopupManager {
     if (exportBtn) exportBtn.disabled = true;
     if (copyBtn) copyBtn.disabled = true;
   }
+
+  updateConnectionStatus(connected) {
+    const connectionStatus = document.getElementById('connectionStatus');
+    if (connectionStatus) {
+      connectionStatus.textContent = connected ? '已連接' : '未連接';
+      connectionStatus.className = connected
+        ? 'status-text'
+        : 'status-text disconnected';
+    }
+  }
+
+  formatTime(date) {
+    const now = new Date();
+    const diff = now - date;
+
+    if (diff < 60000) {
+      // 小於 1 分鐘
+      return '剛剛';
+    } else if (diff < 3600000) {
+      // 小於 1 小時
+      const minutes = Math.floor(diff / 60000);
+      return `${minutes} 分鐘前`;
+    } else {
+      return date.toLocaleTimeString('zh-TW', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+  }
+
+  // 清理資源
+  destroy() {
+    this.stopStatusMonitoring();
+  }
 }
 
 // 當 DOM 載入完成時初始化
 document.addEventListener('DOMContentLoaded', () => {
-  new PopupManager();
+  window.popupManager = new ModernPopupManager();
+});
+
+// 當視窗關閉時清理資源
+window.addEventListener('beforeunload', () => {
+  if (window.popupManager) {
+    window.popupManager.destroy();
+  }
 });
 
 // 監聽來自 content script 的訊息
@@ -250,21 +386,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'memoryStatusUpdate') {
     // 更新記憶狀態顯示
     const memoryStatusEl = document.getElementById('memoryStatus');
-    const usagePercentEl = document.getElementById('usagePercent');
-    const memoryCountEl = document.getElementById('memoryCount');
+    const statusCard = document.getElementById('statusCard');
+    const statusDot = document.getElementById('statusDot');
 
     if (memoryStatusEl) {
       memoryStatusEl.textContent = message.status || '檢查中...';
-      memoryStatusEl.style.color = message.color || '#6b7280';
-    }
 
-    if (usagePercentEl && message.usage) {
-      usagePercentEl.textContent = message.usage;
-    }
-
-    if (memoryCountEl && message.count !== undefined) {
-      memoryCountEl.textContent =
-        message.count > 0 ? `${message.count} 筆` : '--';
+      if (message.isFull) {
+        statusCard.className = 'status-card modern warning';
+        statusDot.className = 'status-dot warning';
+      } else {
+        statusCard.className = 'status-card modern success';
+        statusDot.className = 'status-dot';
+      }
     }
 
     sendResponse({ success: true });

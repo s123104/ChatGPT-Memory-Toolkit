@@ -582,33 +582,45 @@
     const panel = await openPersonalizationSettings();
     await readUsageAndClickManage(panel);
     await scrapeMemoriesToMarkdown();
-    console.log(
-      '%c[Memory Manager] 自動匯出完成',
-      'color:#16a34a;font-weight:bold;'
-    );
   }
 
-  // 啟動監控
-  async function bootstrap() {
-    if (hasTriggerText()) {
-      try {
-        await mainFlow();
-      } catch (error) {
-        warn('自動匯出失敗：', error);
-      }
-      return;
+  // 記憶狀態檢測
+  function checkMemoryStatus() {
+    const isMemoryFull = hasTriggerText();
+    const currentStatus = {
+      isFull: isMemoryFull,
+      timestamp: Date.now(),
+      url: location.href,
+    };
+
+    // 儲存狀態到全域變數
+    window.__memoryStatus = currentStatus;
+
+    // 通知 popup 狀態更新
+    try {
+      chrome.runtime.sendMessage({
+        action: 'memoryStatusUpdate',
+        status: isMemoryFull ? '記憶已滿' : '記憶正常',
+        isFull: isMemoryFull,
+        color: isMemoryFull ? '#f59e0b' : '#10b981',
+      });
+    } catch (error) {
+      // 忽略通訊錯誤，popup 可能未開啟
     }
 
-    log('開始監控記憶狀態');
-    const observer = new MutationObserver(async () => {
-      if (hasTriggerText()) {
-        observer.disconnect();
-        try {
-          await mainFlow();
-        } catch (error) {
-          warn('自動匯出失敗：', error);
-        }
-      }
+    return currentStatus;
+  }
+
+  // 啟動監控 - 只監控狀態，不自動執行匯出
+  async function bootstrap() {
+    log('開始監控記憶狀態（被動模式）');
+
+    // 初始檢查
+    checkMemoryStatus();
+
+    // 持續監控狀態變化
+    const observer = new MutationObserver(() => {
+      checkMemoryStatus();
     });
 
     observer.observe(document.documentElement, {
@@ -616,8 +628,14 @@
       subtree: true,
     });
 
+    // 定期檢查（每30秒）
+    const statusInterval = setInterval(() => {
+      checkMemoryStatus();
+    }, 30000);
+
     window.stopMemoryWatcher = () => {
       observer.disconnect();
+      clearInterval(statusInterval);
       delete window.__MEMORY_MANAGER_LOADED__;
       log('已停止監控');
     };
@@ -633,8 +651,21 @@
         sendResponse({ success: true, status: 'ready' });
         break;
 
+      case 'getMemoryStatus':
+        // 回傳當前記憶狀態（不觸發匯出）
+        const status = checkMemoryStatus();
+        sendResponse({
+          success: true,
+          isFull: status.isFull,
+          timestamp: status.timestamp,
+          data: window.__memoryList || [],
+          usage: window.__memoryUsagePercent || null,
+          markdown: window.__memoryMarkdown || null,
+        });
+        break;
+
       case 'getMemoryData':
-        // 回傳當前記憶資料
+        // 回傳當前記憶資料（向後相容）
         sendResponse({
           success: true,
           data: window.__memoryList || [],
