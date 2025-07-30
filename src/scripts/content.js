@@ -54,7 +54,7 @@
     if (
       style.display === 'none' ||
       style.visibility === 'hidden' ||
-      +style.opacity === 0
+      Number(style.opacity) === 0
     ) {
       return false;
     }

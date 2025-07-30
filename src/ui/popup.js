@@ -51,48 +51,27 @@ class ModernPopupManager {
     const appSettingsBtn = document.getElementById('appSettingsBtn');
     const settingsBtn = document.getElementById('settingsBtn');
 
-    exportBtn?.addEventListener('click', () => this.showExportModal());
+    exportBtn?.addEventListener('click', () => this.handleExport());
     copyBtn?.addEventListener('click', () => this.handleCopy());
     refreshBtn?.addEventListener('click', () => this.handleRefresh());
     historyBtn?.addEventListener('click', () => this.toggleHistory());
     appSettingsBtn?.addEventListener('click', () => this.toggleSettings());
     settingsBtn?.addEventListener('click', () => this.handleSettings());
 
-    // 匯出模態窗
-    const exportModalOverlay = document.getElementById('exportModalOverlay');
-    const exportModalClose = document.getElementById('exportModalClose');
-    const exportModalCancel = document.getElementById('exportModalCancel');
-    const exportModalHistory = document.getElementById('exportModalHistory');
-    const exportModalConfirm = document.getElementById('exportModalConfirm');
+    // 匯出結果區塊
+    const exportResultClose = document.getElementById('exportResultClose');
+    const copyResultBtn = document.getElementById('copyResultBtn');
+    const formatOptions = document.querySelectorAll('.format-option');
 
-    exportModalOverlay?.addEventListener('click', e => {
-      if (e.target === exportModalOverlay) this.hideExportModal();
-    });
-    exportModalClose?.addEventListener('click', () => this.hideExportModal());
-    exportModalCancel?.addEventListener('click', () => this.hideExportModal());
-    exportModalHistory?.addEventListener('click', () =>
-      this.showHistoryModal()
-    );
-    exportModalConfirm?.addEventListener('click', () =>
-      this.handleExportWithFormat()
-    );
+    exportResultClose?.addEventListener('click', () => this.hideExportResult());
+    copyResultBtn?.addEventListener('click', () => this.handleCopyResult());
 
     // 格式選擇
-    const formatOptions = document.querySelectorAll(
-      'input[name="exportFormat"]'
-    );
     formatOptions.forEach(option => {
-      option.addEventListener('change', () => this.updateFormatSelection());
+      option.addEventListener('click', () =>
+        this.selectFormat(option.dataset.format)
+      );
     });
-
-    // 歷史模態窗
-    const historyModalOverlay = document.getElementById('historyModalOverlay');
-    const historyModalClose = document.getElementById('historyModalClose');
-
-    historyModalOverlay?.addEventListener('click', e => {
-      if (e.target === historyModalOverlay) this.hideHistoryModal();
-    });
-    historyModalClose?.addEventListener('click', () => this.hideHistoryModal());
 
     // 歷史記憶區按鈕
     const closeHistoryBtn = document.getElementById('closeHistoryBtn');
@@ -296,15 +275,19 @@ class ModernPopupManager {
         // 更新狀態
         await this.updateStatus();
 
-        // 如果有 markdown 資料，啟用複製按鈕並儲存到歷史
+        // 如果有 markdown 資料，顯示匯出結果區塊
         if (response.markdown) {
-          window.__lastMarkdown = response.markdown;
-          const copyBtn = document.getElementById('copyBtn');
-          if (copyBtn) {
-            copyBtn.disabled = false;
-          }
+          this.currentExportData = {
+            markdown: response.markdown,
+            usage: response.usage,
+            count: response.data?.length || 0,
+            format: 'markdown', // 預設格式
+          };
 
-          // 儲存到歷史記錄（與主程式共用邏輯）
+          // 顯示匯出結果區塊
+          this.showExportResult(this.currentExportData);
+
+          // 儲存到歷史記錄
           const historyItem = await this.saveToHistory({
             markdown: response.markdown,
             usage: response.usage,
@@ -338,6 +321,113 @@ class ModernPopupManager {
     } finally {
       setTimeout(() => this.resetButton(exportBtn, '匯出記憶'), 2500);
     }
+  }
+
+  // 顯示匯出結果區塊
+  showExportResult(data) {
+    const exportResultSection = document.getElementById('exportResultSection');
+    const exportResultStats = document.getElementById('exportResultStats');
+
+    if (exportResultSection && exportResultStats) {
+      exportResultStats.textContent = `共 ${data.count} 筆記憶`;
+      exportResultSection.style.display = 'block';
+
+      // 添加顯示動畫
+      setTimeout(() => {
+        exportResultSection.classList.add('show');
+      }, 10);
+
+      // 設定預設選中的格式
+      this.selectFormat('markdown');
+    }
+  }
+
+  // 隱藏匯出結果區塊
+  hideExportResult() {
+    const exportResultSection = document.getElementById('exportResultSection');
+
+    if (exportResultSection) {
+      exportResultSection.classList.remove('show');
+      setTimeout(() => {
+        exportResultSection.style.display = 'none';
+      }, 250);
+    }
+  }
+
+  // 選擇格式
+  selectFormat(format) {
+    const formatOptions = document.querySelectorAll('.format-option');
+
+    formatOptions.forEach(option => {
+      if (option.dataset.format === format) {
+        option.classList.add('selected');
+      } else {
+        option.classList.remove('selected');
+      }
+    });
+
+    // 更新當前選中的格式
+    if (this.currentExportData) {
+      this.currentExportData.format = format;
+    }
+  }
+
+  // 處理複製結果
+  async handleCopyResult() {
+    const copyResultBtn = document.getElementById('copyResultBtn');
+
+    if (!copyResultBtn || !this.currentExportData) {
+      return;
+    }
+
+    try {
+      let content = this.currentExportData.markdown;
+
+      // 如果選擇純文字格式，轉換內容
+      if (this.currentExportData.format === 'text') {
+        content = this.convertMarkdownToText(content);
+      }
+
+      await navigator.clipboard.writeText(content);
+
+      // 顯示成功狀態
+      const originalText = copyResultBtn.innerHTML;
+      copyResultBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+        </svg>
+        已複製
+      `;
+      copyResultBtn.disabled = true;
+
+      setTimeout(() => {
+        copyResultBtn.innerHTML = originalText;
+        copyResultBtn.disabled = false;
+      }, 1500);
+
+      // 隱藏匯出結果區塊
+      setTimeout(() => {
+        this.hideExportResult();
+      }, 1000);
+    } catch (error) {
+      console.error('[Popup] 複製失敗:', error);
+      this.showToast('複製失敗');
+    }
+  }
+
+  // 轉換 Markdown 為純文字
+  convertMarkdownToText(markdown) {
+    if (!markdown) {
+      return '';
+    }
+
+    return markdown
+      .replace(/^#.*$/gm, '') // 移除標題
+      .replace(/>\s*使用量：.*$/gm, '') // 移除使用量行
+      .replace(/^共\s*\d+\s*筆$/gm, '') // 移除統計行
+      .replace(/^\d+\.\s*/gm, '') // 移除編號
+      .replace(/\n+/g, '\n') // 合併多個換行
+      .trim();
   }
 
   async handleCopy() {
@@ -632,19 +722,27 @@ class ModernPopupManager {
 
     if (historySection.style.display === 'none') {
       // 關閉設定區
-      settingsSection.style.display = 'none';
-      settingsSection.classList.remove('show');
+      if (settingsSection.style.display !== 'none') {
+        settingsSection.classList.remove('show');
+        setTimeout(() => {
+          settingsSection.style.display = 'none';
+        }, 250);
+      }
 
       // 開啟歷史區
       historySection.style.display = 'block';
-      historySection.classList.add('show');
+      setTimeout(() => {
+        historySection.classList.add('show');
+      }, 10);
 
       // 載入歷史記錄
       await this.loadHistory();
     } else {
       // 關閉歷史區
-      historySection.style.display = 'none';
       historySection.classList.remove('show');
+      setTimeout(() => {
+        historySection.style.display = 'none';
+      }, 250);
     }
   }
 
@@ -853,19 +951,27 @@ class ModernPopupManager {
 
     if (settingsSection.style.display === 'none') {
       // 關閉歷史區
-      historySection.style.display = 'none';
-      historySection.classList.remove('show');
+      if (historySection.style.display !== 'none') {
+        historySection.classList.remove('show');
+        setTimeout(() => {
+          historySection.style.display = 'none';
+        }, 250);
+      }
 
       // 開啟設定區
       settingsSection.style.display = 'block';
-      settingsSection.classList.add('show');
+      setTimeout(() => {
+        settingsSection.classList.add('show');
+      }, 10);
 
       // 載入設定
       await this.loadSettings();
     } else {
       // 關閉設定區
-      settingsSection.style.display = 'none';
       settingsSection.classList.remove('show');
+      setTimeout(() => {
+        settingsSection.style.display = 'none';
+      }, 250);
     }
   }
 
@@ -984,63 +1090,52 @@ class ModernPopupManager {
     }
   }
 
-  // 顯示記憶已滿的通知
-  showMemoryFullNotification(historyItem) {
-    // 創建記憶已滿的特殊通知
-    const notification = document.createElement('div');
-    notification.className = 'memory-full-notification';
-    notification.innerHTML = `
-      <div class="memory-full-content">
-        <div class="memory-full-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"/>
-          </svg>
-        </div>
-        <div class="memory-full-text">
-          <div class="memory-full-title">記憶已滿 - 已自動匯出</div>
-          <div class="memory-full-desc">共 ${historyItem.count} 筆記憶已儲存到歷史記錄</div>
-        </div>
-        <button class="memory-full-close" onclick="this.parentElement.parentElement.remove()">
-          <svg width="16" height="16" viewBox="0 0 24 24">
+  // 顯示 Toast 通知
+  showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    const icon =
+      type === 'success'
+        ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>'
+        : type === 'error'
+          ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
+
+    toast.innerHTML = `
+      <div class="toast-content">
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-message">${message}</div>
+        <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+          <svg width="14" height="14" viewBox="0 0 24 24">
             <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
           </svg>
         </button>
       </div>
     `;
 
-    document.body.appendChild(notification);
+    document.body.appendChild(toast);
+
+    // 添加顯示動畫
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
 
     // 自動消失
     setTimeout(() => {
-      if (notification.parentElement) {
-        notification.remove();
-      }
-    }, 5000);
+      toast.classList.remove('show');
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    }, 3000);
   }
 
-  // 顯示提示訊息
-  showToast(message) {
-    // 簡單的提示實現
-    const toast = document.createElement('div');
-    toast.textContent = message;
-    toast.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: var(--text-primary);
-      color: var(--bg-card);
-      padding: 8px 12px;
-      border-radius: 4px;
-      font-size: 12px;
-      z-index: 1001;
-      animation: slideIn 0.3s ease;
-    `;
-
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-      toast.remove();
-    }, 2000);
+  // 顯示記憶已滿的通知
+  showMemoryFullNotification(historyItem) {
+    this.showToast(
+      `記憶已滿 - 已自動匯出 ${historyItem.count} 筆記憶到歷史記錄`,
+      'success'
+    );
   }
 
   // 檢測頁面中的記憶已滿元素
@@ -1053,245 +1148,6 @@ class ModernPopupManager {
     } catch (error) {
       console.warn('[Popup] 檢測記憶已滿元素失敗:', error);
       return false;
-    }
-  }
-
-  // 顯示匯出模態窗
-  showExportModal() {
-    const overlay = document.getElementById('exportModalOverlay');
-    if (overlay) {
-      overlay.style.display = 'flex';
-      this.updateFormatSelection();
-    }
-  }
-
-  // 隱藏匯出模態窗
-  hideExportModal() {
-    const overlay = document.getElementById('exportModalOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
-  }
-
-  // 顯示歷史模態窗
-  async showHistoryModal() {
-    const overlay = document.getElementById('historyModalOverlay');
-    if (overlay) {
-      overlay.style.display = 'flex';
-      await this.loadHistoryModal();
-    }
-  }
-
-  // 隱藏歷史模態窗
-  hideHistoryModal() {
-    const overlay = document.getElementById('historyModalOverlay');
-    if (overlay) {
-      overlay.style.display = 'none';
-    }
-  }
-
-  // 更新格式選擇
-  updateFormatSelection() {
-    const options = document.querySelectorAll('.export-format-option');
-    const radios = document.querySelectorAll('input[name="exportFormat"]');
-
-    radios.forEach((radio, index) => {
-      if (radio.checked) {
-        options[index]?.classList.add('selected');
-      } else {
-        options[index]?.classList.remove('selected');
-      }
-    });
-  }
-
-  // 處理帶格式的匯出
-  async handleExportWithFormat() {
-    const selectedFormat =
-      document.querySelector('input[name="exportFormat"]:checked')?.value ||
-      'markdown';
-    const confirmBtn = document.getElementById('exportModalConfirm');
-
-    if (!confirmBtn || confirmBtn.disabled) {
-      return;
-    }
-
-    if (!this.currentTab?.url?.includes('chatgpt.com')) {
-      this.showError('請前往 ChatGPT 網站');
-      return;
-    }
-
-    try {
-      // 設置按鈕載入狀態
-      confirmBtn.disabled = true;
-      confirmBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" class="animate-spin">
-          <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
-        </svg>
-        匯出中...
-      `;
-
-      // 發送匯出請求到 content script
-      const response = await chrome.tabs.sendMessage(this.currentTab.id, {
-        action: 'exportMemories',
-        format: selectedFormat,
-      });
-
-      if (response?.success) {
-        let exportContent = response.markdown || '';
-
-        // 根據選擇的格式處理內容
-        if (selectedFormat === 'text') {
-          exportContent = this.convertMarkdownToText(exportContent);
-        }
-
-        // 複製到剪貼簿
-        await navigator.clipboard.writeText(exportContent);
-
-        // 儲存到歷史記錄
-        const historyItem = await this.saveToHistory({
-          markdown: response.markdown,
-          usage: response.usage,
-          count: response.data?.length || 0,
-          format: selectedFormat,
-        });
-
-        if (historyItem) {
-          this.showToast(
-            `已匯出 ${response.data?.length || 0} 筆記憶並複製到剪貼簿`
-          );
-
-          // 如果記憶已滿，顯示特殊提示
-          if (response.isFull) {
-            this.showMemoryFullNotification(historyItem);
-          }
-        }
-
-        // 隱藏模態窗
-        this.hideExportModal();
-
-        // 更新狀態
-        await this.updateStatus();
-      } else {
-        throw new Error(response?.error || '匯出失敗');
-      }
-    } catch (error) {
-      console.error('[Popup] 匯出失敗:', error);
-      this.showToast('匯出失敗: ' + error.message);
-    } finally {
-      // 重置按鈕狀態
-      confirmBtn.disabled = false;
-      confirmBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24">
-          <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-        </svg>
-        匯出並複製
-      `;
-    }
-  }
-
-  // 將 Markdown 轉換為純文字
-  convertMarkdownToText(markdown) {
-    return markdown
-      .replace(/^#+ /gm, '') // 移除標題標記
-      .replace(/^\d+\.\s*/gm, '• ') // 將數字列表轉為項目符號
-      .replace(/\*\*(.*?)\*\*/g, '$1') // 移除粗體標記
-      .replace(/\*(.*?)\*/g, '$1') // 移除斜體標記
-      .replace(/`(.*?)`/g, '$1') // 移除代碼標記
-      .replace(/>\s*/gm, '') // 移除引用標記
-      .replace(/\n{3,}/g, '\n\n') // 減少多餘的換行
-      .trim();
-  }
-
-  // 載入歷史模態窗內容
-  async loadHistoryModal() {
-    if (!this.storageManager) {
-      return;
-    }
-
-    const content = document.getElementById('historyModalContent');
-    if (!content) return;
-
-    // 顯示載入指示器
-    content.innerHTML = `
-      <div class="history-empty">
-        <div class="empty-text">載入中...</div>
-      </div>
-    `;
-
-    try {
-      const history = await this.storageManager.getMemoryHistory();
-
-      if (history.length === 0) {
-        content.innerHTML = `
-          <div class="history-empty">
-            <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
-              <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
-            </svg>
-            <div class="empty-text">尚無歷史記錄</div>
-            <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
-          </div>
-        `;
-        return;
-      }
-
-      const historyHTML = history
-        .map(
-          item => `
-          <div class="history-modal-item" data-id="${item.id}">
-            <div class="history-item-icon">${item.date.split('/')[1]}/${item.date.split('/')[2]}</div>
-            <div class="history-item-content">
-              <div class="history-item-meta">
-                <span class="history-item-date">${item.date}</span>
-                <span class="history-item-time">${item.time}</span>
-              </div>
-              <div class="history-item-stats">
-                <span>使用量: ${item.usage}</span>
-                <span>數量: ${item.count} 筆</span>
-                <span>格式: ${item.format || 'markdown'}</span>
-              </div>
-              <div class="history-item-preview">${this.getPreview(item.content)}</div>
-            </div>
-            <div class="history-item-actions">
-              <button class="history-item-btn copy-btn" data-id="${item.id}" title="複製">
-                <svg width="14" height="14" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
-                </svg>
-              </button>
-              <button class="history-item-btn delete-btn" data-id="${item.id}" title="刪除">
-                <svg width="14" height="14" viewBox="0 0 24 24">
-                  <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        `
-        )
-        .join('');
-
-      content.innerHTML = historyHTML;
-
-      // 添加事件監聽器
-      content.querySelectorAll('.copy-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          this.copyHistoryItem(btn.dataset.id);
-        });
-      });
-
-      content.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', e => {
-          e.stopPropagation();
-          this.deleteHistoryItem(btn.dataset.id);
-        });
-      });
-    } catch (error) {
-      console.error('[Popup] 載入歷史模態窗失敗:', error);
-      content.innerHTML = `
-        <div class="history-empty">
-          <div class="empty-text">載入失敗</div>
-          <div class="empty-desc">請稍後再試</div>
-        </div>
-      `;
     }
   }
 
