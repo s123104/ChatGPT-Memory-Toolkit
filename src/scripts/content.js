@@ -80,27 +80,29 @@
   // 尋找記憶已滿的特定 div 元素
   const findMemoryFullTargetDiv = () => {
     // 尋找包含指定類別和結構的 div
-    const targetDivs = document.querySelectorAll('div.flex.items-center.gap-1.text-sm.font-semibold.opacity-70');
-    
+    const targetDivs = document.querySelectorAll(
+      'div.flex.items-center.gap-1.text-sm.font-semibold.opacity-70'
+    );
+
     for (const div of targetDivs) {
       // 檢查是否包含"儲存的記憶已滿"文字
       if (div.textContent?.includes(CONFIG.triggerText)) {
         return div;
       }
     }
-    
+
     return null;
   };
 
   // 讓記憶已滿的目標 div 變成可點擊並添加動畫
-  const enhanceMemoryFullTargetDiv = (targetDiv) => {
+  const enhanceMemoryFullTargetDiv = targetDiv => {
     if (!targetDiv || targetDiv.dataset.enhanced) {
       return; // 避免重複處理
     }
 
     // 標記已處理
     targetDiv.dataset.enhanced = 'true';
-    
+
     // 添加動畫樣式到頁面
     const animationStyles = document.createElement('style');
     animationStyles.id = 'memory-full-target-styles';
@@ -287,12 +289,12 @@
     targetDiv.classList.add('memory-full-clickable');
 
     // 添加點擊事件
-    const clickHandler = async (e) => {
+    const clickHandler = async e => {
       e.preventDefault();
       e.stopPropagation();
-      
+
       log('用戶點擊記憶已滿提示，開始自動匯出');
-      
+
       // 添加點擊反饋
       targetDiv.style.transform = 'scale(0.95)';
       setTimeout(() => {
@@ -301,12 +303,12 @@
 
       try {
         await mainFlow();
-        
+
         // 匯出成功後移除動畫和點擊功能
         targetDiv.classList.remove('memory-full-clickable');
         targetDiv.style.cursor = 'default';
         targetDiv.removeEventListener('click', clickHandler);
-        
+
         // 顯示成功提示
         const successTooltip = document.createElement('div');
         successTooltip.style.cssText = `
@@ -327,13 +329,13 @@
         successTooltip.textContent = '✅ 記憶匯出成功';
         targetDiv.style.position = 'relative';
         targetDiv.appendChild(successTooltip);
-        
+
         setTimeout(() => {
           successTooltip.remove();
         }, 3000);
       } catch (error) {
         warn('點擊匯出失敗:', error);
-        
+
         // 顯示錯誤提示
         const errorTooltip = document.createElement('div');
         errorTooltip.style.cssText = `
@@ -354,7 +356,7 @@
         errorTooltip.textContent = '❌ 匯出失敗，請稍後再試';
         targetDiv.style.position = 'relative';
         targetDiv.appendChild(errorTooltip);
-        
+
         setTimeout(() => {
           errorTooltip.remove();
         }, 3000);
@@ -1978,6 +1980,28 @@
           success: true,
           markdown: window.__memoryMarkdown || null,
         });
+        break;
+
+      case 'detectMemoryFull':
+        // 檢測頁面中是否有記憶已滿的元素
+        try {
+          const memoryFullElement = document.querySelector(
+            '.memory-full-clickable, [class*="memory-full"]'
+          );
+          const hasMemoryFullText =
+            document.body.textContent.includes('儲存的記憶已滿') ||
+            document.body.textContent.includes('Memory is full');
+
+          sendResponse({
+            success: true,
+            memoryFull: !!(memoryFullElement || hasMemoryFullText),
+          });
+        } catch (error) {
+          sendResponse({
+            success: false,
+            error: error.message,
+          });
+        }
         break;
 
       case 'updateDeveloperMode':

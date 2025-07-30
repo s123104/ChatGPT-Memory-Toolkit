@@ -51,12 +51,52 @@ class ModernPopupManager {
     const appSettingsBtn = document.getElementById('appSettingsBtn');
     const settingsBtn = document.getElementById('settingsBtn');
 
-    exportBtn?.addEventListener('click', () => this.handleExport());
+    exportBtn?.addEventListener('click', () => this.showExportModal());
     copyBtn?.addEventListener('click', () => this.handleCopy());
     refreshBtn?.addEventListener('click', () => this.handleRefresh());
     historyBtn?.addEventListener('click', () => this.toggleHistory());
     appSettingsBtn?.addEventListener('click', () => this.toggleSettings());
     settingsBtn?.addEventListener('click', () => this.handleSettings());
+
+    // 記憶已滿橫幅
+    const memoryFullBanner = document.getElementById('memoryFullBanner');
+    memoryFullBanner?.addEventListener('click', () => this.showExportModal());
+
+    // 匯出模態窗
+    const exportModalOverlay = document.getElementById('exportModalOverlay');
+    const exportModalClose = document.getElementById('exportModalClose');
+    const exportModalCancel = document.getElementById('exportModalCancel');
+    const exportModalHistory = document.getElementById('exportModalHistory');
+    const exportModalConfirm = document.getElementById('exportModalConfirm');
+
+    exportModalOverlay?.addEventListener('click', e => {
+      if (e.target === exportModalOverlay) this.hideExportModal();
+    });
+    exportModalClose?.addEventListener('click', () => this.hideExportModal());
+    exportModalCancel?.addEventListener('click', () => this.hideExportModal());
+    exportModalHistory?.addEventListener('click', () =>
+      this.showHistoryModal()
+    );
+    exportModalConfirm?.addEventListener('click', () =>
+      this.handleExportWithFormat()
+    );
+
+    // 格式選擇
+    const formatOptions = document.querySelectorAll(
+      'input[name="exportFormat"]'
+    );
+    formatOptions.forEach(option => {
+      option.addEventListener('change', () => this.updateFormatSelection());
+    });
+
+    // 歷史模態窗
+    const historyModalOverlay = document.getElementById('historyModalOverlay');
+    const historyModalClose = document.getElementById('historyModalClose');
+
+    historyModalOverlay?.addEventListener('click', e => {
+      if (e.target === historyModalOverlay) this.hideHistoryModal();
+    });
+    historyModalClose?.addEventListener('click', () => this.hideHistoryModal());
 
     // 歷史記憶區按鈕
     const closeHistoryBtn = document.getElementById('closeHistoryBtn');
@@ -124,6 +164,7 @@ class ModernPopupManager {
     const lastCheckEl = document.getElementById('lastCheck');
     const statusCard = document.getElementById('statusCard');
     const statusDot = document.getElementById('statusDot');
+    const memoryFullBanner = document.getElementById('memoryFullBanner');
 
     if (!this.currentTab) {
       this.showError('無法取得當前分頁');
@@ -141,6 +182,9 @@ class ModernPopupManager {
       await chrome.tabs.sendMessage(this.currentTab.id, { action: 'ping' });
       this.updateConnectionStatus(true);
 
+      // 檢查頁面中是否有記憶已滿的元素
+      const memoryFullDetected = await this.detectMemoryFullElement();
+
       // 獲取記憶狀態
       const response = await chrome.tabs.sendMessage(this.currentTab.id, {
         action: 'getMemoryStatus',
@@ -150,7 +194,12 @@ class ModernPopupManager {
         this.memoryData = response.data || [];
         const usage = response.usage || '--';
         const count = this.memoryData.length;
-        const isFull = response.isFull || false;
+        const isFull = response.isFull || memoryFullDetected;
+
+        // 顯示或隱藏記憶已滿橫幅
+        if (memoryFullBanner) {
+          memoryFullBanner.style.display = isFull ? 'block' : 'none';
+        }
 
         // 更新狀態顯示
         if (isFull) {
@@ -202,6 +251,9 @@ class ModernPopupManager {
         memoryStatusEl.textContent = '等待檢測...';
         statusCard.className = 'status-card modern';
         statusDot.className = 'status-dot';
+        if (memoryFullBanner) {
+          memoryFullBanner.style.display = 'none';
+        }
       }
     } catch (error) {
       console.warn('[Popup] 無法取得記憶資料:', error);
@@ -215,6 +267,9 @@ class ModernPopupManager {
         statusDot.className = 'status-dot warning';
       }
       this.updateConnectionStatus(false);
+      if (memoryFullBanner) {
+        memoryFullBanner.style.display = 'none';
+      }
     }
   }
 
@@ -1003,6 +1058,258 @@ class ModernPopupManager {
     setTimeout(() => {
       toast.remove();
     }, 2000);
+  }
+
+  // 檢測頁面中的記憶已滿元素
+  async detectMemoryFullElement() {
+    try {
+      const response = await chrome.tabs.sendMessage(this.currentTab.id, {
+        action: 'detectMemoryFull',
+      });
+      return response?.memoryFull || false;
+    } catch (error) {
+      console.warn('[Popup] 檢測記憶已滿元素失敗:', error);
+      return false;
+    }
+  }
+
+  // 顯示匯出模態窗
+  showExportModal() {
+    const overlay = document.getElementById('exportModalOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      this.updateFormatSelection();
+    }
+  }
+
+  // 隱藏匯出模態窗
+  hideExportModal() {
+    const overlay = document.getElementById('exportModalOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }
+
+  // 顯示歷史模態窗
+  async showHistoryModal() {
+    const overlay = document.getElementById('historyModalOverlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      await this.loadHistoryModal();
+    }
+  }
+
+  // 隱藏歷史模態窗
+  hideHistoryModal() {
+    const overlay = document.getElementById('historyModalOverlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+  }
+
+  // 更新格式選擇
+  updateFormatSelection() {
+    const options = document.querySelectorAll('.export-format-option');
+    const radios = document.querySelectorAll('input[name="exportFormat"]');
+
+    radios.forEach((radio, index) => {
+      if (radio.checked) {
+        options[index]?.classList.add('selected');
+      } else {
+        options[index]?.classList.remove('selected');
+      }
+    });
+  }
+
+  // 處理帶格式的匯出
+  async handleExportWithFormat() {
+    const selectedFormat =
+      document.querySelector('input[name="exportFormat"]:checked')?.value ||
+      'markdown';
+    const confirmBtn = document.getElementById('exportModalConfirm');
+
+    if (!confirmBtn || confirmBtn.disabled) {
+      return;
+    }
+
+    if (!this.currentTab?.url?.includes('chatgpt.com')) {
+      this.showError('請前往 ChatGPT 網站');
+      return;
+    }
+
+    try {
+      // 設置按鈕載入狀態
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" class="animate-spin">
+          <path fill="currentColor" d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+        </svg>
+        匯出中...
+      `;
+
+      // 發送匯出請求到 content script
+      const response = await chrome.tabs.sendMessage(this.currentTab.id, {
+        action: 'exportMemories',
+        format: selectedFormat,
+      });
+
+      if (response?.success) {
+        let exportContent = response.markdown || '';
+
+        // 根據選擇的格式處理內容
+        if (selectedFormat === 'text') {
+          exportContent = this.convertMarkdownToText(exportContent);
+        }
+
+        // 複製到剪貼簿
+        await navigator.clipboard.writeText(exportContent);
+
+        // 儲存到歷史記錄
+        const historyItem = await this.saveToHistory({
+          markdown: response.markdown,
+          usage: response.usage,
+          count: response.data?.length || 0,
+          format: selectedFormat,
+        });
+
+        if (historyItem) {
+          this.showToast(
+            `已匯出 ${response.data?.length || 0} 筆記憶並複製到剪貼簿`
+          );
+
+          // 如果記憶已滿，顯示特殊提示
+          if (response.isFull) {
+            this.showMemoryFullNotification(historyItem);
+          }
+        }
+
+        // 隱藏模態窗
+        this.hideExportModal();
+
+        // 更新狀態
+        await this.updateStatus();
+      } else {
+        throw new Error(response?.error || '匯出失敗');
+      }
+    } catch (error) {
+      console.error('[Popup] 匯出失敗:', error);
+      this.showToast('匯出失敗: ' + error.message);
+    } finally {
+      // 重置按鈕狀態
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+        </svg>
+        匯出並複製
+      `;
+    }
+  }
+
+  // 將 Markdown 轉換為純文字
+  convertMarkdownToText(markdown) {
+    return markdown
+      .replace(/^#+ /gm, '') // 移除標題標記
+      .replace(/^\d+\.\s*/gm, '• ') // 將數字列表轉為項目符號
+      .replace(/\*\*(.*?)\*\*/g, '$1') // 移除粗體標記
+      .replace(/\*(.*?)\*/g, '$1') // 移除斜體標記
+      .replace(/`(.*?)`/g, '$1') // 移除代碼標記
+      .replace(/>\s*/gm, '') // 移除引用標記
+      .replace(/\n{3,}/g, '\n\n') // 減少多餘的換行
+      .trim();
+  }
+
+  // 載入歷史模態窗內容
+  async loadHistoryModal() {
+    if (!this.storageManager) {
+      return;
+    }
+
+    const content = document.getElementById('historyModalContent');
+    if (!content) return;
+
+    // 顯示載入指示器
+    content.innerHTML = `
+      <div class="history-empty">
+        <div class="empty-text">載入中...</div>
+      </div>
+    `;
+
+    try {
+      const history = await this.storageManager.getMemoryHistory();
+
+      if (history.length === 0) {
+        content.innerHTML = `
+          <div class="history-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
+              <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+            </svg>
+            <div class="empty-text">尚無歷史記錄</div>
+            <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
+          </div>
+        `;
+        return;
+      }
+
+      const historyHTML = history
+        .map(
+          item => `
+          <div class="history-modal-item" data-id="${item.id}">
+            <div class="history-item-icon">${item.date.split('/')[1]}/${item.date.split('/')[2]}</div>
+            <div class="history-item-content">
+              <div class="history-item-meta">
+                <span class="history-item-date">${item.date}</span>
+                <span class="history-item-time">${item.time}</span>
+              </div>
+              <div class="history-item-stats">
+                <span>使用量: ${item.usage}</span>
+                <span>數量: ${item.count} 筆</span>
+                <span>格式: ${item.format || 'markdown'}</span>
+              </div>
+              <div class="history-item-preview">${this.getPreview(item.content)}</div>
+            </div>
+            <div class="history-item-actions">
+              <button class="history-item-btn copy-btn" data-id="${item.id}" title="複製">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+                </svg>
+              </button>
+              <button class="history-item-btn delete-btn" data-id="${item.id}" title="刪除">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+
+      content.innerHTML = historyHTML;
+
+      // 添加事件監聽器
+      content.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          this.copyHistoryItem(btn.dataset.id);
+        });
+      });
+
+      content.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          this.deleteHistoryItem(btn.dataset.id);
+        });
+      });
+    } catch (error) {
+      console.error('[Popup] 載入歷史模態窗失敗:', error);
+      content.innerHTML = `
+        <div class="history-empty">
+          <div class="empty-text">載入失敗</div>
+          <div class="empty-desc">請稍後再試</div>
+        </div>
+      `;
+    }
   }
 
   // 清理資源

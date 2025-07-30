@@ -7,7 +7,7 @@
 **Professional ChatGPT Memory Management Chrome Extension**
 
 [![Chrome Web Store](https://img.shields.io/badge/Chrome-Web%20Store-blue?style=flat-square&logo=google-chrome)](https://chrome.google.com/webstore)
-[![Version](https://img.shields.io/badge/version-1.4.3-green?style=flat-square)](https://github.com/your-username/chatgpt-memory-toolkit)
+[![Version](https://img.shields.io/badge/version-1.5.0-green?style=flat-square)](https://github.com/your-username/chatgpt-memory-toolkit)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](CONTRIBUTING.md)
 

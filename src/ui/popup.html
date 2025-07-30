@@ -73,6 +73,48 @@
 
       <!-- Main Content -->
       <main class="app-main">
+        <!-- Memory Full Detection Banner -->
+        <div
+          class="memory-full-banner"
+          id="memoryFullBanner"
+          style="display: none"
+        >
+          <div class="memory-full-content">
+            <div class="memory-full-icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  d="M10 9.25C10.4142 9.25002 10.75 9.5858 10.75 10V13.333C10.75 13.7472 10.4142 14.083 10 14.083C9.58579 14.083 9.25 13.7472 9.25 13.333V10C9.25 9.58579 9.58579 9.25 10 9.25Z"
+                ></path>
+                <path
+                  d="M10 5.83301C10.5293 5.83303 10.958 6.26273 10.958 6.79199C10.9578 7.3211 10.5291 7.74998 10 7.75C9.47084 7.75 9.04217 7.32111 9.04199 6.79199C9.04199 6.26272 9.47073 5.83301 10 5.83301Z"
+                ></path>
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M10 2.08496C14.3713 2.08496 17.915 5.62867 17.915 10C17.915 14.3713 14.3713 17.915 10 17.915C5.62867 17.915 2.08496 14.3713 2.08496 10C2.08496 5.62867 5.62867 2.08496 10 2.08496ZM10 3.41504C6.3632 3.41504 3.41504 6.3632 3.41504 10C3.41504 13.6368 6.3632 16.585 10 16.585C13.6368 16.585 16.585 13.6368 16.585 10C16.585 6.3632 13.6368 3.41504 10 3.41504Z"
+                ></path>
+              </svg>
+            </div>
+            <div class="memory-full-text">
+              <div class="memory-full-title">儲存的記憶已滿</div>
+              <div class="memory-full-subtitle">點擊匯出記憶以釋放空間</div>
+            </div>
+            <div class="memory-full-arrow">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         <!-- Memory Status Card -->
         <div class="status-card modern" id="statusCard">
           <div class="card-header">
@@ -427,11 +469,158 @@
       <!-- App Footer -->
       <footer class="app-footer">
         <div class="footer-info">
-          <span class="version">v1.4.3</span>
+          <span class="version">v1.5.0</span>
           <span class="separator">•</span>
           <span class="status-text" id="connectionStatus">已連接</span>
         </div>
       </footer>
+    </div>
+
+    <!-- Export Modal -->
+    <div
+      class="export-modal-overlay"
+      id="exportModalOverlay"
+      style="display: none"
+    >
+      <div class="export-modal">
+        <div class="export-modal-header">
+          <div class="export-modal-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+              />
+            </svg>
+          </div>
+          <div class="export-modal-title">
+            <h3>匯出記憶</h3>
+            <p>選擇匯出格式並管理歷史記錄</p>
+          </div>
+          <button class="export-modal-close" id="exportModalClose">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="export-format-section">
+          <div class="export-format-title">選擇匯出格式</div>
+          <div class="export-format-options">
+            <label class="export-format-option selected" for="formatMarkdown">
+              <input
+                type="radio"
+                id="formatMarkdown"
+                name="exportFormat"
+                value="markdown"
+                checked
+              />
+              <div class="export-format-header">
+                <div class="export-format-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22.269,19.385H1.731a1.73,1.73,0,0,1-1.73-1.73V6.345a1.73,1.73,0,0,1,1.73-1.73H22.269a1.73,1.73,0,0,1,1.73,1.73V17.655A1.73,1.73,0,0,1,22.269,19.385ZM3.462,16.923H20.538V7.077H3.462ZM5.769,15.385V8.615h2.31L10.385,11.5l2.308-2.885h2.307v6.77H13.231V11.846L10.385,14.731,7.538,11.846v3.539Z"
+                    />
+                  </svg>
+                </div>
+                <div class="export-format-name">Markdown</div>
+              </div>
+              <div class="export-format-desc">結構化格式，支援標題和列表</div>
+            </label>
+            <label class="export-format-option" for="formatText">
+              <input
+                type="radio"
+                id="formatText"
+                name="exportFormat"
+                value="text"
+              />
+              <div class="export-format-header">
+                <div class="export-format-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"
+                    />
+                  </svg>
+                </div>
+                <div class="export-format-name">純文字</div>
+              </div>
+              <div class="export-format-desc">簡潔格式，易於閱讀和分享</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="export-modal-actions">
+          <button class="export-modal-btn secondary" id="exportModalCancel">
+            取消
+          </button>
+          <button class="export-modal-btn secondary" id="exportModalHistory">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+              />
+            </svg>
+            歷史記錄
+          </button>
+          <button class="export-modal-btn primary" id="exportModalConfirm">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
+              />
+            </svg>
+            匯出並複製
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- History Modal -->
+    <div
+      class="history-modal-overlay"
+      id="historyModalOverlay"
+      style="display: none"
+    >
+      <div class="history-modal">
+        <div class="history-modal-header">
+          <div class="export-modal-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+              />
+            </svg>
+          </div>
+          <div class="export-modal-title">
+            <h3>歷史記錄</h3>
+            <p>查看和管理已匯出的記憶</p>
+          </div>
+          <button class="export-modal-close" id="historyModalClose">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+              />
+            </svg>
+          </button>
+        </div>
+        <div class="history-modal-content" id="historyModalContent">
+          <div class="history-empty">
+            <svg width="48" height="48" viewBox="0 0 24 24" class="empty-icon">
+              <path
+                fill="currentColor"
+                d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+              />
+            </svg>
+            <div class="empty-text">尚無歷史記錄</div>
+            <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="../utils/storage-manager.js"></script>
