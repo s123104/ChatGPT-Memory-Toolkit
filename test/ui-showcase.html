@@ -6,28 +6,43 @@
     <title>UI統一化展示頁面 - ChatGPT Memory Manager</title>
     <link rel="stylesheet" href="../src/ui/popup.css" />
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       body {
-        padding: 20px;
         background: var(--bg-primary);
         font-family:
           -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        min-height: 100vh;
-        margin: 0;
-      }
-
-      .showcase-container {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .showcase-header {
-        text-align: center;
-        margin-bottom: 40px;
+        height: 100vh;
+        overflow: hidden;
         color: var(--text-primary);
       }
 
+      .showcase-container {
+        display: grid;
+        grid-template-columns: 2fr 1.5fr 1fr;
+        grid-template-rows: auto 1fr;
+        height: 100vh;
+        width: 100vw;
+        gap: 0;
+        max-width: none;
+      }
+
+      .showcase-header {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 20px 40px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-light);
+        width: 100%;
+        box-sizing: border-box;
+      }
+
       .showcase-header h1 {
-        font-size: 32px;
+        font-size: 24px;
         font-weight: 700;
         margin-bottom: 8px;
         background: var(--primary-gradient);
@@ -37,27 +52,50 @@
       }
 
       .showcase-header p {
-        font-size: 16px;
+        font-size: 14px;
         color: var(--text-secondary);
       }
 
-      .showcase-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-        gap: 30px;
-        margin-bottom: 40px;
+      .showcase-column {
+        padding: 15px;
+        border-right: 1px solid var(--border-light);
+        overflow-y: auto;
+        height: calc(100vh - 80px);
+        min-width: 0;
+        width: 100%;
       }
 
-      .showcase-section {
+      .showcase-column:last-child {
+        border-right: none;
+      }
+
+      .column-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--primary-color);
+      }
+
+      .column-title svg {
+        color: var(--primary-color);
+      }
+
+      .demo-section {
+        margin-bottom: 25px;
         background: var(--bg-card);
         border: 1px solid var(--border-light);
         border-radius: var(--radius-xl);
-        padding: 20px;
+        padding: 18px;
         box-shadow: var(--shadow-sm);
       }
 
-      .section-title {
-        font-size: 18px;
+      .section-subtitle {
+        font-size: 16px;
         font-weight: 600;
         color: var(--text-primary);
         margin-bottom: 15px;
@@ -66,14 +104,10 @@
         gap: 8px;
       }
 
-      .section-title svg {
-        color: var(--primary-color);
-      }
-
       .demo-controls {
         display: flex;
         gap: 8px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
         flex-wrap: wrap;
       }
 
@@ -103,24 +137,34 @@
         background: var(--bg-primary);
         border: 1px solid var(--border-light);
         border-radius: var(--radius-lg);
-        padding: 20px;
+        padding: 15px;
         margin-bottom: 15px;
       }
 
-      .component-demo:last-child {
-        margin-bottom: 0;
-      }
-
       .demo-label {
-        font-size: 14px;
+        font-size: 12px;
         color: var(--text-secondary);
         margin-bottom: 10px;
         font-weight: 500;
       }
 
+      /* 主要介面容器 */
+      .main-interface-container {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+
+      @media (min-width: 1920px) {
+        .main-interface-container {
+          max-width: 480px;
+        }
+      }
+
+      /* 色彩展示 */
       .color-palette {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 10px;
       }
 
@@ -130,51 +174,339 @@
 
       .color-swatch {
         width: 100%;
-        height: 40px;
-        border-radius: 8px;
+        height: 30px;
+        border-radius: 6px;
         margin-bottom: 5px;
         border: 1px solid var(--border-light);
       }
 
       .color-name {
-        font-size: 12px;
+        font-size: 10px;
         color: var(--text-secondary);
         font-weight: 500;
       }
 
+      /* 按鈕測試區域 */
+      .button-test-area {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .test-button-container {
+        width: 100%;
+      }
+
+      /* Toast 展示區域 */
       .toast-demo-area {
         position: relative;
-        height: 100px;
+        height: 80px;
         border: 2px dashed var(--border-light);
         border-radius: var(--radius-lg);
         display: flex;
         align-items: center;
         justify-content: center;
         color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      /* 記憶已滿元素展示 */
+      .memory-full-demo {
+        padding: 15px;
+        border: 2px dashed var(--border-light);
+        border-radius: 8px;
+        background: var(--bg-secondary);
+      }
+
+      .memory-full-element {
+        display: flex;
+        align-items: center;
+        gap: 4px;
         font-size: 14px;
+        font-weight: 600;
+        opacity: 0.7;
+        color: var(--text-secondary);
+        cursor: default;
+        padding: 8px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+      }
+
+      /* 確保全屏寬度 */
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      .showcase-container {
+        min-width: 100vw;
+      }
+
+      /* 增強的按鈕狀態樣式 */
+      .memory-export-btn.memory-full-urgent .export-btn-gradient {
+        background: linear-gradient(
+          135deg,
+          #f59e0b 0%,
+          #f97316 50%,
+          #ef4444 100%
+        );
+        background-size: 300% 300%;
+        animation: urgentGradientShift 3s ease-in-out infinite;
+      }
+
+      .memory-export-btn.memory-full-urgent .export-btn-particles .particle {
+        background: rgba(255, 255, 255, 0.9);
+        animation-duration: 1.5s;
+        animation-timing-function: ease-in-out;
+      }
+
+      .memory-export-btn.memory-full-urgent .export-main-text {
+        animation: urgentTextPulse 2s ease-in-out infinite;
+      }
+
+      .memory-export-btn.memory-full-urgent .export-icon {
+        animation: urgentIconBounce 2s ease-in-out infinite;
+      }
+
+      @keyframes urgentGradientShift {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+      }
+
+      @keyframes urgentTextPulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.8;
+          transform: scale(1.05);
+        }
+      }
+
+      @keyframes urgentIconBounce {
+        0%,
+        100% {
+          transform: scale(1) rotate(0deg);
+        }
+        25% {
+          transform: scale(1.1) rotate(5deg);
+        }
+        75% {
+          transform: scale(1.1) rotate(-5deg);
+        }
+      }
+
+      /* 載入狀態增強 */
+      .memory-export-btn.loading .export-btn-gradient {
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        animation: loadingPulse 1.5s ease-in-out infinite;
+      }
+
+      .memory-export-btn.loading .export-icon {
+        animation: spin 1s linear infinite;
+      }
+
+      .memory-export-btn.loading .export-btn-particles .particle {
+        animation-duration: 2s;
+        opacity: 0.6;
+      }
+
+      @keyframes loadingPulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      /* 成功狀態增強 */
+      .memory-export-btn.success .export-btn-gradient {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        animation: successGlow 0.8s ease-out;
+      }
+
+      .memory-export-btn.success .export-icon {
+        animation: successBounce 0.6s ease-out;
+      }
+
+      .memory-export-btn.success .export-btn-particles .particle {
+        background: rgba(255, 255, 255, 0.9);
+        animation: successSparkle 1s ease-out;
+      }
+
+      @keyframes successGlow {
+        0% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
+      }
+
+      @keyframes successBounce {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.3);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes successSparkle {
+        0% {
+          transform: scale(0) rotate(0deg);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(1.2) rotate(180deg);
+          opacity: 0.8;
+        }
+        100% {
+          transform: scale(0) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      /* 錯誤狀態增強 */
+      .memory-export-btn.error .export-btn-gradient {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        animation: errorFlash 0.5s ease-in-out;
+      }
+
+      .memory-export-btn.error .export-icon {
+        animation: errorShake 0.5s ease-in-out;
+      }
+
+      .memory-export-btn.error .export-btn-particles .particle {
+        background: rgba(255, 255, 255, 0.7);
+        animation: errorScatter 0.8s ease-out;
+      }
+
+      @keyframes errorFlash {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.6;
+        }
+      }
+
+      @keyframes errorShake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-4px);
+        }
+        75% {
+          transform: translateX(4px);
+        }
+      }
+
+      @keyframes errorScatter {
+        0% {
+          transform: scale(1) translate(0, 0);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.5)
+            translate(var(--random-x, 20px), var(--random-y, -20px));
+          opacity: 0;
+        }
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 響應式設計 */
+      @media (max-width: 1400px) {
+        .showcase-container {
+          grid-template-columns: 1.5fr 1fr;
+        }
+      }
+
+      @media (max-width: 900px) {
+        .showcase-container {
+          grid-template-columns: 1fr;
+        }
+
+        .showcase-column {
+          height: auto;
+          max-height: none;
+          min-height: 100vh;
+        }
+
+        body {
+          overflow-y: auto;
+          height: auto;
+        }
+      }
+
+      /* 大螢幕優化 */
+      @media (min-width: 1920px) {
+        .showcase-column {
+          padding: 30px;
+        }
+
+        .demo-section {
+          margin-bottom: 40px;
+        }
+
+        .column-title {
+          font-size: 20px;
+        }
+
+        .section-subtitle {
+          font-size: 18px;
+        }
       }
     </style>
   </head>
   <body>
     <div class="showcase-container">
+      <!-- Header -->
       <div class="showcase-header">
         <h1>UI統一化展示頁面</h1>
         <p>ChatGPT Memory Manager - 深色主題設計系統</p>
       </div>
 
-      <div class="showcase-grid">
-        <!-- 主要介面展示 -->
-        <div class="showcase-section">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"
-              />
-            </svg>
-            主要介面
-          </div>
+      <!-- 左欄：主要介面展示 -->
+      <div class="showcase-column">
+        <div class="column-title">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"
+            />
+          </svg>
+          主要介面展示
+        </div>
 
+        <!-- 介面狀態控制 -->
+        <div class="demo-section">
+          <div class="section-subtitle">介面狀態</div>
           <div class="demo-controls">
             <button class="demo-btn active" data-action="showNormalState">
               正常狀態
@@ -186,11 +518,11 @@
               匯出結果
             </button>
           </div>
+        </div>
 
-          <div
-            class="app-container"
-            style="width: 100%; max-width: 380px; margin: 0 auto"
-          >
+        <!-- 主要介面 -->
+        <div class="demo-section">
+          <div class="main-interface-container">
             <!-- App Header -->
             <header class="app-header">
               <div class="app-icon">
@@ -448,24 +780,6 @@
                     </button>
                   </div>
                 </div>
-
-                <button class="copy-btn modern" id="demoCopyBtn">
-                  <div class="copy-btn-content">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      class="copy-icon"
-                    >
-                      <path
-                        fill="currentColor"
-                        d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
-                      />
-                    </svg>
-                    <span class="copy-text">複製內容</span>
-                  </div>
-                  <div class="copy-btn-ripple"></div>
-                </button>
               </div>
 
               <!-- Quick Actions -->
@@ -515,19 +829,23 @@
             </footer>
           </div>
         </div>
+      </div>
 
-        <!-- 按鈕狀態展示 -->
-        <div class="showcase-section">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,7V13H13V7H11M11,15V17H13V15H11Z"
-              />
-            </svg>
-            按鈕狀態
-          </div>
+      <!-- 中欄：按鈕狀態和模態窗展示 -->
+      <div class="showcase-column">
+        <div class="column-title">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,7V13H13V7H11M11,15V17H13V15H11Z"
+            />
+          </svg>
+          按鈕狀態與模態窗
+        </div>
 
+        <!-- 按鈕狀態測試 -->
+        <div class="demo-section">
+          <div class="section-subtitle">按鈕狀態測試</div>
           <div class="demo-controls">
             <button class="demo-btn" data-action="testButtonLoading">
               載入狀態
@@ -538,100 +856,132 @@
             <button class="demo-btn" data-action="testButtonError">
               錯誤狀態
             </button>
-            <button class="demo-btn" data-action="resetButtonStates"></button>
+            <button class="demo-btn" data-action="testMemoryFullUrgent">
+              記憶已滿
+            </button>
+            <button class="demo-btn" data-action="resetButtonStates">
               重置狀態
             </button>
           </div>
 
-          <div class="component-demo">
-            <div class="demo-label">匯出按鈕狀態</div>
-            <button
-              class="memory-export-btn"
-              id="testExportBtn"
-              style="width: 100%"
-            >
-              <div class="export-btn-background">
-                <div class="export-btn-gradient"></div>
-                <div class="export-btn-particles">
-                  <div class="particle"></div>
-                  <div class="particle"></div>
-                  <div class="particle"></div>
-                  <div class="particle"></div>
-                  <div class="particle"></div>
-                </div>
+          <div class="button-test-area">
+            <div class="component-demo">
+              <div class="demo-label">匯出按鈕狀態</div>
+              <div class="test-button-container">
+                <button class="memory-export-btn" id="testExportBtn">
+                  <div class="export-btn-background">
+                    <div class="export-btn-gradient"></div>
+                    <div class="export-btn-particles">
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                    </div>
+                  </div>
+                  <div class="export-btn-content">
+                    <div class="export-icon-container">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        class="export-icon"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                        />
+                      </svg>
+                      <div class="export-icon-glow"></div>
+                    </div>
+                    <div class="export-text-container">
+                      <span class="export-main-text">匯出記憶</span>
+                      <span class="export-sub-text">Export Memory</span>
+                    </div>
+                    <div class="export-arrow">
+                      <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path
+                          fill="currentColor"
+                          d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="export-btn-ripple"></div>
+                </button>
               </div>
-              <div class="export-btn-content">
-                <div class="export-icon-container">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    class="export-icon"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
-                    />
-                  </svg>
-                  <div class="export-icon-glow"></div>
-                </div>
-                <div class="export-text-container">
-                  <span class="export-main-text">匯出記憶</span>
-                  <span class="export-sub-text">Export Memory</span>
-                </div>
-                <div class="export-arrow">
-                  <svg width="16" height="16" viewBox="0 0 24 24">
-                    <path
-                      fill="currentColor"
-                      d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div class="export-btn-ripple"></div>
-            </button>
+            </div>
           </div>
+        </div>
 
-          <div class="component-demo">
-            <div class="demo-label">複製按鈕狀態</div>
-            <button
-              class="copy-btn modern"
-              id="testCopyBtn"
-              style="width: 100%"
-            >
-              <div class="copy-btn-content">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  class="copy-icon"
-                >
-                  <path
-                    fill="currentColor"
-                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
-                  />
-                </svg>
-                <span class="copy-text">複製內容</span>
-              </div>
-              <div class="copy-btn-ripple"></div>
+        <!-- 模態窗展示 -->
+        <div class="demo-section">
+          <div class="section-subtitle">模態窗展示</div>
+          <div class="demo-controls">
+            <button class="demo-btn" data-action="showMemoryFullModal">
+              記憶已滿提醒
+            </button>
+            <button class="demo-btn" data-action="showExportResultModal">
+              匯出結果
             </button>
           </div>
         </div>
 
-        <!-- 色彩系統展示 -->
-        <div class="showcase-section">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A8.96,8.96 0 0,0 18,18.74C19.38,17.33 20.5,14.86 20.5,12A8.5,8.5 0 0,0 12,3Z"
-              />
-            </svg>
-            深色主題色彩
+        <!-- 網頁元素檢測展示 -->
+        <div class="demo-section">
+          <div class="section-subtitle">網頁元素檢測</div>
+          <div class="demo-controls">
+            <button class="demo-btn" data-action="showMemoryFullElement">
+              記憶已滿元素
+            </button>
           </div>
 
           <div class="component-demo">
-            <div class="demo-label">主要色彩</div>
+            <div class="demo-label">記憶已滿元素展示</div>
+            <div class="memory-full-demo">
+              <div class="memory-full-element" id="memoryFullElement">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"
+                  />
+                </svg>
+                <span>儲存的記憶已滿</span>
+              </div>
+              <p
+                style="
+                  margin-top: 10px;
+                  font-size: 12px;
+                  color: var(--text-tertiary);
+                "
+              >
+                點擊「記憶已滿元素」按鈕查看增強效果
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右欄：色彩系統和通知展示 -->
+      <div class="showcase-column">
+        <div class="column-title">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A8.96,8.96 0 0,0 18,18.74C19.38,17.33 20.5,14.86 20.5,12A8.5,8.5 0 0,0 12,3Z"
+            />
+          </svg>
+          色彩系統與通知
+        </div>
+
+        <!-- 深色主題色彩 -->
+        <div class="demo-section">
+          <div class="section-subtitle">主要色彩</div>
+          <div class="component-demo">
             <div class="color-palette">
               <div class="color-item">
                 <div
@@ -663,9 +1013,11 @@
               </div>
             </div>
           </div>
+        </div>
 
+        <div class="demo-section">
+          <div class="section-subtitle">背景色彩</div>
           <div class="component-demo">
-            <div class="demo-label">背景色彩</div>
             <div class="color-palette">
               <div class="color-item">
                 <div
@@ -697,9 +1049,11 @@
               </div>
             </div>
           </div>
+        </div>
 
+        <div class="demo-section">
+          <div class="section-subtitle">文字色彩</div>
           <div class="component-demo">
-            <div class="demo-label">文字色彩</div>
             <div class="color-palette">
               <div class="color-item">
                 <div
@@ -733,80 +1087,24 @@
           </div>
         </div>
 
-        <!-- 模態窗展示 -->
-        <div class="showcase-section">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"
-              />
-            </svg>
-            模態窗展示
-          </div>
-
-          <div class="demo-controls">
-            <button class="demo-btn" data-action="showMemoryFullModal">
-              記憶已滿提醒
-            </button>
-            <button class="demo-btn" data-action="showExportResultModal">
-              匯出結果
-            </button>
-            <button class="demo-btn" data-action="showMemoryFullElement">
-              記憶已滿元素
-            </button>
-          </div>
-
-          <div class="component-demo">
-            <div class="demo-label">網頁元素檢測展示</div>
-            <div style="padding: 20px; border: 2px dashed var(--border-light); border-radius: 8px; background: var(--bg-secondary);">
-              <div class="flex items-center gap-1 text-sm font-semibold opacity-70" id="memoryFullElement" style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; opacity: 0.7; color: var(--text-secondary); cursor: default; padding: 8px; border-radius: 6px; transition: all 0.3s ease;">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"/>
-                </svg>
-                <span>儲存的記憶已滿</span>
-              </div>
-              <p style="margin-top: 10px; font-size: 12px; color: var(--text-tertiary);">
-                點擊「記憶已滿元素」按鈕查看增強效果
-              </p>
-            </div>
-          </div>
-        </div>
-
         <!-- Toast 通知展示 -->
-        <div class="showcase-section">
-          <div class="section-title">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21"
-              />
-            </svg>
-            Toast 通知
-          </div>
-
+        <div class="demo-section">
+          <div class="section-subtitle">Toast 通知</div>
           <div class="demo-controls">
-            <button
-              class="demo-btn"
-              data-action="showSuccessToast"
-            >
+            <button class="demo-btn" data-action="showSuccessToast">
               成功通知
             </button>
-            <button
-              class="demo-btn"
-              data-action="showErrorToast"
-            >
+            <button class="demo-btn" data-action="showErrorToast">
               錯誤通知
             </button>
-            <button
-              class="demo-btn"
-              data-action="showInfoToast"
-            >
+            <button class="demo-btn" data-action="showInfoToast">
               資訊通知
             </button>
           </div>
 
-          <div class="toast-demo-area">點擊上方按鈕查看 Toast 通知效果</div>
+          <div class="component-demo">
+            <div class="toast-demo-area">點擊上方按鈕查看 Toast 通知效果</div>
+          </div>
         </div>
       </div>
     </div>
@@ -821,11 +1119,17 @@
         const statusDot = document.getElementById('demoStatusDot');
 
         statusCard.className = 'status-card modern success';
-        exportBtn.classList.remove('memory-full-urgent');
+        exportBtn.classList.remove(
+          'memory-full-urgent',
+          'loading',
+          'success',
+          'error'
+        );
         statusValue.textContent = '記憶正常';
         usagePercent.textContent = '75%';
         usagePercent.className = 'info-value usage-normal';
         statusDot.className = 'status-dot';
+        exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
         exportBtn.querySelector('.export-sub-text').textContent =
           'Export Memory';
 
@@ -840,6 +1144,7 @@
         const statusDot = document.getElementById('demoStatusDot');
 
         statusCard.className = 'status-card modern warning memory-full';
+        exportBtn.classList.remove('loading', 'success', 'error');
         exportBtn.classList.add('memory-full-urgent');
         statusValue.innerHTML = `
           <div class="memory-status-full">
@@ -850,6 +1155,7 @@
         usagePercent.textContent = '100%';
         usagePercent.className = 'info-value usage-critical';
         statusDot.className = 'status-dot warning pulse';
+        exportBtn.querySelector('.export-main-text').textContent = '立即匯出';
         exportBtn.querySelector('.export-sub-text').textContent =
           'Memory Full - Export Now';
 
@@ -875,10 +1181,8 @@
       }
 
       function updateDemoControls(activeIndex) {
-        const buttons = document.querySelectorAll(
-          '.showcase-section:first-child .demo-btn'
-        );
-        buttons.forEach((btn, index) => {
+        const controls = document.querySelectorAll('.demo-controls .demo-btn');
+        controls.forEach((btn, index) => {
           if (index === activeIndex) {
             btn.classList.add('active');
           } else {
@@ -890,192 +1194,258 @@
       // 按鈕狀態測試
       function testButtonLoading() {
         const exportBtn = document.getElementById('testExportBtn');
-        const copyBtn = document.getElementById('testCopyBtn');
 
+        // 重置所有狀態
+        exportBtn.classList.remove('success', 'error', 'memory-full-urgent');
         exportBtn.classList.add('loading');
         exportBtn.disabled = true;
-        copyBtn.classList.add('loading');
-        copyBtn.disabled = true;
+        exportBtn.querySelector('.export-main-text').textContent = '匯出中...';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Processing...';
 
         setTimeout(() => {
           exportBtn.classList.remove('loading');
           exportBtn.disabled = false;
-          copyBtn.classList.remove('loading');
-          copyBtn.disabled = false;
+          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
+          exportBtn.querySelector('.export-sub-text').textContent =
+            'Export Memory';
         }, 3000);
       }
 
       function testButtonSuccess() {
         const exportBtn = document.getElementById('testExportBtn');
-        const copyBtn = document.getElementById('testCopyBtn');
 
+        // 重置所有狀態
+        exportBtn.classList.remove('loading', 'error', 'memory-full-urgent');
         exportBtn.classList.add('success');
         exportBtn.querySelector('.export-main-text').textContent = '匯出完成';
-        copyBtn.classList.add('success');
-        copyBtn.querySelector('.copy-text').textContent = '已複製';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Export Completed';
 
         setTimeout(() => {
           exportBtn.classList.remove('success');
           exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          copyBtn.classList.remove('success');
-          copyBtn.querySelector('.copy-text').textContent = '複製內容';
+          exportBtn.querySelector('.export-sub-text').textContent =
+            'Export Memory';
         }, 2000);
       }
 
       function testButtonError() {
         const exportBtn = document.getElementById('testExportBtn');
-        const copyBtn = document.getElementById('testCopyBtn');
 
+        // 重置所有狀態
+        exportBtn.classList.remove('loading', 'success', 'memory-full-urgent');
         exportBtn.classList.add('error');
         exportBtn.querySelector('.export-main-text').textContent = '匯出失敗';
-        copyBtn.classList.add('error');
-        copyBtn.querySelector('.copy-text').textContent = '複製失敗';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Export Failed';
 
         setTimeout(() => {
           exportBtn.classList.remove('error');
           exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          copyBtn.classList.remove('error');
-          copyBtn.querySelector('.copy-text').textContent = '複製內容';
+          exportBtn.querySelector('.export-sub-text').textContent =
+            'Export Memory';
         }, 2000);
       }
 
       function resetButtonStates() {
         const exportBtn = document.getElementById('testExportBtn');
-        const copyBtn = document.getElementById('testCopyBtn');
 
-        exportBtn.classList.remove('loading', 'success', 'error');
+        exportBtn.classList.remove(
+          'loading',
+          'success',
+          'error',
+          'memory-full-urgent'
+        );
         exportBtn.disabled = false;
         exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-
-        copyBtn.classList.remove('loading', 'success', 'error');
-        copyBtn.disabled = false;
-        copyBtn.querySelector('.copy-text').textContent = '複製內容';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Export Memory';
       }
 
-      // Toast 通知
-      function showDemoToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+      // 新增記憶已滿狀態測試
+      function testMemoryFullUrgent() {
+        const exportBtn = document.getElementById('testExportBtn');
 
-        const icon =
-          type === 'success'
-            ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>'
-            : type === 'error'
-              ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>'
-              : '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
-
-        toast.innerHTML = `
-          <div class="toast-content">
-            <div class="toast-icon">${icon}</div>
-            <div class="toast-message">${message}</div>
-            <button class="toast-close" data-action="closeToast">
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-              </svg>
-            </button>
-          </div>
-        `;
-
-        document.body.appendChild(toast);
+        // 重置所有狀態
+        exportBtn.classList.remove('loading', 'success', 'error');
+        exportBtn.classList.add('memory-full-urgent');
+        exportBtn.querySelector('.export-main-text').textContent = '立即匯出';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Memory Full - Export Now';
 
         setTimeout(() => {
-          toast.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-          toast.classList.remove('show');
-          setTimeout(() => {
-            toast.remove();
-          }, 300);
-        }, 3000);
+          exportBtn.classList.remove('memory-full-urgent');
+          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
+          exportBtn.querySelector('.export-sub-text').textContent =
+            'Export Memory';
+        }, 4000);
       }
 
-      // 格式選擇
-      document.querySelectorAll('.format-option').forEach(option => {
-        option.addEventListener('click', function () {
-          document
-            .querySelectorAll('.format-option')
-            .forEach(opt => opt.classList.remove('selected'));
-          this.classList.add('selected');
-        });
-      });
-
-      // 點擊效果
-      document
-        .querySelectorAll('.memory-export-btn, .copy-btn')
-        .forEach(btn => {
-          btn.addEventListener('click', function () {
-            const ripple = this.querySelector(
-              '.export-btn-ripple, .copy-btn-ripple'
-            );
-            if (ripple) {
-              ripple.style.animation = 'none';
-              ripple.offsetHeight;
-              ripple.style.animation = null;
-            }
-          });
-        });
-
-      // 模態窗功能
+      // 統一風格的模態窗功能
       function showMemoryFullModal() {
         const modal = document.createElement('div');
         modal.id = 'memoryFullModal';
         modal.className = 'memory-modal-overlay';
 
         modal.innerHTML = `
-          <div class="memory-modal-content">
-            <div class="memory-modal-header">
-              <div class="memory-modal-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H5C3.89 1 3 1.89 3 3V21A2 2 0 0 0 5 23H19A2 2 0 0 0 21 21V9M19 9H14V4H5V21H19V9Z"/>
+          <div class="app-container" style="width: 100%; max-width: 440px; margin: 0;">
+            <!-- App Header -->
+            <header class="app-header">
+              <div class="app-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" class="icon-brain">
+                  <defs>
+                    <linearGradient id="modal-brain-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style="stop-color: #f59e0b; stop-opacity: 1"/>
+                      <stop offset="100%" style="stop-color: #ef4444; stop-opacity: 1"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="16" cy="16" r="15" fill="url(#modal-brain-gradient)"/>
+                  <path d="M 8 12 C 7 8 11 6 16 7 C 21 6 25 8 24 12 C 25 16 23 20 20 22 C 18 24 14 24 12 22 C 9 20 7 16 8 12 Z" fill="white" opacity="0.9"/>
+                  <circle cx="12" cy="14" r="1.5" fill="#dc2626" opacity="0.8">
+                    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="20" cy="15" r="1" fill="#dc2626" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="14" cy="18" r="1.2" fill="#dc2626" opacity="0.7">
+                    <animate attributeName="opacity" values="0.7;0.4;0.7" dur="3s" repeatCount="indefinite"/>
+                  </circle>
                 </svg>
               </div>
-              <div class="memory-modal-title-section">
-                <h3 class="memory-modal-title">記憶已滿</h3>
-                <p class="memory-modal-subtitle">Memory Storage Full</p>
+              <div class="app-title">
+                <h1>記憶已滿</h1>
+                <p>Memory Storage Full</p>
               </div>
-              <div class="memory-modal-status">
-                <div class="memory-status-dot warning"></div>
+              <div class="app-status">
+                <div class="status-dot warning pulse"></div>
               </div>
-            </div>
-            
-            <div class="memory-modal-body">
-              <div class="memory-alert-content">
-                <div class="memory-alert-icon">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
-                  </svg>
-                </div>
-                <div class="memory-alert-text">
-                  <p>您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。</p>
-                </div>
-              </div>
-              
-              <div class="memory-usage-info">
-                <div class="usage-bar">
-                  <div class="usage-fill" style="width: 100%"></div>
-                </div>
-                <div class="usage-text">
-                  <span class="usage-label">記憶使用量</span>
-                  <span class="usage-value">100%</span>
-                </div>
-              </div>
-            </div>
+            </header>
 
-            <div class="memory-modal-actions">
-              <button class="memory-modal-btn secondary" data-action="closeModal">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
-                </svg>
-                <span>稍後處理</span>
-              </button>
-              <button class="memory-modal-btn primary" data-action="demoExport">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2M18 20H6V4H13V9H18V20Z"/>
-                </svg>
-                <span>立即匯出</span>
-              </button>
-            </div>
+            <!-- Main Content -->
+            <main class="app-main">
+              <!-- Memory Status Card -->
+              <div class="status-card modern warning memory-full">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" class="status-icon">
+                      <path fill="currentColor" d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
+                    </svg>
+                  </div>
+                  <div class="card-title">記憶狀態</div>
+                </div>
+                <div class="card-content">
+                  <div class="status-value">
+                    <div class="memory-status-full">
+                      <span class="status-text">記憶已滿</span>
+                      <span class="status-action">需要處理</span>
+                    </div>
+                  </div>
+                  <div class="status-time">剛剛檢測</div>
+                </div>
+              </div>
+
+              <!-- Memory Info Grid -->
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M20,19H4V11H6V9H8V11H16V9H18V11H20V19Z"/>
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <div class="info-label">使用量</div>
+                    <div class="info-value usage-critical">100%</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"/>
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <div class="info-label">記憶數量</div>
+                    <div class="info-value">32 筆</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Alert Message -->
+              <div class="status-card modern warning" style="margin-bottom: 20px;">
+                <div class="card-content" style="padding: 16px;">
+                  <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="flex-shrink: 0; width: 20px; height: 20px; color: var(--warning-color); margin-top: 2px;">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
+                      </svg>
+                    </div>
+                    <div style="flex: 1;">
+                      <p style="margin: 0; color: var(--text-secondary); line-height: 1.5; font-size: 14px;">
+                        您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="action-section">
+                <button class="memory-export-btn memory-full-urgent" data-action="demoExport">
+                  <div class="export-btn-background">
+                    <div class="export-btn-gradient"></div>
+                    <div class="export-btn-particles">
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                      <div class="particle"></div>
+                    </div>
+                  </div>
+                  <div class="export-btn-content">
+                    <div class="export-icon-container">
+                      <svg width="20" height="20" viewBox="0 0 24 24" class="export-icon">
+                        <path fill="currentColor" d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"/>
+                      </svg>
+                      <div class="export-icon-glow"></div>
+                    </div>
+                    <div class="export-text-container">
+                      <span class="export-main-text">立即匯出</span>
+                      <span class="export-sub-text">Memory Full - Export Now</span>
+                    </div>
+                    <div class="export-arrow">
+                      <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="export-btn-ripple"></div>
+                </button>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="quick-actions">
+                <button class="quick-btn" data-action="closeModal" title="稍後處理">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                  </svg>
+                </button>
+                <button class="quick-btn" title="設定提醒">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M14,21A2,2 0 0,1 12,23A2,2 0 0,1 10,21"/>
+                  </svg>
+                </button>
+              </div>
+            </main>
+
+            <!-- App Footer -->
+            <footer class="app-footer">
+              <div class="footer-info">
+                <span class="version">v1.5.2</span>
+                <span class="separator">•</span>
+                <span class="status-text" style="color: var(--warning-color);">記憶已滿</span>
+              </div>
+            </footer>
           </div>
         `;
 
@@ -1096,100 +1466,165 @@
         modal.className = 'memory-modal-overlay';
 
         modal.innerHTML = `
-          <div class="memory-modal-content">
-            <div class="memory-modal-header">
-              <div class="memory-modal-icon success">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"/>
+          <div class="app-container" style="width: 100%; max-width: 440px; margin: 0;">
+            <!-- App Header -->
+            <header class="app-header">
+              <div class="app-icon">
+                <svg width="32" height="32" viewBox="0 0 32 32" class="icon-brain">
+                  <defs>
+                    <linearGradient id="success-brain-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style="stop-color: #10b981; stop-opacity: 1"/>
+                      <stop offset="100%" style="stop-color: #059669; stop-opacity: 1"/>
+                    </linearGradient>
+                  </defs>
+                  <circle cx="16" cy="16" r="15" fill="url(#success-brain-gradient)"/>
+                  <path d="M 8 12 C 7 8 11 6 16 7 C 21 6 25 8 24 12 C 25 16 23 20 20 22 C 18 24 14 24 12 22 C 9 20 7 16 8 12 Z" fill="white" opacity="0.9"/>
+                  <circle cx="12" cy="14" r="1.5" fill="#047857" opacity="0.8">
+                    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="20" cy="15" r="1" fill="#047857" opacity="0.6">
+                    <animate attributeName="opacity" values="0.6;0.3;0.6" dur="2.5s" repeatCount="indefinite"/>
+                  </circle>
+                  <circle cx="14" cy="18" r="1.2" fill="#047857" opacity="0.7">
+                    <animate attributeName="opacity" values="0.7;0.4;0.7" dur="3s" repeatCount="indefinite"/>
+                  </circle>
                 </svg>
               </div>
-              <div class="memory-modal-title-section">
-                <h3 class="memory-modal-title">匯出完成</h3>
-                <p class="memory-modal-subtitle">Export Completed Successfully</p>
+              <div class="app-title">
+                <h1>匯出完成</h1>
+                <p>Export Completed Successfully</p>
               </div>
-              <div class="memory-modal-status">
-                <div class="memory-status-dot success"></div>
+              <div class="app-status">
+                <div class="status-dot success"></div>
               </div>
-            </div>
-            
-            <div class="memory-modal-body">
-              <div class="export-summary">
-                <div class="summary-item">
-                  <div class="summary-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H5C3.89 1 3 1.89 3 3V21A2 2 0 0 0 5 23H19A2 2 0 0 0 21 21V9M19 9H14V4H5V21H19V9Z"/>
-                    </svg>
-                  </div>
-                  <div class="summary-content">
-                    <div class="summary-label">匯出記憶數量</div>
-                    <div class="summary-value">24 筆</div>
-                  </div>
-                </div>
-                
-                <div class="summary-item">
-                  <div class="summary-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M20,19H4V11H6V9H8V11H16V9H18V11H20V19Z"/>
-                    </svg>
-                  </div>
-                  <div class="summary-content">
-                    <div class="summary-label">記憶使用量</div>
-                    <div class="summary-value">100%</div>
-                  </div>
-                </div>
-                
-                <div class="summary-item">
-                  <div class="summary-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
-                    </svg>
-                  </div>
-                  <div class="summary-content">
-                    <div class="summary-label">匯出時間</div>
-                    <div class="summary-value">${new Date().toLocaleString('zh-TW')}</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="export-actions-grid">
-                <button class="export-action-btn" data-action="demoAction">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
-                  </svg>
-                  <span>複製 Markdown</span>
-                </button>
-                
-                <button class="export-action-btn" data-action="demoAction">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
-                  </svg>
-                  <span>複製純文字</span>
-                </button>
-                
-                <button class="export-action-btn" data-action="demoAction">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                  </svg>
-                  <span>下載 TXT</span>
-                </button>
-                
-                <button class="export-action-btn" data-action="demoAction">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
-                  </svg>
-                  <span>查看歷史</span>
-                </button>
-              </div>
-            </div>
+            </header>
 
-            <div class="memory-modal-actions">
-              <button class="memory-modal-btn secondary" data-action="closeModal">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
-                </svg>
-                <span>關閉</span>
-              </button>
-            </div>
+            <!-- Main Content -->
+            <main class="app-main">
+              <!-- Memory Status Card -->
+              <div class="status-card modern success">
+                <div class="card-header">
+                  <div class="card-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" class="status-icon">
+                      <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                    </svg>
+                  </div>
+                  <div class="card-title">匯出狀態</div>
+                </div>
+                <div class="card-content">
+                  <div class="status-value">匯出成功</div>
+                  <div class="status-time">${new Date().toLocaleString('zh-TW')}</div>
+                </div>
+              </div>
+
+              <!-- Export Summary -->
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"/>
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <div class="info-label">匯出數量</div>
+                    <div class="info-value">32 筆</div>
+                  </div>
+                </div>
+                <div class="info-card">
+                  <div class="info-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M20,19H4V11H6V9H8V11H16V9H18V11H20V19Z"/>
+                    </svg>
+                  </div>
+                  <div class="info-content">
+                    <div class="info-label">原使用量</div>
+                    <div class="info-value">100%</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export Actions -->
+              <div class="export-result-section show">
+                <div class="export-result-header">
+                  <div class="export-result-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+                    </svg>
+                  </div>
+                  <div class="export-result-content">
+                    <div class="export-result-title">匯出完成</div>
+                    <div class="export-result-stats">共 32 筆記憶</div>
+                  </div>
+                  <button class="export-result-close" data-action="closeModal">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div class="export-format-selection">
+                  <div class="format-option selected" data-format="markdown">
+                    <div class="format-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M22.269,19.385H1.731a1.73,1.73,0,0,1-1.73-1.73V6.345a1.73,1.73,0,0,1,1.73-1.73H22.269a1.73,1.73,0,0,1,1.73,1.73V17.655A1.73,1.73,0,0,1,22.269,19.385ZM3.462,16.923H20.538V7.077H3.462ZM5.769,15.385V8.615h2.31L10.385,11.5l2.308-2.885h2.307v6.77H13.231V11.846L10.385,14.731,7.538,11.846v3.539Z"/>
+                      </svg>
+                    </div>
+                    <div class="format-content">
+                      <div class="format-name">Markdown</div>
+                      <div class="format-desc">結構化格式</div>
+                    </div>
+                  </div>
+                  <div class="format-option" data-format="text">
+                    <div class="format-icon">
+                      <svg width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
+                      </svg>
+                    </div>
+                    <div class="format-content">
+                      <div class="format-name">純文字</div>
+                      <div class="format-desc">簡潔格式</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="export-actions">
+                  <button class="btn-primary" data-action="demoAction">
+                    <svg width="16" height="16" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+                    </svg>
+                    複製到剪貼簿
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="quick-actions">
+                <button class="quick-btn" data-action="demoAction" title="下載檔案">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
+                </button>
+                <button class="quick-btn" data-action="demoAction" title="查看歷史">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+                  </svg>
+                </button>
+                <button class="quick-btn" data-action="closeModal" title="關閉">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                  </svg>
+                </button>
+              </div>
+            </main>
+
+            <!-- App Footer -->
+            <footer class="app-footer">
+              <div class="footer-info">
+                <span class="version">v1.5.2</span>
+                <span class="separator">•</span>
+                <span class="status-text" style="color: var(--success-color);">匯出成功</span>
+              </div>
+            </footer>
           </div>
         `;
 
@@ -1373,300 +1808,14 @@
             pointer-events: auto;
           }
 
-          .memory-modal-content {
-            background: var(--bg-primary, #1e293b);
-            border-radius: 20px;
-            padding: 0;
-            max-width: 440px;
-            width: 90%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--border-light, #334155);
-            overflow: hidden;
-            animation: modalSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-            z-index: 1000000;
-            pointer-events: auto;
-          }
-
-          .memory-modal-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 24px;
-            background: var(--bg-secondary, #334155);
-            position: relative;
-            border-bottom: 1px solid var(--border-light, #475569);
-          }
-
-          .memory-modal-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.4);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-          }
-
-          .memory-modal-icon.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.4);
-          }
-
-          .memory-modal-title-section {
-            flex: 1;
-          }
-
-          .memory-modal-title {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary, #f1f5f9);
-            line-height: 1.2;
-          }
-
-          .memory-modal-subtitle {
-            margin: 4px 0 0 0;
-            font-size: 14px;
-            color: var(--text-secondary, #cbd5e1);
-            font-weight: 500;
-          }
-
-          .memory-modal-status {
-            display: flex;
-            align-items: center;
-          }
-
-          .memory-status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: #10b981;
-            animation: pulse 2s infinite;
-          }
-
-          .memory-status-dot.warning {
-            background: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-          }
-
-          .memory-status-dot.success {
-            background: #10b981;
-          }
-
-          .memory-modal-body {
-            padding: 24px;
-            background: var(--bg-primary, #1e293b);
-          }
-
-          .memory-alert-content {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 20px;
-          }
-
-          .memory-alert-icon {
-            flex-shrink: 0;
-            width: 24px;
-            height: 24px;
-            color: #f59e0b;
-            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
-            margin-top: 2px;
-          }
-
-          .memory-alert-text {
-            flex: 1;
-          }
-
-          .memory-alert-text p {
-            margin: 0;
-            color: var(--text-secondary, #cbd5e1);
-            line-height: 1.6;
-            font-size: 15px;
-          }
-
-          .memory-usage-info {
-            background: var(--bg-secondary, #334155);
-            border: 1px solid var(--border-light, #475569);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 20px;
-          }
-
-          .usage-bar {
-            height: 8px;
-            background: var(--border-light, #475569);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 12px;
-          }
-
-          .usage-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-          }
-
-          .usage-text {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-
-          .usage-label {
-            font-size: 14px;
-            color: var(--text-secondary, #cbd5e1);
-            font-weight: 500;
-          }
-
-          .usage-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: #dc2626;
-          }
-
-          .export-summary {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
-          }
-
-          .summary-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: var(--bg-secondary, #334155);
-            border: 1px solid var(--border-light, #475569);
-            border-radius: 8px;
-          }
-
-          .summary-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: var(--border-light, #475569);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary, #cbd5e1);
-            flex-shrink: 0;
-          }
-
-          .summary-content {
-            flex: 1;
-          }
-
-          .summary-label {
-            font-size: 12px;
-            color: var(--text-secondary, #cbd5e1);
-            font-weight: 500;
-            margin-bottom: 2px;
-          }
-
-          .summary-value {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary, #f1f5f9);
-          }
-
-          .export-actions-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-          }
-
-          .export-action-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            border: 1px solid var(--border-light, #475569);
-            background: var(--bg-secondary, #334155);
-            color: var(--text-secondary, #cbd5e1);
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            justify-content: center;
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-          }
-
-          .export-action-btn:hover {
-            background: var(--bg-tertiary, #475569);
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-          }
-
-          .memory-modal-actions {
-            display: flex;
-            gap: 12px;
-            padding: 20px 24px 24px;
-            background: var(--bg-secondary, #334155);
-            border-top: 1px solid var(--border-light, #475569);
-            position: relative;
-            z-index: 1000001;
-            pointer-events: auto;
-          }
-
-          .memory-modal-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer !important;
-            transition: all 0.2s ease;
-            flex: 1;
-            justify-content: center;
-            min-height: 44px;
-            position: relative;
-            z-index: 1000001;
-            pointer-events: auto !important;
-            user-select: none;
-          }
-
-          .memory-modal-btn.primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-          }
-
-          .memory-modal-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-          }
-
-          .memory-modal-btn.secondary {
-            background: var(--bg-primary, #1e293b);
-            color: var(--text-secondary, #cbd5e1);
-            border: 1px solid var(--border-light, #475569);
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-          }
-
-          .memory-modal-btn.secondary:hover {
-            background: var(--bg-tertiary, #475569);
-            border-color: var(--border-medium, #64748b);
-          }
-
           @keyframes modalFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+          }
+
+          .memory-modal-overlay .app-container {
+            animation: modalSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
           }
 
           @keyframes modalSlideIn {
@@ -1680,19 +1829,11 @@
             }
           }
 
-          @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-          }
-
           @media (max-width: 480px) {
-            .memory-modal-content {
+            .memory-modal-overlay .app-container {
               margin: 20px;
-              width: calc(100% - 40px);
-            }
-            
-            .export-actions-grid {
-              grid-template-columns: 1fr;
+              width: calc(100% - 40px) !important;
+              max-width: none !important;
             }
           }
         `;
@@ -1720,12 +1861,162 @@
         showDemoToast('功能演示完成！', 'success');
       }
 
+      // Toast 通知
+      function showDemoToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+
+        const icon =
+          type === 'success'
+            ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>'
+            : type === 'error'
+              ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>'
+              : '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
+
+        toast.innerHTML = `
+          <div class="toast-content">
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close" data-action="closeToast">
+              <svg width="14" height="14" viewBox="0 0 24 24">
+                <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+              </svg>
+            </button>
+          </div>
+        `;
+
+        // 添加 Toast 樣式
+        if (!document.getElementById('toastStyles')) {
+          const toastStyle = document.createElement('style');
+          toastStyle.id = 'toastStyles';
+          toastStyle.textContent = `
+            .toast {
+              position: fixed;
+              top: 20px;
+              right: 20px;
+              background: var(--bg-card);
+              border: 1px solid var(--border-light);
+              border-radius: var(--radius-lg);
+              padding: 0;
+              min-width: 300px;
+              max-width: 400px;
+              box-shadow: var(--shadow-lg);
+              z-index: 1000000;
+              transform: translateX(100%);
+              transition: transform 0.3s ease;
+            }
+
+            .toast.show {
+              transform: translateX(0);
+            }
+
+            .toast-content {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              padding: 16px;
+            }
+
+            .toast-icon {
+              flex-shrink: 0;
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+
+            .toast-success .toast-icon {
+              background: var(--success-color);
+              color: white;
+            }
+
+            .toast-error .toast-icon {
+              background: var(--error-color);
+              color: white;
+            }
+
+            .toast-info .toast-icon {
+              background: var(--info-color);
+              color: white;
+            }
+
+            .toast-message {
+              flex: 1;
+              color: var(--text-primary);
+              font-size: 14px;
+              line-height: 1.4;
+            }
+
+            .toast-close {
+              flex-shrink: 0;
+              width: 24px;
+              height: 24px;
+              border: none;
+              background: none;
+              color: var(--text-tertiary);
+              cursor: pointer;
+              border-radius: 4px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: all 0.2s ease;
+            }
+
+            .toast-close:hover {
+              background: var(--bg-overlay);
+              color: var(--text-secondary);
+            }
+          `;
+          document.head.appendChild(toastStyle);
+        }
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add('show');
+        }, 10);
+
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            toast.remove();
+          }, 300);
+        }, 3000);
+      }
+
+      // 格式選擇
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.format-option')) {
+          const option = e.target.closest('.format-option');
+          const container = option.closest('.export-format-selection');
+          container
+            .querySelectorAll('.format-option')
+            .forEach(opt => opt.classList.remove('selected'));
+          option.classList.add('selected');
+        }
+      });
+
+      // 點擊效果
+      document.addEventListener('click', function (e) {
+        if (e.target.closest('.memory-export-btn')) {
+          const btn = e.target.closest('.memory-export-btn');
+          const ripple = btn.querySelector('.export-btn-ripple');
+          if (ripple) {
+            ripple.style.animation = 'none';
+            ripple.offsetHeight;
+            ripple.style.animation = null;
+          }
+        }
+      });
+
       // 事件委託處理所有按鈕點擊
-      document.addEventListener('click', function(e) {
+      document.addEventListener('click', function (e) {
         const action = e.target.closest('[data-action]')?.dataset.action;
         if (!action) return;
 
-        switch(action) {
+        switch (action) {
           case 'showNormalState':
             showNormalState();
             break;
@@ -1734,6 +2025,24 @@
             break;
           case 'showExportResult':
             showExportResult();
+            break;
+          case 'hideDemoExportResult':
+            hideDemoExportResult();
+            break;
+          case 'testButtonLoading':
+            testButtonLoading();
+            break;
+          case 'testButtonSuccess':
+            testButtonSuccess();
+            break;
+          case 'testButtonError':
+            testButtonError();
+            break;
+          case 'testMemoryFullUrgent':
+            testMemoryFullUrgent();
+            break;
+          case 'resetButtonStates':
+            resetButtonStates();
             break;
           case 'showMemoryFullModal':
             showMemoryFullModal();
@@ -1753,36 +2062,23 @@
           case 'demoAction':
             demoAction();
             break;
-            break;
-          case 'hideDemoExportResult':
-            hideDemoExportResult();
-            break;
           case 'copyToClipboard':
             showDemoToast('已複製到剪貼簿', 'success');
             break;
-          case 'testButtonLoading':
-            testButtonLoading();
-            break;
-          case 'testButtonSuccess':
-            testButtonSuccess();
-            break;
-          case 'testButtonError':
-            testButtonError();
-            break;
-          case 'resetButtonStates':
-            resetButtonStates();
-            break;
           case 'showSuccessToast':
-            showDemoToast('這是成功訊息', 'success');
+            showDemoToast('操作成功完成！', 'success');
             break;
           case 'showErrorToast':
-            showDemoToast('這是錯誤訊息', 'error');
+            showDemoToast('操作失敗，請重試', 'error');
             break;
           case 'showInfoToast':
-            showDemoToast('這是資訊訊息', 'info');
+            showDemoToast('這是一個資訊通知', 'info');
             break;
           case 'closeToast':
-            e.target.closest('.toast')?.remove();
+            e.target.closest('.toast').classList.remove('show');
+            setTimeout(() => {
+              e.target.closest('.toast').remove();
+            }, 300);
             break;
         }
       });
