@@ -98,12 +98,12 @@ class StorageManager {
           date: historyItem.date,
           time: historyItem.time,
         };
-        
+
         // 移除舊記錄並將更新的記錄放到最前面
         updatedHistory = [
           updatedItem,
           ...existingHistory.slice(0, existingIndex),
-          ...existingHistory.slice(existingIndex + 1)
+          ...existingHistory.slice(existingIndex + 1),
         ];
       } else {
         // 新增記錄
@@ -200,7 +200,7 @@ class StorageManager {
 
   // 生成唯一 ID
   generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 
   // 生成內容雜湊值

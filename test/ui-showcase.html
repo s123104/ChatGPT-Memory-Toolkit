@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UI統一化展示頁面 - ChatGPT Memory Manager</title>
-    <link rel="stylesheet" href="src/ui/popup.css" />
+    <link rel="stylesheet" href="../src/ui/popup.css" />
     <style>
       body {
         padding: 20px;
@@ -733,6 +733,46 @@
           </div>
         </div>
 
+        <!-- 模態窗展示 -->
+        <div class="showcase-section">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"
+              />
+            </svg>
+            模態窗展示
+          </div>
+
+          <div class="demo-controls">
+            <button class="demo-btn" data-action="showMemoryFullModal">
+              記憶已滿提醒
+            </button>
+            <button class="demo-btn" data-action="showExportResultModal">
+              匯出結果
+            </button>
+            <button class="demo-btn" data-action="showMemoryFullElement">
+              記憶已滿元素
+            </button>
+          </div>
+
+          <div class="component-demo">
+            <div class="demo-label">網頁元素檢測展示</div>
+            <div style="padding: 20px; border: 2px dashed var(--border-light); border-radius: 8px; background: var(--bg-secondary);">
+              <div class="flex items-center gap-1 text-sm font-semibold opacity-70" id="memoryFullElement" style="display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; opacity: 0.7; color: var(--text-secondary); cursor: default; padding: 8px; border-radius: 6px; transition: all 0.3s ease;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"/>
+                </svg>
+                <span>儲存的記憶已滿</span>
+              </div>
+              <p style="margin-top: 10px; font-size: 12px; color: var(--text-tertiary);">
+                點擊「記憶已滿元素」按鈕查看增強效果
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Toast 通知展示 -->
         <div class="showcase-section">
           <div class="section-title">
@@ -976,6 +1016,710 @@
           });
         });
 
+      // 模態窗功能
+      function showMemoryFullModal() {
+        const modal = document.createElement('div');
+        modal.id = 'memoryFullModal';
+        modal.className = 'memory-modal-overlay';
+
+        modal.innerHTML = `
+          <div class="memory-modal-content">
+            <div class="memory-modal-header">
+              <div class="memory-modal-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H5C3.89 1 3 1.89 3 3V21A2 2 0 0 0 5 23H19A2 2 0 0 0 21 21V9M19 9H14V4H5V21H19V9Z"/>
+                </svg>
+              </div>
+              <div class="memory-modal-title-section">
+                <h3 class="memory-modal-title">記憶已滿</h3>
+                <p class="memory-modal-subtitle">Memory Storage Full</p>
+              </div>
+              <div class="memory-modal-status">
+                <div class="memory-status-dot warning"></div>
+              </div>
+            </div>
+            
+            <div class="memory-modal-body">
+              <div class="memory-alert-content">
+                <div class="memory-alert-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13 14H11V9H13M13 18H11V16H13M1 21H23L12 2L1 21Z"/>
+                  </svg>
+                </div>
+                <div class="memory-alert-text">
+                  <p>您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。</p>
+                </div>
+              </div>
+              
+              <div class="memory-usage-info">
+                <div class="usage-bar">
+                  <div class="usage-fill" style="width: 100%"></div>
+                </div>
+                <div class="usage-text">
+                  <span class="usage-label">記憶使用量</span>
+                  <span class="usage-value">100%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="memory-modal-actions">
+              <button class="memory-modal-btn secondary" data-action="closeModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                </svg>
+                <span>稍後處理</span>
+              </button>
+              <button class="memory-modal-btn primary" data-action="demoExport">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M14 2H6A2 2 0 0 0 4 4V20A2 2 0 0 0 6 22H18A2 2 0 0 0 20 20V8L14 2M18 20H6V4H13V9H18V20Z"/>
+                </svg>
+                <span>立即匯出</span>
+              </button>
+            </div>
+          </div>
+        `;
+
+        addModalStyles();
+        document.body.appendChild(modal);
+
+        // 點擊背景關閉
+        modal.addEventListener('click', e => {
+          if (e.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      function showExportResultModal() {
+        const modal = document.createElement('div');
+        modal.id = 'exportResultModal';
+        modal.className = 'memory-modal-overlay';
+
+        modal.innerHTML = `
+          <div class="memory-modal-content">
+            <div class="memory-modal-header">
+              <div class="memory-modal-icon success">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z"/>
+                </svg>
+              </div>
+              <div class="memory-modal-title-section">
+                <h3 class="memory-modal-title">匯出完成</h3>
+                <p class="memory-modal-subtitle">Export Completed Successfully</p>
+              </div>
+              <div class="memory-modal-status">
+                <div class="memory-status-dot success"></div>
+              </div>
+            </div>
+            
+            <div class="memory-modal-body">
+              <div class="export-summary">
+                <div class="summary-item">
+                  <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2M21 9V7L15 1H5C3.89 1 3 1.89 3 3V21A2 2 0 0 0 5 23H19A2 2 0 0 0 21 21V9M19 9H14V4H5V21H19V9Z"/>
+                    </svg>
+                  </div>
+                  <div class="summary-content">
+                    <div class="summary-label">匯出記憶數量</div>
+                    <div class="summary-value">24 筆</div>
+                  </div>
+                </div>
+                
+                <div class="summary-item">
+                  <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M20,19H4V11H6V9H8V11H16V9H18V11H20V19Z"/>
+                    </svg>
+                  </div>
+                  <div class="summary-content">
+                    <div class="summary-label">記憶使用量</div>
+                    <div class="summary-value">100%</div>
+                  </div>
+                </div>
+                
+                <div class="summary-item">
+                  <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+                    </svg>
+                  </div>
+                  <div class="summary-content">
+                    <div class="summary-label">匯出時間</div>
+                    <div class="summary-value">${new Date().toLocaleString('zh-TW')}</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="export-actions-grid">
+                <button class="export-action-btn" data-action="demoAction">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
+                  </svg>
+                  <span>複製 Markdown</span>
+                </button>
+                
+                <button class="export-action-btn" data-action="demoAction">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"/>
+                  </svg>
+                  <span>複製純文字</span>
+                </button>
+                
+                <button class="export-action-btn" data-action="demoAction">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                  </svg>
+                  <span>下載 TXT</span>
+                </button>
+                
+                <button class="export-action-btn" data-action="demoAction">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"/>
+                  </svg>
+                  <span>查看歷史</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="memory-modal-actions">
+              <button class="memory-modal-btn secondary" data-action="closeModal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"/>
+                </svg>
+                <span>關閉</span>
+              </button>
+            </div>
+          </div>
+        `;
+
+        addModalStyles();
+        document.body.appendChild(modal);
+
+        // 點擊背景關閉
+        modal.addEventListener('click', e => {
+          if (e.target === modal) {
+            closeModal();
+          }
+        });
+      }
+
+      function showMemoryFullElement() {
+        const element = document.getElementById('memoryFullElement');
+        if (!element) return;
+
+        // 添加增強樣式
+        if (!document.getElementById('memory-full-target-styles')) {
+          const style = document.createElement('style');
+          style.id = 'memory-full-target-styles';
+          style.textContent = `
+            .memory-full-clickable {
+              cursor: pointer !important;
+              transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+              position: relative !important;
+              padding: 12px 20px !important;
+              border-radius: 16px !important;
+              background: linear-gradient(135deg, 
+                          rgba(245, 158, 11, 0.12) 0%, 
+                          rgba(249, 115, 22, 0.1) 50%,
+                          rgba(239, 68, 68, 0.08) 100%) !important;
+              border: 2px solid rgba(245, 158, 11, 0.3) !important;
+              backdrop-filter: blur(12px) !important;
+              -webkit-backdrop-filter: blur(12px) !important;
+              box-shadow: 0 8px 32px -8px rgba(245, 158, 11, 0.25),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+              animation: memoryFullPulse 2.5s ease-in-out infinite,
+                         memoryFullGlow 3s ease-in-out infinite alternate !important;
+              opacity: 1 !important;
+              overflow: hidden !important;
+              transform-origin: center !important;
+            }
+
+            @keyframes memoryFullPulse {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 8px 32px -8px rgba(245, 158, 11, 0.25),
+                            0 0 0 0 rgba(245, 158, 11, 0.4),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.1);
+              }
+              50% { 
+                transform: scale(1.02);
+                box-shadow: 0 12px 40px -8px rgba(245, 158, 11, 0.35),
+                            0 0 0 8px rgba(245, 158, 11, 0.15),
+                            inset 0 1px 0 rgba(255, 255, 255, 0.15);
+              }
+            }
+
+            @keyframes memoryFullGlow {
+              0% { 
+                background: linear-gradient(135deg, 
+                            rgba(245, 158, 11, 0.12) 0%, 
+                            rgba(249, 115, 22, 0.1) 50%,
+                            rgba(239, 68, 68, 0.08) 100%) !important;
+                border-color: rgba(245, 158, 11, 0.3) !important;
+              }
+              100% { 
+                background: linear-gradient(135deg, 
+                            rgba(245, 158, 11, 0.18) 0%, 
+                            rgba(249, 115, 22, 0.15) 50%,
+                            rgba(239, 68, 68, 0.12) 100%) !important;
+                border-color: rgba(245, 158, 11, 0.5) !important;
+              }
+            }
+
+            .memory-full-clickable::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.25),
+                transparent
+              );
+              animation: memoryShimmer 3.5s ease-in-out infinite;
+              border-radius: inherit;
+              pointer-events: none;
+              z-index: 1;
+            }
+
+            @keyframes memoryShimmer {
+              0% { left: -100%; }
+              100% { left: 100%; }
+            }
+
+            .memory-full-clickable::after {
+              content: '💾 點擊匯出記憶';
+              position: absolute;
+              top: -48px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: linear-gradient(135deg, #f59e0b, #f97316);
+              color: white;
+              font-size: 13px;
+              font-weight: 600;
+              padding: 10px 16px;
+              border-radius: 24px;
+              white-space: nowrap;
+              opacity: 0;
+              animation: memoryTooltip 4.5s ease-in-out infinite;
+              pointer-events: none;
+              z-index: 1000;
+              box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+              border: 1px solid rgba(255, 255, 255, 0.15);
+            }
+
+            @keyframes memoryTooltip {
+              0%, 60% { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(10px) scale(0.9); 
+              }
+              70%, 85% { 
+                opacity: 1; 
+                transform: translateX(-50%) translateY(0) scale(1); 
+              }
+              100% { 
+                opacity: 0; 
+                transform: translateX(-50%) translateY(-10px) scale(0.9); 
+              }
+            }
+
+            .memory-full-clickable:hover {
+              transform: scale(1.05) translateY(-3px) !important;
+              box-shadow: 0 20px 60px -12px rgba(245, 158, 11, 0.4),
+                          0 0 0 6px rgba(245, 158, 11, 0.2),
+                          inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+              background: linear-gradient(135deg, 
+                          rgba(245, 158, 11, 0.22) 0%, 
+                          rgba(249, 115, 22, 0.18) 50%,
+                          rgba(239, 68, 68, 0.15) 100%) !important;
+              border-color: rgba(245, 158, 11, 0.6) !important;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
+        element.classList.add('memory-full-clickable');
+        element.addEventListener('click', () => {
+          showDemoToast('記憶匯出功能已觸發！', 'success');
+        });
+      }
+
+      function addModalStyles() {
+        if (document.getElementById('memoryModalStyles')) return;
+
+        const style = document.createElement('style');
+        style.id = 'memoryModalStyles';
+        style.textContent = `
+          .memory-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999999;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            animation: modalFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: auto;
+          }
+
+          .memory-modal-content {
+            background: var(--bg-primary, #1e293b);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 440px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-light, #334155);
+            overflow: hidden;
+            animation: modalSlideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 1000000;
+            pointer-events: auto;
+          }
+
+          .memory-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 24px;
+            background: var(--bg-secondary, #334155);
+            position: relative;
+            border-bottom: 1px solid var(--border-light, #475569);
+          }
+
+          .memory-modal-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+          }
+
+          .memory-modal-icon.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.4);
+          }
+
+          .memory-modal-title-section {
+            flex: 1;
+          }
+
+          .memory-modal-title {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary, #f1f5f9);
+            line-height: 1.2;
+          }
+
+          .memory-modal-subtitle {
+            margin: 4px 0 0 0;
+            font-size: 14px;
+            color: var(--text-secondary, #cbd5e1);
+            font-weight: 500;
+          }
+
+          .memory-modal-status {
+            display: flex;
+            align-items: center;
+          }
+
+          .memory-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+          }
+
+          .memory-status-dot.warning {
+            background: #f59e0b;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+          }
+
+          .memory-status-dot.success {
+            background: #10b981;
+          }
+
+          .memory-modal-body {
+            padding: 24px;
+            background: var(--bg-primary, #1e293b);
+          }
+
+          .memory-alert-content {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+          }
+
+          .memory-alert-icon {
+            flex-shrink: 0;
+            width: 24px;
+            height: 24px;
+            color: #f59e0b;
+            filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.3));
+            margin-top: 2px;
+          }
+
+          .memory-alert-text {
+            flex: 1;
+          }
+
+          .memory-alert-text p {
+            margin: 0;
+            color: var(--text-secondary, #cbd5e1);
+            line-height: 1.6;
+            font-size: 15px;
+          }
+
+          .memory-usage-info {
+            background: var(--bg-secondary, #334155);
+            border: 1px solid var(--border-light, #475569);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+          }
+
+          .usage-bar {
+            height: 8px;
+            background: var(--border-light, #475569);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+          }
+
+          .usage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%);
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+          }
+
+          .usage-text {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .usage-label {
+            font-size: 14px;
+            color: var(--text-secondary, #cbd5e1);
+            font-weight: 500;
+          }
+
+          .usage-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #dc2626;
+          }
+
+          .export-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+          }
+
+          .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary, #334155);
+            border: 1px solid var(--border-light, #475569);
+            border-radius: 8px;
+          }
+
+          .summary-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--border-light, #475569);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary, #cbd5e1);
+            flex-shrink: 0;
+          }
+
+          .summary-content {
+            flex: 1;
+          }
+
+          .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary, #cbd5e1);
+            font-weight: 500;
+            margin-bottom: 2px;
+          }
+
+          .summary-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary, #f1f5f9);
+          }
+
+          .export-actions-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+          }
+
+          .export-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light, #475569);
+            background: var(--bg-secondary, #334155);
+            color: var(--text-secondary, #cbd5e1);
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            justify-content: center;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+          }
+
+          .export-action-btn:hover {
+            background: var(--bg-tertiary, #475569);
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+          }
+
+          .memory-modal-actions {
+            display: flex;
+            gap: 12px;
+            padding: 20px 24px 24px;
+            background: var(--bg-secondary, #334155);
+            border-top: 1px solid var(--border-light, #475569);
+            position: relative;
+            z-index: 1000001;
+            pointer-events: auto;
+          }
+
+          .memory-modal-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer !important;
+            transition: all 0.2s ease;
+            flex: 1;
+            justify-content: center;
+            min-height: 44px;
+            position: relative;
+            z-index: 1000001;
+            pointer-events: auto !important;
+            user-select: none;
+          }
+
+          .memory-modal-btn.primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            box-shadow: 0 6px 20px -4px rgba(59, 130, 246, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+          }
+
+          .memory-modal-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.5);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+          }
+
+          .memory-modal-btn.secondary {
+            background: var(--bg-primary, #1e293b);
+            color: var(--text-secondary, #cbd5e1);
+            border: 1px solid var(--border-light, #475569);
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+          }
+
+          .memory-modal-btn.secondary:hover {
+            background: var(--bg-tertiary, #475569);
+            border-color: var(--border-medium, #64748b);
+          }
+
+          @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+
+          @keyframes modalSlideIn {
+            from { 
+              opacity: 0;
+              transform: translateY(-20px) scale(0.95);
+            }
+            to { 
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+
+          @media (max-width: 480px) {
+            .memory-modal-content {
+              margin: 20px;
+              width: calc(100% - 40px);
+            }
+            
+            .export-actions-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+
+      function closeModal() {
+        const modals = document.querySelectorAll('.memory-modal-overlay');
+        modals.forEach(modal => {
+          modal.style.animation = 'modalFadeIn 0.2s ease-out reverse';
+          setTimeout(() => {
+            modal.remove();
+          }, 200);
+        });
+      }
+
+      function demoExport() {
+        closeModal();
+        setTimeout(() => {
+          showExportResultModal();
+        }, 300);
+      }
+
+      function demoAction() {
+        showDemoToast('功能演示完成！', 'success');
+      }
+
       // 事件委託處理所有按鈕點擊
       document.addEventListener('click', function(e) {
         const action = e.target.closest('[data-action]')?.dataset.action;
@@ -990,6 +1734,25 @@
             break;
           case 'showExportResult':
             showExportResult();
+            break;
+          case 'showMemoryFullModal':
+            showMemoryFullModal();
+            break;
+          case 'showExportResultModal':
+            showExportResultModal();
+            break;
+          case 'showMemoryFullElement':
+            showMemoryFullElement();
+            break;
+          case 'closeModal':
+            closeModal();
+            break;
+          case 'demoExport':
+            demoExport();
+            break;
+          case 'demoAction':
+            demoAction();
+            break;
             break;
           case 'hideDemoExportResult':
             hideDemoExportResult();
