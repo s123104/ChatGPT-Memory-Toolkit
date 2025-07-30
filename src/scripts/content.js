@@ -107,163 +107,204 @@
     const animationStyles = document.createElement('style');
     animationStyles.id = 'memory-full-target-styles';
     animationStyles.textContent = `
+      /* 記憶已滿元素的現代化精緻樣式 */
       .memory-full-clickable {
         cursor: pointer !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
         position: relative !important;
-        padding: 8px 16px !important;
-        border-radius: 12px !important;
+        padding: 12px 20px !important;
+        border-radius: 16px !important;
         background: linear-gradient(135deg, 
-                    rgba(59, 130, 246, 0.1) 0%, 
-                    rgba(147, 51, 234, 0.08) 100%) !important;
-        border: 1px solid rgba(59, 130, 246, 0.3) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        animation: memoryPulse 3s ease-in-out infinite,
-                   memoryGlow 2s ease-in-out infinite alternate !important;
+                    rgba(245, 158, 11, 0.12) 0%, 
+                    rgba(249, 115, 22, 0.1) 50%,
+                    rgba(239, 68, 68, 0.08) 100%) !important;
+        border: 2px solid rgba(245, 158, 11, 0.3) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        box-shadow: 0 8px 32px -8px rgba(245, 158, 11, 0.25),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+        animation: memoryFullPulse 2.5s ease-in-out infinite,
+                   memoryFullGlow 3s ease-in-out infinite alternate !important;
         opacity: 1 !important;
+        overflow: hidden !important;
+        transform-origin: center !important;
       }
 
-      @keyframes memoryPulse {
+      /* 優雅的脈衝動畫 */
+      @keyframes memoryFullPulse {
         0%, 100% { 
           transform: scale(1);
-          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7),
-                      0 4px 20px -2px rgba(59, 130, 246, 0.3);
-        }
-        25% { 
-          transform: scale(1.02);
-          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3),
-                      0 8px 32px -4px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 8px 32px -8px rgba(245, 158, 11, 0.25),
+                      0 0 0 0 rgba(245, 158, 11, 0.4),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.1);
         }
         50% { 
-          transform: scale(1.01);
-          box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.2),
-                      0 12px 40px -6px rgba(59, 130, 246, 0.5);
-        }
-        75% { 
           transform: scale(1.02);
-          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3),
-                      0 8px 32px -4px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 12px 40px -8px rgba(245, 158, 11, 0.35),
+                      0 0 0 8px rgba(245, 158, 11, 0.15),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.15);
         }
       }
 
-      @keyframes memoryGlow {
-        0%, 100% { 
+      /* 柔和的發光動畫 */
+      @keyframes memoryFullGlow {
+        0% { 
           background: linear-gradient(135deg, 
-                      rgba(59, 130, 246, 0.1) 0%, 
-                      rgba(147, 51, 234, 0.08) 100%) !important;
-          border-color: rgba(59, 130, 246, 0.3) !important;
+                      rgba(245, 158, 11, 0.12) 0%, 
+                      rgba(249, 115, 22, 0.1) 50%,
+                      rgba(239, 68, 68, 0.08) 100%) !important;
+          border-color: rgba(245, 158, 11, 0.3) !important;
         }
-        50% { 
+        100% { 
           background: linear-gradient(135deg, 
-                      rgba(59, 130, 246, 0.15) 0%, 
-                      rgba(147, 51, 234, 0.12) 100%) !important;
-          border-color: rgba(59, 130, 246, 0.5) !important;
+                      rgba(245, 158, 11, 0.18) 0%, 
+                      rgba(249, 115, 22, 0.15) 50%,
+                      rgba(239, 68, 68, 0.12) 100%) !important;
+          border-color: rgba(245, 158, 11, 0.5) !important;
         }
       }
 
+      /* 精緻的光澤效果 */
       .memory-full-clickable::before {
         content: '';
         position: absolute;
         top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
         background: linear-gradient(
           90deg,
           transparent,
-          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0.25),
           transparent
         );
-        background-size: 200% 100%;
-        animation: shimmer 3s ease-in-out infinite;
+        animation: memoryShimmer 3.5s ease-in-out infinite;
         border-radius: inherit;
         pointer-events: none;
+        z-index: 1;
       }
 
-      @keyframes shimmer {
-        0% { background-position: -200% 0; }
-        100% { background-position: 200% 0; }
+      @keyframes memoryShimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
       }
 
+      /* 現代化提示氣泡 */
       .memory-full-clickable::after {
-        content: '✨ 點擊立即匯出記憶';
+        content: '💾 點擊匯出記憶';
         position: absolute;
-        top: -35px;
+        top: -48px;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        background: linear-gradient(135deg, #f59e0b, #f97316);
         color: white;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 6px 12px;
-        border-radius: 20px;
+        padding: 10px 16px;
+        border-radius: 24px;
         white-space: nowrap;
-        box-shadow: 0 4px 20px -4px rgba(59, 130, 246, 0.4);
         opacity: 0;
-        animation: tooltipFadeIn 0.5s ease-out 1s forwards;
+        animation: memoryTooltip 4.5s ease-in-out infinite;
         pointer-events: none;
         z-index: 1000;
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.15);
       }
 
-      @keyframes tooltipFadeIn {
-        from { 
+      /* 提示氣泡動畫 */
+      @keyframes memoryTooltip {
+        0%, 60% { 
           opacity: 0; 
-          transform: translateX(-50%) translateY(5px); 
+          transform: translateX(-50%) translateY(10px) scale(0.9); 
         }
-        to { 
+        70%, 85% { 
           opacity: 1; 
-          transform: translateX(-50%) translateY(0); 
+          transform: translateX(-50%) translateY(0) scale(1); 
+        }
+        100% { 
+          opacity: 0; 
+          transform: translateX(-50%) translateY(-10px) scale(0.9); 
         }
       }
 
+      /* 精緻的懸停效果 */
       .memory-full-clickable:hover {
-        transform: scale(1.03) !important;
-        box-shadow: 0 0 0 15px rgba(59, 130, 246, 0.2),
-                    0 16px 48px -8px rgba(59, 130, 246, 0.6) !important;
+        transform: scale(1.05) translateY(-3px) !important;
+        box-shadow: 0 20px 60px -12px rgba(245, 158, 11, 0.4),
+                    0 0 0 6px rgba(245, 158, 11, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
         background: linear-gradient(135deg, 
-                    rgba(59, 130, 246, 0.2) 0%, 
-                    rgba(147, 51, 234, 0.15) 100%) !important;
-        border-color: rgba(59, 130, 246, 0.6) !important;
+                    rgba(245, 158, 11, 0.22) 0%, 
+                    rgba(249, 115, 22, 0.18) 50%,
+                    rgba(239, 68, 68, 0.15) 100%) !important;
+        border-color: rgba(245, 158, 11, 0.6) !important;
       }
 
+      /* 點擊反饋效果 */
       .memory-full-clickable:active {
-        transform: scale(0.98) !important;
-        transition: transform 0.1s ease-out !important;
+        transform: scale(0.98) translateY(1px) !important;
+        transition: transform 0.15s ease !important;
+        box-shadow: 0 4px 16px -4px rgba(245, 158, 11, 0.4),
+                    inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
       }
 
-      /* 深色模式支援 */
+      /* 圖標增強效果 */
+      .memory-full-clickable svg {
+        filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.3)) !important;
+        transition: all 0.3s ease !important;
+      }
+
+      .memory-full-clickable:hover svg {
+        filter: drop-shadow(0 4px 8px rgba(245, 158, 11, 0.4)) !important;
+        transform: scale(1.1) rotate(5deg) !important;
+      }
+
+      /* 文字樣式增強 */
+      .memory-full-clickable div {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        font-weight: 600 !important;
+        position: relative !important;
+        z-index: 2 !important;
+      }
+
+      /* 深色模式適配 */
       @media (prefers-color-scheme: dark) {
         .memory-full-clickable {
           background: linear-gradient(135deg, 
-                      rgba(59, 130, 246, 0.15) 0%, 
-                      rgba(147, 51, 234, 0.12) 100%) !important;
-          border-color: rgba(59, 130, 246, 0.4) !important;
+                      rgba(245, 158, 11, 0.15) 0%, 
+                      rgba(249, 115, 22, 0.12) 50%,
+                      rgba(239, 68, 68, 0.1) 100%) !important;
+          border-color: rgba(245, 158, 11, 0.4) !important;
+          box-shadow: 0 8px 32px -8px rgba(245, 158, 11, 0.3),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
         }
         
         .memory-full-clickable:hover {
           background: linear-gradient(135deg, 
-                      rgba(59, 130, 246, 0.25) 0%, 
-                      rgba(147, 51, 234, 0.2) 100%) !important;
-          border-color: rgba(59, 130, 246, 0.7) !important;
+                      rgba(245, 158, 11, 0.25) 0%, 
+                      rgba(249, 115, 22, 0.2) 50%,
+                      rgba(239, 68, 68, 0.18) 100%) !important;
+          border-color: rgba(245, 158, 11, 0.7) !important;
         }
       }
 
       /* 移動端優化 */
       @media (max-width: 768px) {
         .memory-full-clickable {
-          animation-duration: 2.5s;
-          padding: 6px 12px !important;
+          padding: 10px 16px !important;
+          border-radius: 14px !important;
+          animation-duration: 2s;
         }
         
         .memory-full-clickable::after {
-          font-size: 11px;
-          padding: 5px 10px;
-          top: -32px;
+          font-size: 12px;
+          padding: 8px 14px;
+          top: -42px;
         }
       }
 
-      /* 減少動畫偏好 */
+      /* 無障礙和動畫偏好 */
       @media (prefers-reduced-motion: reduce) {
         .memory-full-clickable {
           animation: none !important;
@@ -276,6 +317,15 @@
         .memory-full-clickable::after {
           animation: none !important;
           opacity: 1;
+        }
+      }
+
+      /* 高對比度模式支援 */
+      @media (prefers-contrast: high) {
+        .memory-full-clickable {
+          border-width: 3px !important;
+          border-color: #f59e0b !important;
+          background: rgba(245, 158, 11, 0.2) !important;
         }
       }
     `;
