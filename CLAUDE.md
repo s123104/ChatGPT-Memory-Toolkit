@@ -5,6 +5,7 @@
 此專案為 ChatGPT Memory Toolkit - 專業的 ChatGPT 記憶管理 Chrome 擴充套件。
 
 ### 專案資訊
+
 - **名稱**: ChatGPT Memory Toolkit
 - **版本**: 1.2.0
 - **類型**: Chrome Extension
@@ -14,6 +15,7 @@
 - **程式碼格式化**: Prettier
 
 ### 開發指令
+
 ```bash
 npm run dev      # 開發模式（檢查 + 建置）
 npm run lint     # 程式碼檢查
@@ -22,6 +24,7 @@ npm run build    # 建置擴充套件
 ```
 
 ### 專案結構
+
 ```
 src/
 ├── scripts/
@@ -46,14 +49,16 @@ Claude Code 會根據以下情境自動挑選並召喚 Sub-Agent：
 ### 觸發條件詳述
 
 #### code-quality-reviewer
-- **自動觸發**: 
+
+- **自動觸發**:
   - Git commit 操作
-  - Git push 操作  
+  - Git push 操作
   - Pull Request 建立或更新
   - 程式碼變更檢測
 - **執行內容**: 程式碼品質檢查、安全性分析、最佳實務驗證
 
 #### test-runner
+
 - **自動觸發**:
   - Pre-Push hooks 執行
   - CI Pipeline 測試階段
@@ -62,6 +67,7 @@ Claude Code 會根據以下情境自動挑選並召喚 Sub-Agent：
 - **執行內容**: 自動化測試執行、覆蓋率報告生成、品質閘門驗證
 
 #### error-debugger
+
 - **自動觸發**:
   - 測試失敗事件
   - 建置崩潰 (Build Crash)
@@ -70,6 +76,7 @@ Claude Code 會根據以下情境自動挑選並召喚 Sub-Agent：
 - **執行內容**: 根本原因分析、錯誤修復建議、即時問題解決
 
 #### doc-writer
+
 - **自動觸發**:
   - 程式碼合併至 `main` 分支
   - API 變動檢測

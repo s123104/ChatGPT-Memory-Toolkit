@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>記憶匯出按鈕設計測試</title>
+    <link rel="stylesheet" href="src/ui/popup.css" />
+    <style>
+      body {
+        padding: 20px;
+        background: #f8fafc;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .demo-container {
+        max-width: 400px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .demo-section {
+        margin-bottom: 30px;
+      }
+      .demo-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #1e293b;
+      }
+      .state-controls {
+        margin: 20px 0;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .state-btn {
+        padding: 6px 12px;
+        border: 1px solid #e2e8f0;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .state-btn:hover {
+        background: #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="demo-container">
+      <h1 style="text-align: center; margin-bottom: 30px; color: #1e293b">
+        記憶匯出按鈕設計
+      </h1>
+
+      <div class="demo-section">
+        <div class="demo-title">正常狀態</div>
+        <div class="action-section">
+          <button class="memory-export-btn" id="normalBtn">
+            <div class="export-btn-background">
+              <div class="export-btn-gradient"></div>
+              <div class="export-btn-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+              </div>
+            </div>
+            <div class="export-btn-content">
+              <div class="export-icon-container">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  class="export-icon"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                  />
+                </svg>
+                <div class="export-icon-glow"></div>
+              </div>
+              <div class="export-text-container">
+                <span class="export-main-text">匯出記憶</span>
+                <span class="export-sub-text">Export Memory</span>
+              </div>
+              <div class="export-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="export-btn-ripple"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-title">記憶已滿狀態</div>
+        <div class="action-section">
+          <button class="memory-export-btn memory-full-urgent" id="urgentBtn">
+            <div class="export-btn-background">
+              <div class="export-btn-gradient"></div>
+              <div class="export-btn-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+              </div>
+            </div>
+            <div class="export-btn-content">
+              <div class="export-icon-container">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  class="export-icon"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                  />
+                </svg>
+                <div class="export-icon-glow"></div>
+              </div>
+              <div class="export-text-container">
+                <span class="export-main-text">匯出記憶</span>
+                <span class="export-sub-text">Memory Full - Export Now</span>
+              </div>
+              <div class="export-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="export-btn-ripple"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <div class="demo-title">複製按鈕</div>
+        <div class="action-section">
+          <button class="copy-btn modern" id="copyBtn">
+            <div class="copy-btn-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" class="copy-icon">
+                <path
+                  fill="currentColor"
+                  d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                />
+              </svg>
+              <span class="copy-text">複製內容</span>
+            </div>
+            <div class="copy-btn-ripple"></div>
+          </button>
+        </div>
+      </div>
+
+      <div class="state-controls">
+        <button class="state-btn" onclick="testLoading()">載入狀態</button>
+        <button class="state-btn" onclick="testSuccess()">成功狀態</button>
+        <button class="state-btn" onclick="testError()">錯誤狀態</button>
+        <button class="state-btn" onclick="resetStates()">重置狀態</button>
+      </div>
+    </div>
+
+    <script>
+      function testLoading() {
+        const btn = document.getElementById('normalBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.classList.remove('loading');
+          btn.disabled = false;
+        }, 3000);
+      }
+
+      function testSuccess() {
+        const btn = document.getElementById('normalBtn');
+        btn.classList.add('success');
+        btn.querySelector('.export-main-text').textContent = '匯出完成';
+        setTimeout(() => {
+          btn.classList.remove('success');
+          btn.querySelector('.export-main-text').textContent = '匯出記憶';
+        }, 2000);
+      }
+
+      function testError() {
+        const btn = document.getElementById('normalBtn');
+        btn.classList.add('error');
+        btn.querySelector('.export-main-text').textContent = '匯出失敗';
+        setTimeout(() => {
+          btn.classList.remove('error');
+          btn.querySelector('.export-main-text').textContent = '匯出記憶';
+        }, 2000);
+      }
+
+      function resetStates() {
+        const btn = document.getElementById('normalBtn');
+        btn.classList.remove('loading', 'success', 'error');
+        btn.disabled = false;
+        btn.querySelector('.export-main-text').textContent = '匯出記憶';
+      }
+
+      // 添加點擊效果
+      document
+        .querySelectorAll('.memory-export-btn, .copy-btn')
+        .forEach(btn => {
+          btn.addEventListener('click', function () {
+            const ripple = this.querySelector(
+              '.export-btn-ripple, .copy-btn-ripple'
+            );
+            if (ripple) {
+              ripple.style.animation = 'none';
+              ripple.offsetHeight;
+              ripple.style.animation = null;
+            }
+          });
+        });
+    </script>
+  </body>
+</html>

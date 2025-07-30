@@ -141,30 +141,61 @@
 
         <!-- Action Buttons -->
         <div class="action-section">
-          <button class="action-btn primary modern" id="exportBtn">
-            <div class="btn-content">
-              <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
-                <path
-                  fill="currentColor"
-                  d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"
-                />
-              </svg>
-              <span class="btn-text">匯出記憶</span>
+          <!-- Memory Export Button with Modern Design -->
+          <button class="memory-export-btn" id="exportBtn">
+            <div class="export-btn-background">
+              <div class="export-btn-gradient"></div>
+              <div class="export-btn-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+              </div>
             </div>
-            <div class="btn-ripple"></div>
+            <div class="export-btn-content">
+              <div class="export-icon-container">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  class="export-icon"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                  />
+                </svg>
+                <div class="export-icon-glow"></div>
+              </div>
+              <div class="export-text-container">
+                <span class="export-main-text">匯出記憶</span>
+                <span class="export-sub-text">Export Memory</span>
+              </div>
+              <div class="export-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="export-btn-ripple"></div>
           </button>
 
-          <button class="action-btn secondary modern" id="copyBtn" disabled>
-            <div class="btn-content">
-              <svg width="18" height="18" viewBox="0 0 24 24" class="btn-icon">
+          <!-- Copy Button with Simplified Design -->
+          <button class="copy-btn modern" id="copyBtn" disabled>
+            <div class="copy-btn-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" class="copy-icon">
                 <path
                   fill="currentColor"
                   d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
                 />
               </svg>
-              <span class="btn-text">複製內容</span>
+              <span class="copy-text">複製內容</span>
             </div>
-            <div class="btn-ripple"></div>
+            <div class="copy-btn-ripple"></div>
           </button>
         </div>
 

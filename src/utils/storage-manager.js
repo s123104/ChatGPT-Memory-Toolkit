@@ -90,16 +90,24 @@ class StorageManager {
 
       let updatedHistory;
       if (existingIndex !== -1) {
-        // 如果內容相同，更新時間戳記
-        updatedHistory = [...existingHistory];
-        updatedHistory[existingIndex] = {
-          ...updatedHistory[existingIndex],
+        // 如果內容相同，更新時間戳記並移到最前面
+        console.log('[StorageManager] 發現相同內容，更新現有記錄的時間戳記');
+        const updatedItem = {
+          ...existingHistory[existingIndex],
           timestamp,
           date: historyItem.date,
           time: historyItem.time,
         };
+        
+        // 移除舊記錄並將更新的記錄放到最前面
+        updatedHistory = [
+          updatedItem,
+          ...existingHistory.slice(0, existingIndex),
+          ...existingHistory.slice(existingIndex + 1)
+        ];
       } else {
         // 新增記錄
+        console.log('[StorageManager] 新增歷史記錄');
         updatedHistory = [historyItem, ...existingHistory];
       }
 
@@ -197,13 +205,22 @@ class StorageManager {
 
   // 生成內容雜湊值
   generateContentHash(content) {
-    let hash = 0;
-    if (content.length === 0) {
-      return hash.toString();
+    if (!content || content.length === 0) {
+      return '0';
     }
 
-    for (let i = 0; i < content.length; i++) {
-      const char = content.charCodeAt(i);
+    // 清理內容，移除可能變動的部分來產生穩定的 hash
+    const cleanContent = content
+      .replace(/^#\s*儲存的記憶$/gm, '') // 移除標題
+      .replace(/>\s*使用量：.*$/gm, '') // 移除使用量行
+      .replace(/^共\s*\d+\s*筆$/gm, '') // 移除統計行
+      .replace(/^\d+\.\s*/gm, '') // 移除編號，保留內容
+      .replace(/\s+/g, ' ') // 統一空白字符
+      .trim();
+
+    let hash = 0;
+    for (let i = 0; i < cleanContent.length; i++) {
+      const char = cleanContent.charCodeAt(i);
       hash = (hash << 5) - hash + char;
       hash = hash & hash; // 轉換為 32 位整數
     }

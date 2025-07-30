@@ -90,17 +90,31 @@ class ModernPopupManager {
   }
 
   addRippleEffect() {
-    const buttons = document.querySelectorAll('.action-btn.modern');
-    buttons.forEach(button => {
-      button.addEventListener('click', _e => {
-        const ripple = button.querySelector('.btn-ripple');
+    // 為新的匯出按鈕添加點擊效果
+    const exportBtn = document.querySelector('.memory-export-btn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', _e => {
+        const ripple = exportBtn.querySelector('.export-btn-ripple');
         if (ripple) {
           ripple.style.animation = 'none';
           ripple.offsetHeight; // 觸發重排
           ripple.style.animation = null;
         }
       });
-    });
+    }
+
+    // 為複製按鈕添加點擊效果
+    const copyBtn = document.querySelector('.copy-btn.modern');
+    if (copyBtn) {
+      copyBtn.addEventListener('click', _e => {
+        const ripple = copyBtn.querySelector('.copy-btn-ripple');
+        if (ripple) {
+          ripple.style.animation = 'none';
+          ripple.offsetHeight; // 觸發重排
+          ripple.style.animation = null;
+        }
+      });
+    }
   }
 
   async updateStatus() {
@@ -139,13 +153,17 @@ class ModernPopupManager {
         const isFull = response.isFull || false;
 
         // 更新狀態顯示
-        memoryStatusEl.textContent = isFull ? '記憶已滿' : '記憶正常';
-
-        // 更新狀態卡片樣式
         if (isFull) {
-          statusCard.className = 'status-card modern warning';
-          statusDot.className = 'status-dot warning';
+          memoryStatusEl.innerHTML = `
+            <div class="memory-status-full">
+              <span class="status-text">記憶已滿</span>
+              <span class="status-action">點擊匯出</span>
+            </div>
+          `;
+          statusCard.className = 'status-card modern warning memory-full';
+          statusDot.className = 'status-dot warning pulse';
         } else {
+          memoryStatusEl.textContent = '記憶正常';
           statusCard.className = 'status-card modern success';
           statusDot.className = 'status-dot';
         }
@@ -162,6 +180,23 @@ class ModernPopupManager {
         const copyBtn = document.getElementById('copyBtn');
         if (copyBtn) {
           copyBtn.disabled = count === 0 && !response.markdown;
+        }
+
+        // 如果記憶已滿，為匯出按鈕添加特殊樣式和文字
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+          const subText = exportBtn.querySelector('.export-sub-text');
+          if (isFull) {
+            exportBtn.classList.add('memory-full-urgent');
+            if (subText) {
+              subText.textContent = 'Memory Full - Export Now';
+            }
+          } else {
+            exportBtn.classList.remove('memory-full-urgent');
+            if (subText) {
+              subText.textContent = 'Export Memory';
+            }
+          }
         }
       } else {
         memoryStatusEl.textContent = '等待檢測...';
@@ -217,8 +252,11 @@ class ModernPopupManager {
       });
 
       if (response?.success) {
-        this.setButtonSuccess(exportBtn, '匯出成功');
-        await this.updateStatus(); // 更新狀態
+        // 顯示成功狀態
+        this.setButtonSuccess(exportBtn, '匯出完成');
+
+        // 更新狀態
+        await this.updateStatus();
 
         // 如果有 markdown 資料，啟用複製按鈕並儲存到歷史
         if (response.markdown) {
@@ -228,12 +266,24 @@ class ModernPopupManager {
             copyBtn.disabled = false;
           }
 
-          // 儲存到歷史記錄
-          await this.saveToHistory({
+          // 儲存到歷史記錄（與主程式共用邏輯）
+          const historyItem = await this.saveToHistory({
             markdown: response.markdown,
             usage: response.usage,
             count: response.data?.length || 0,
           });
+
+          if (historyItem) {
+            // 顯示儲存成功的提示
+            this.showToast(
+              `已儲存 ${response.data?.length || 0} 筆記憶到歷史記錄`
+            );
+
+            // 如果記憶已滿，顯示特殊提示
+            if (response.isFull) {
+              this.showMemoryFullNotification(historyItem);
+            }
+          }
         }
       } else {
         throw new Error(response?.error || '匯出失敗');
@@ -248,7 +298,7 @@ class ModernPopupManager {
         this.setButtonError(exportBtn, '匯出失敗');
       }
     } finally {
-      setTimeout(() => this.resetButton(exportBtn, '匯出記憶'), 2000);
+      setTimeout(() => this.resetButton(exportBtn, '匯出記憶'), 2500);
     }
   }
 
@@ -338,9 +388,15 @@ class ModernPopupManager {
     button.disabled = false;
     button.classList.remove('loading', 'error');
     button.classList.add('success');
-    const textEl = button.querySelector('.btn-text');
-    if (textEl) {
-      textEl.textContent = text;
+
+    // 處理匯出按鈕的文字更新
+    const exportTextEl = button.querySelector('.export-main-text');
+    const copyTextEl = button.querySelector('.copy-text');
+
+    if (exportTextEl) {
+      exportTextEl.textContent = text;
+    } else if (copyTextEl) {
+      copyTextEl.textContent = text;
     }
   }
 
@@ -348,18 +404,30 @@ class ModernPopupManager {
     button.disabled = false;
     button.classList.remove('loading', 'success');
     button.classList.add('error');
-    const textEl = button.querySelector('.btn-text');
-    if (textEl) {
-      textEl.textContent = text;
+
+    // 處理匯出按鈕的文字更新
+    const exportTextEl = button.querySelector('.export-main-text');
+    const copyTextEl = button.querySelector('.copy-text');
+
+    if (exportTextEl) {
+      exportTextEl.textContent = text;
+    } else if (copyTextEl) {
+      copyTextEl.textContent = text;
     }
   }
 
   resetButton(button, originalText) {
     button.disabled = false;
     button.classList.remove('loading', 'success', 'error');
-    const textEl = button.querySelector('.btn-text');
-    if (textEl) {
-      textEl.textContent = originalText;
+
+    // 處理匯出按鈕的文字重置
+    const exportTextEl = button.querySelector('.export-main-text');
+    const copyTextEl = button.querySelector('.copy-text');
+
+    if (exportTextEl) {
+      exportTextEl.textContent = originalText;
+    } else if (copyTextEl) {
+      copyTextEl.textContent = originalText;
     }
   }
 
@@ -503,6 +571,17 @@ class ModernPopupManager {
     try {
       await this.storageManager.saveMemoryHistory(memoryData);
       await this.updateStorageInfo();
+
+      // 如果歷史記憶區塊已經顯示，立即更新內容
+      const historySection = document.getElementById('historySection');
+      if (
+        historySection &&
+        (historySection.style.display !== 'none' ||
+          historySection.classList.contains('show'))
+      ) {
+        console.log('[Popup] 歷史區塊已開啟，立即更新歷史記錄');
+        await this.loadHistory();
+      }
     } catch (error) {
       console.error('[Popup] 儲存歷史記錄失敗:', error);
     }
@@ -537,9 +616,17 @@ class ModernPopupManager {
       return;
     }
 
+    const historyList = document.getElementById('historyList');
+
+    // 顯示載入指示器
+    historyList.innerHTML = `
+      <div class="history-empty">
+        <div class="empty-text">載入中...</div>
+      </div>
+    `;
+
     try {
       const history = await this.storageManager.getMemoryHistory();
-      const historyList = document.getElementById('historyList');
 
       if (history.length === 0) {
         historyList.innerHTML = `
@@ -571,12 +658,12 @@ class ModernPopupManager {
     <div class="history-preview">${this.getPreview(item.content)}</div>
   </div>
   <div class="history-actions">
-    <button class="history-action-btn" onclick="popupManager.copyHistoryItem('${item.id}')" title="複製">
+    <button class="history-action-btn copy-btn" data-id="${item.id}" title="複製">
       <svg width="12" height="12" viewBox="0 0 24 24">
         <path fill="currentColor" d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"/>
       </svg>
     </button>
-    <button class="history-action-btn" onclick="popupManager.deleteHistoryItem('${item.id}')" title="刪除">
+    <button class="history-action-btn delete-btn" data-id="${item.id}" title="刪除">
       <svg width="12" height="12" viewBox="0 0 24 24">
         <path fill="currentColor" d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
       </svg>
@@ -595,6 +682,26 @@ class ModernPopupManager {
           if (!e.target.closest('.history-actions')) {
             this.loadHistoryItem(item.dataset.id);
           }
+        });
+      });
+
+      // 添加複製按鈕事件
+      historyList.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          this.copyHistoryItem(id);
+        });
+      });
+
+      // 添加刪除按鈕事件
+      historyList.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          this.deleteHistoryItem(id);
         });
       });
     } catch (error) {
@@ -792,7 +899,7 @@ class ModernPopupManager {
         try {
           await chrome.tabs.sendMessage(this.currentTab.id, {
             action: 'updateDeveloperMode',
-            enabled: enabled,
+            enabled,
           });
         } catch (error) {
           // 忽略通訊錯誤
@@ -837,6 +944,40 @@ class ModernPopupManager {
     } catch (error) {
       console.error('[Popup] 更新儲存資訊失敗:', error);
     }
+  }
+
+  // 顯示記憶已滿的通知
+  showMemoryFullNotification(historyItem) {
+    // 創建記憶已滿的特殊通知
+    const notification = document.createElement('div');
+    notification.className = 'memory-full-notification';
+    notification.innerHTML = `
+      <div class="memory-full-content">
+        <div class="memory-full-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"/>
+          </svg>
+        </div>
+        <div class="memory-full-text">
+          <div class="memory-full-title">記憶已滿 - 已自動匯出</div>
+          <div class="memory-full-desc">共 ${historyItem.count} 筆記憶已儲存到歷史記錄</div>
+        </div>
+        <button class="memory-full-close" onclick="this.parentElement.parentElement.remove()">
+          <svg width="16" height="16" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+          </svg>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // 自動消失
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 5000);
   }
 
   // 顯示提示訊息

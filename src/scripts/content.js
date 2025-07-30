@@ -77,6 +77,294 @@
     );
   };
 
+  // 尋找記憶已滿的特定 div 元素
+  const findMemoryFullTargetDiv = () => {
+    // 尋找包含指定類別和結構的 div
+    const targetDivs = document.querySelectorAll('div.flex.items-center.gap-1.text-sm.font-semibold.opacity-70');
+    
+    for (const div of targetDivs) {
+      // 檢查是否包含"儲存的記憶已滿"文字
+      if (div.textContent?.includes(CONFIG.triggerText)) {
+        return div;
+      }
+    }
+    
+    return null;
+  };
+
+  // 讓記憶已滿的目標 div 變成可點擊並添加動畫
+  const enhanceMemoryFullTargetDiv = (targetDiv) => {
+    if (!targetDiv || targetDiv.dataset.enhanced) {
+      return; // 避免重複處理
+    }
+
+    // 標記已處理
+    targetDiv.dataset.enhanced = 'true';
+    
+    // 添加動畫樣式到頁面
+    const animationStyles = document.createElement('style');
+    animationStyles.id = 'memory-full-target-styles';
+    animationStyles.textContent = `
+      .memory-full-clickable {
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        position: relative !important;
+        padding: 8px 16px !important;
+        border-radius: 12px !important;
+        background: linear-gradient(135deg, 
+                    rgba(59, 130, 246, 0.1) 0%, 
+                    rgba(147, 51, 234, 0.08) 100%) !important;
+        border: 1px solid rgba(59, 130, 246, 0.3) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        animation: memoryPulse 3s ease-in-out infinite,
+                   memoryGlow 2s ease-in-out infinite alternate !important;
+        opacity: 1 !important;
+      }
+
+      @keyframes memoryPulse {
+        0%, 100% { 
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7),
+                      0 4px 20px -2px rgba(59, 130, 246, 0.3);
+        }
+        25% { 
+          transform: scale(1.02);
+          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3),
+                      0 8px 32px -4px rgba(59, 130, 246, 0.4);
+        }
+        50% { 
+          transform: scale(1.01);
+          box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.2),
+                      0 12px 40px -6px rgba(59, 130, 246, 0.5);
+        }
+        75% { 
+          transform: scale(1.02);
+          box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3),
+                      0 8px 32px -4px rgba(59, 130, 246, 0.4);
+        }
+      }
+
+      @keyframes memoryGlow {
+        0%, 100% { 
+          background: linear-gradient(135deg, 
+                      rgba(59, 130, 246, 0.1) 0%, 
+                      rgba(147, 51, 234, 0.08) 100%) !important;
+          border-color: rgba(59, 130, 246, 0.3) !important;
+        }
+        50% { 
+          background: linear-gradient(135deg, 
+                      rgba(59, 130, 246, 0.15) 0%, 
+                      rgba(147, 51, 234, 0.12) 100%) !important;
+          border-color: rgba(59, 130, 246, 0.5) !important;
+        }
+      }
+
+      .memory-full-clickable::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        background-size: 200% 100%;
+        animation: shimmer 3s ease-in-out infinite;
+        border-radius: inherit;
+        pointer-events: none;
+      }
+
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+
+      .memory-full-clickable::after {
+        content: '✨ 點擊立即匯出記憶';
+        position: absolute;
+        top: -35px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        color: white;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 20px;
+        white-space: nowrap;
+        box-shadow: 0 4px 20px -4px rgba(59, 130, 246, 0.4);
+        opacity: 0;
+        animation: tooltipFadeIn 0.5s ease-out 1s forwards;
+        pointer-events: none;
+        z-index: 1000;
+      }
+
+      @keyframes tooltipFadeIn {
+        from { 
+          opacity: 0; 
+          transform: translateX(-50%) translateY(5px); 
+        }
+        to { 
+          opacity: 1; 
+          transform: translateX(-50%) translateY(0); 
+        }
+      }
+
+      .memory-full-clickable:hover {
+        transform: scale(1.03) !important;
+        box-shadow: 0 0 0 15px rgba(59, 130, 246, 0.2),
+                    0 16px 48px -8px rgba(59, 130, 246, 0.6) !important;
+        background: linear-gradient(135deg, 
+                    rgba(59, 130, 246, 0.2) 0%, 
+                    rgba(147, 51, 234, 0.15) 100%) !important;
+        border-color: rgba(59, 130, 246, 0.6) !important;
+      }
+
+      .memory-full-clickable:active {
+        transform: scale(0.98) !important;
+        transition: transform 0.1s ease-out !important;
+      }
+
+      /* 深色模式支援 */
+      @media (prefers-color-scheme: dark) {
+        .memory-full-clickable {
+          background: linear-gradient(135deg, 
+                      rgba(59, 130, 246, 0.15) 0%, 
+                      rgba(147, 51, 234, 0.12) 100%) !important;
+          border-color: rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .memory-full-clickable:hover {
+          background: linear-gradient(135deg, 
+                      rgba(59, 130, 246, 0.25) 0%, 
+                      rgba(147, 51, 234, 0.2) 100%) !important;
+          border-color: rgba(59, 130, 246, 0.7) !important;
+        }
+      }
+
+      /* 移動端優化 */
+      @media (max-width: 768px) {
+        .memory-full-clickable {
+          animation-duration: 2.5s;
+          padding: 6px 12px !important;
+        }
+        
+        .memory-full-clickable::after {
+          font-size: 11px;
+          padding: 5px 10px;
+          top: -32px;
+        }
+      }
+
+      /* 減少動畫偏好 */
+      @media (prefers-reduced-motion: reduce) {
+        .memory-full-clickable {
+          animation: none !important;
+        }
+        
+        .memory-full-clickable::before {
+          animation: none !important;
+        }
+        
+        .memory-full-clickable::after {
+          animation: none !important;
+          opacity: 1;
+        }
+      }
+    `;
+
+    // 如果樣式還沒添加，添加到頁面
+    if (!document.getElementById('memory-full-target-styles')) {
+      document.head.appendChild(animationStyles);
+    }
+
+    // 添加增強類別
+    targetDiv.classList.add('memory-full-clickable');
+
+    // 添加點擊事件
+    const clickHandler = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      log('用戶點擊記憶已滿提示，開始自動匯出');
+      
+      // 添加點擊反饋
+      targetDiv.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        targetDiv.style.transform = '';
+      }, 150);
+
+      try {
+        await mainFlow();
+        
+        // 匯出成功後移除動畫和點擊功能
+        targetDiv.classList.remove('memory-full-clickable');
+        targetDiv.style.cursor = 'default';
+        targetDiv.removeEventListener('click', clickHandler);
+        
+        // 顯示成功提示
+        const successTooltip = document.createElement('div');
+        successTooltip.style.cssText = `
+          position: absolute;
+          top: -40px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, #10b981, #059669);
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 20px;
+          white-space: nowrap;
+          box-shadow: 0 4px 20px -4px rgba(16, 185, 129, 0.4);
+          z-index: 1000;
+        `;
+        successTooltip.textContent = '✅ 記憶匯出成功';
+        targetDiv.style.position = 'relative';
+        targetDiv.appendChild(successTooltip);
+        
+        setTimeout(() => {
+          successTooltip.remove();
+        }, 3000);
+      } catch (error) {
+        warn('點擊匯出失敗:', error);
+        
+        // 顯示錯誤提示
+        const errorTooltip = document.createElement('div');
+        errorTooltip.style.cssText = `
+          position: absolute;
+          top: -40px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: linear-gradient(135deg, #ef4444, #dc2626);
+          color: white;
+          font-size: 12px;
+          font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 20px;
+          white-space: nowrap;
+          box-shadow: 0 4px 20px -4px rgba(239, 68, 68, 0.4);
+          z-index: 1000;
+        `;
+        errorTooltip.textContent = '❌ 匯出失敗，請稍後再試';
+        targetDiv.style.position = 'relative';
+        targetDiv.appendChild(errorTooltip);
+        
+        setTimeout(() => {
+          errorTooltip.remove();
+        }, 3000);
+      }
+    };
+
+    targetDiv.addEventListener('click', clickHandler);
+    log('記憶已滿目標 div 已增強為可點擊並添加動畫效果');
+  };
+
   // 等待元素出現
   function waitFor(checkFunction, timeoutMs) {
     return new Promise((resolve, reject) => {
@@ -625,6 +913,14 @@
 
     // 儲存狀態到全域變數
     window.__memoryStatus = currentStatus;
+
+    // 如果記憶已滿，尋找並增強對應的目標 div
+    if (isMemoryFull) {
+      const targetDiv = findMemoryFullTargetDiv();
+      if (targetDiv) {
+        enhanceMemoryFullTargetDiv(targetDiv);
+      }
+    }
 
     // 通知 popup 狀態更新
     try {
