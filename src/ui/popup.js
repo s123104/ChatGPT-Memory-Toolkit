@@ -58,10 +58,6 @@ class ModernPopupManager {
     appSettingsBtn?.addEventListener('click', () => this.toggleSettings());
     settingsBtn?.addEventListener('click', () => this.handleSettings());
 
-    // 記憶已滿橫幅
-    const memoryFullBanner = document.getElementById('memoryFullBanner');
-    memoryFullBanner?.addEventListener('click', () => this.showExportModal());
-
     // 匯出模態窗
     const exportModalOverlay = document.getElementById('exportModalOverlay');
     const exportModalClose = document.getElementById('exportModalClose');
@@ -164,8 +160,6 @@ class ModernPopupManager {
     const lastCheckEl = document.getElementById('lastCheck');
     const statusCard = document.getElementById('statusCard');
     const statusDot = document.getElementById('statusDot');
-    const memoryFullBanner = document.getElementById('memoryFullBanner');
-
     if (!this.currentTab) {
       this.showError('無法取得當前分頁');
       return;
@@ -195,11 +189,6 @@ class ModernPopupManager {
         const usage = response.usage || '--';
         const count = this.memoryData.length;
         const isFull = response.isFull || memoryFullDetected;
-
-        // 顯示或隱藏記憶已滿橫幅
-        if (memoryFullBanner) {
-          memoryFullBanner.style.display = isFull ? 'block' : 'none';
-        }
 
         // 更新狀態顯示
         if (isFull) {
@@ -251,9 +240,6 @@ class ModernPopupManager {
         memoryStatusEl.textContent = '等待檢測...';
         statusCard.className = 'status-card modern';
         statusDot.className = 'status-dot';
-        if (memoryFullBanner) {
-          memoryFullBanner.style.display = 'none';
-        }
       }
     } catch (error) {
       console.warn('[Popup] 無法取得記憶資料:', error);
@@ -267,9 +253,6 @@ class ModernPopupManager {
         statusDot.className = 'status-dot warning';
       }
       this.updateConnectionStatus(false);
-      if (memoryFullBanner) {
-        memoryFullBanner.style.display = 'none';
-      }
     }
   }
 
