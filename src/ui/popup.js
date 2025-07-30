@@ -202,14 +202,22 @@ class ModernPopupManager {
         // 如果記憶已滿，為匯出按鈕添加特殊樣式和文字
         const exportBtn = document.getElementById('exportBtn');
         if (exportBtn) {
+          const mainText = exportBtn.querySelector('.export-main-text');
           const subText = exportBtn.querySelector('.export-sub-text');
           if (isFull) {
+            exportBtn.classList.remove('loading', 'success', 'error');
             exportBtn.classList.add('memory-full-urgent');
+            if (mainText) {
+              mainText.textContent = '立即匯出';
+            }
             if (subText) {
               subText.textContent = 'Memory Full - Export Now';
             }
           } else {
             exportBtn.classList.remove('memory-full-urgent');
+            if (mainText) {
+              mainText.textContent = '匯出記憶';
+            }
             if (subText) {
               subText.textContent = 'Export Memory';
             }
@@ -505,6 +513,7 @@ class ModernPopupManager {
   setButtonLoading(button, loading = true) {
     if (loading) {
       button.disabled = true;
+      button.classList.remove('success', 'error', 'memory-full-urgent');
       button.classList.add('loading');
     } else {
       button.disabled = false;
@@ -514,7 +523,7 @@ class ModernPopupManager {
 
   setButtonSuccess(button, text) {
     button.disabled = false;
-    button.classList.remove('loading', 'error');
+    button.classList.remove('loading', 'error', 'memory-full-urgent');
     button.classList.add('success');
 
     // 處理匯出按鈕的文字更新
@@ -530,7 +539,7 @@ class ModernPopupManager {
 
   setButtonError(button, text) {
     button.disabled = false;
-    button.classList.remove('loading', 'success');
+    button.classList.remove('loading', 'success', 'memory-full-urgent');
     button.classList.add('error');
 
     // 處理匯出按鈕的文字更新
@@ -546,7 +555,12 @@ class ModernPopupManager {
 
   resetButton(button, originalText) {
     button.disabled = false;
-    button.classList.remove('loading', 'success', 'error');
+    button.classList.remove(
+      'loading',
+      'success',
+      'error',
+      'memory-full-urgent'
+    );
 
     // 處理匯出按鈕的文字重置
     const exportTextEl = button.querySelector('.export-main-text');

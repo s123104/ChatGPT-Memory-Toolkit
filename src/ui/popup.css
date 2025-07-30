@@ -778,7 +778,12 @@ body {
   }
 }
 
-/* Loading State for Export Button */
+/* Loading State for Export Button - Enhanced */
+.memory-export-btn.loading .export-btn-gradient {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  animation: loadingPulse 1.5s ease-in-out infinite;
+}
+
 .memory-export-btn.loading .export-icon {
   animation: spin 1s linear infinite;
 }
@@ -786,6 +791,11 @@ body {
 .memory-export-btn.loading .export-main-text::after {
   content: '...';
   animation: loadingDots 1.5s ease-in-out infinite;
+}
+
+.memory-export-btn.loading .particle {
+  animation-duration: 2s;
+  opacity: 0.6;
 }
 
 @keyframes loadingDots {
@@ -805,14 +815,19 @@ body {
   }
 }
 
-/* Success State for Export Button */
+/* Success State for Export Button - Enhanced */
 .memory-export-btn.success .export-btn-gradient {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  animation: none;
+  animation: successGlow 0.8s ease-out;
 }
 
 .memory-export-btn.success .export-icon {
   animation: successBounce 0.6s ease-out;
+}
+
+.memory-export-btn.success .particle {
+  background: rgba(255, 255, 255, 0.9);
+  animation: successSparkle 1s ease-out;
 }
 
 @keyframes successBounce {
@@ -827,14 +842,19 @@ body {
   }
 }
 
-/* Error State for Export Button */
+/* Error State for Export Button - Enhanced */
 .memory-export-btn.error .export-btn-gradient {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  animation: none;
+  animation: errorFlash 0.5s ease-in-out;
 }
 
 .memory-export-btn.error .export-icon {
   animation: errorShake 0.5s ease-in-out;
+}
+
+.memory-export-btn.error .particle {
+  background: rgba(255, 255, 255, 0.7);
+  animation: errorScatter 0.8s ease-out;
 }
 
 @keyframes errorShake {
@@ -2065,11 +2085,15 @@ input:checked + .toggle-slider:before {
 .memory-export-btn.memory-full-urgent .export-btn-gradient {
   background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
   background-size: 300% 300%;
-  animation: urgentGradient 2s ease-in-out infinite;
+  animation: urgentGradientShift 3s ease-in-out infinite;
 }
 
 .memory-export-btn.memory-full-urgent .export-main-text {
-  animation: urgentTextPulse 1.5s ease-in-out infinite;
+  animation: urgentTextPulse 2s ease-in-out infinite;
+}
+
+.memory-export-btn.memory-full-urgent .export-icon {
+  animation: urgentIconBounce 2s ease-in-out infinite;
 }
 
 .memory-export-btn.memory-full-urgent .export-sub-text {
@@ -2077,8 +2101,9 @@ input:checked + .toggle-slider:before {
 }
 
 .memory-export-btn.memory-full-urgent .particle {
-  background: rgba(255, 255, 255, 0.8);
-  animation-duration: 2s;
+  background: rgba(255, 255, 255, 0.9);
+  animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
 }
 
 @keyframes memoryFullUrgent {
@@ -2093,7 +2118,7 @@ input:checked + .toggle-slider:before {
   }
 }
 
-@keyframes urgentGradient {
+@keyframes urgentGradientShift {
   0%,
   100% {
     background-position: 0% 50%;
@@ -2106,10 +2131,25 @@ input:checked + .toggle-slider:before {
 @keyframes urgentTextPulse {
   0%,
   100% {
+    opacity: 1;
     transform: scale(1);
   }
   50% {
+    opacity: 0.8;
     transform: scale(1.05);
+  }
+}
+
+@keyframes urgentIconBounce {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-5deg);
   }
 }
 
@@ -2512,4 +2552,63 @@ input:checked + .toggle-slider:before {
 .history-item-btn:hover {
   background: rgba(102, 126, 234, 0.1);
   color: var(--primary-color);
+}
+/* Enhanced Animation Keyframes */
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes successGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes successSparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes errorFlash {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes errorScatter {
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5)
+      translate(var(--random-x, 20px), var(--random-y, -20px));
+    opacity: 0;
+  }
 }

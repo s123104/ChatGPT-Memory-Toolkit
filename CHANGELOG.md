@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-07-30
+
+### Added
+
+- ✨ **Enhanced Button Animations** - 新增豐富的按鈕狀態動畫效果
+  - 記憶已滿狀態：橙紅漸層背景移動、文字脈衝、圖示彈跳旋轉效果
+  - 載入狀態：灰色脈衝效果、圖示旋轉、粒子透明度變化
+  - 成功狀態：綠色發光擴散、圖示彈跳、粒子閃爍效果
+  - 錯誤狀態：紅色閃爍、圖示震動、粒子散射效果
+
+- 🎨 **UI Showcase Page** - 完整的UI統一化展示頁面
+  - 全屏寬度設計，充分利用螢幕空間
+  - 三欄式佈局：主要介面(2fr)、按鈕狀態與模態窗(1.5fr)、色彩系統與通知(1fr)
+  - 響應式設計，適應不同螢幕尺寸
+  - 完整的前端組件展示和互動演示
+
+- 🔧 **Enhanced State Management** - 改進的狀態管理
+  - 統一的按鈕狀態切換邏輯
+  - 更好的狀態重置和清理機制
+  - 記憶已滿狀態的自動檢測和視覺反饋
+
+### Improved
+
+- 🎯 **Memory Full Detection** - 優化記憶已滿檢測
+  - 更準確的狀態檢測邏輯
+  - 增強的視覺提示和動畫效果
+  - 自動按鈕文字和樣式更新
+
+- 💫 **Animation Performance** - 動畫性能優化
+  - 使用 CSS3 硬體加速
+  - 優化動畫時間和緩動函數
+  - 減少重排和重繪操作
+
+- 📱 **Responsive Design** - 響應式設計改進
+  - 更好的大螢幕適配
+  - 優化的小螢幕佈局
+  - 改進的觸控體驗
+
+### Changed
+
+- 🔧 **Version Update** - 版本號更新至 1.6.0
+- 📝 **Documentation** - 更新所有相關文檔和展示頁面
+
 ## [1.5.2] - 2025-07-30
 
 ### Changed
