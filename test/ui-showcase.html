@@ -244,6 +244,32 @@
         min-width: 100vw;
       }
 
+      /* 基礎按鈕過渡效果 */
+      .memory-export-btn .export-btn-gradient {
+        transition:
+          background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+          transform 0.3s ease,
+          opacity 0.3s ease;
+      }
+
+      .memory-export-btn .export-icon {
+        transition:
+          transform 0.3s ease,
+          color 0.3s ease;
+      }
+
+      .memory-export-btn .export-main-text,
+      .memory-export-btn .export-sub-text {
+        transition:
+          color 0.3s ease,
+          transform 0.3s ease;
+      }
+
+      /* 確保 disabled 狀態不會變暗 */
+      .memory-export-btn:disabled {
+        opacity: 1 !important;
+      }
+
       /* 增強的按鈕狀態樣式 */
       .memory-export-btn.memory-full-urgent .export-btn-gradient {
         background: linear-gradient(
@@ -305,28 +331,54 @@
         }
       }
 
-      /* 載入狀態增強 */
-      .memory-export-btn.loading .export-btn-gradient {
-        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-        animation: loadingPulse 1.5s ease-in-out infinite;
+      /* 載入狀態增強 - 依照當前狀態顏色 */
+      .memory-export-btn.loading:not(.memory-full-urgent) .export-btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        animation: loadingSpinPulse 1.5s ease-in-out infinite;
+      }
+
+      .memory-export-btn.loading.memory-full-urgent .export-btn-gradient {
+        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+        animation: loadingSpinPulse 1.5s ease-in-out infinite;
       }
 
       .memory-export-btn.loading .export-icon {
-        animation: spin 1s linear infinite;
+        animation: loadingSpin 1s linear infinite;
       }
 
       .memory-export-btn.loading .export-btn-particles .particle {
-        animation-duration: 2s;
-        opacity: 0.6;
+        animation: loadingParticles 2s ease-in-out infinite;
       }
 
-      @keyframes loadingPulse {
+      @keyframes loadingSpinPulse {
         0%,
         100% {
-          opacity: 1;
+          transform: scale(1);
         }
         50% {
-          opacity: 0.7;
+          transform: scale(1.02);
+        }
+      }
+
+      @keyframes loadingSpin {
+        0% {
+          transform: rotate(0deg) scale(1);
+        }
+        50% {
+          transform: rotate(180deg) scale(1.1);
+        }
+        100% {
+          transform: rotate(360deg) scale(1);
+        }
+      }
+
+      @keyframes loadingParticles {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(0.8);
         }
       }
 
@@ -402,10 +454,10 @@
       @keyframes errorFlash {
         0%,
         100% {
-          opacity: 1;
+          transform: scale(1);
         }
         50% {
-          opacity: 0.6;
+          transform: scale(1.02);
         }
       }
 
@@ -516,6 +568,9 @@
             </button>
             <button class="demo-btn" data-action="showExportResult">
               匯出結果
+            </button>
+            <button class="demo-btn" data-action="demonstrateFullAnimation">
+              完整動畫
             </button>
           </div>
         </div>
@@ -1181,7 +1236,9 @@
       }
 
       function updateDemoControls(activeIndex) {
-        const controls = document.querySelectorAll('.demo-controls .demo-btn');
+        const controls = document.querySelectorAll(
+          '.demo-section:first-child .demo-controls .demo-btn'
+        );
         controls.forEach((btn, index) => {
           if (index === activeIndex) {
             btn.classList.add('active');
@@ -1196,7 +1253,7 @@
         const exportBtn = document.getElementById('testExportBtn');
 
         // 重置所有狀態
-        exportBtn.classList.remove('success', 'error', 'memory-full-urgent');
+        exportBtn.classList.remove('success', 'error');
         exportBtn.classList.add('loading');
         exportBtn.disabled = true;
         exportBtn.querySelector('.export-main-text').textContent = '匯出中...';
@@ -1216,7 +1273,7 @@
         const exportBtn = document.getElementById('testExportBtn');
 
         // 重置所有狀態
-        exportBtn.classList.remove('loading', 'error', 'memory-full-urgent');
+        exportBtn.classList.remove('loading', 'error');
         exportBtn.classList.add('success');
         exportBtn.querySelector('.export-main-text').textContent = '匯出完成';
         exportBtn.querySelector('.export-sub-text').textContent =
@@ -1234,7 +1291,7 @@
         const exportBtn = document.getElementById('testExportBtn');
 
         // 重置所有狀態
-        exportBtn.classList.remove('loading', 'success', 'memory-full-urgent');
+        exportBtn.classList.remove('loading', 'success');
         exportBtn.classList.add('error');
         exportBtn.querySelector('.export-main-text').textContent = '匯出失敗';
         exportBtn.querySelector('.export-sub-text').textContent =
@@ -1280,6 +1337,76 @@
           exportBtn.querySelector('.export-sub-text').textContent =
             'Export Memory';
         }, 4000);
+      }
+
+      // 完整動畫效果演示
+      function demonstrateFullAnimation() {
+        const exportBtn = document.getElementById('demoExportBtn');
+
+        // 更新控制按鈕狀態
+        updateDemoControls(3);
+
+        // 第一階段：開始載入（保持當前狀態的顏色）
+        exportBtn.classList.add('loading');
+        exportBtn.disabled = true;
+        exportBtn.querySelector('.export-main-text').textContent = '匯出中...';
+        exportBtn.querySelector('.export-sub-text').textContent =
+          'Processing...';
+
+        // 第二階段：模擬成功或失敗
+        setTimeout(() => {
+          exportBtn.classList.remove('loading');
+
+          // 隨機決定成功或失敗
+          const isSuccess = Math.random() > 0.5;
+
+          if (isSuccess) {
+            // 成功狀態
+            exportBtn.classList.add('success');
+            exportBtn.querySelector('.export-main-text').textContent =
+              '匯出完成';
+            exportBtn.querySelector('.export-sub-text').textContent =
+              'Export Completed';
+
+            // 自動展開匯出結果
+            setTimeout(() => {
+              showExportResult();
+            }, 1000);
+
+            setTimeout(() => {
+              exportBtn.classList.remove('success');
+              exportBtn.disabled = false;
+              exportBtn.querySelector('.export-main-text').textContent =
+                exportBtn.classList.contains('memory-full-urgent')
+                  ? '立即匯出'
+                  : '匯出記憶';
+              exportBtn.querySelector('.export-sub-text').textContent =
+                exportBtn.classList.contains('memory-full-urgent')
+                  ? 'Memory Full - Export Now'
+                  : 'Export Memory';
+            }, 2000);
+          } else {
+            // 失敗狀態
+            exportBtn.classList.add('error');
+            exportBtn.querySelector('.export-main-text').textContent =
+              '匯出失敗';
+            exportBtn.querySelector('.export-sub-text').textContent =
+              'Export Failed';
+
+            setTimeout(() => {
+              exportBtn.classList.remove('error');
+              exportBtn.disabled = false;
+              exportBtn.querySelector('.export-main-text').textContent =
+                exportBtn.classList.contains('memory-full-urgent')
+                  ? '立即匯出'
+                  : '匯出記憶';
+              exportBtn.querySelector('.export-sub-text').textContent =
+                exportBtn.classList.contains('memory-full-urgent')
+                  ? 'Memory Full - Export Now'
+                  : 'Export Memory';
+            }, 2000);
+          }
+        }, 2500);
       }
 
       // 統一風格的模態窗功能
@@ -2025,6 +2152,9 @@
             break;
           case 'showExportResult':
             showExportResult();
+            break;
+          case 'demonstrateFullAnimation':
+            demonstrateFullAnimation();
             break;
           case 'hideDemoExportResult':
             hideDemoExportResult();
