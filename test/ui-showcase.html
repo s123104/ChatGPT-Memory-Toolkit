@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>UI統一化展示頁面 - ChatGPT Memory Manager</title>
     <link rel="stylesheet" href="../src/ui/popup.css" />
+    <link rel="stylesheet" href="../src/ui/components/button-states.css" />
+    <link
+      rel="stylesheet"
+      href="../src/ui/components/toast-notifications.css"
+    />
     <style>
       * {
         margin: 0;
@@ -244,253 +249,7 @@
         min-width: 100vw;
       }
 
-      /* 基礎按鈕過渡效果 */
-      .memory-export-btn .export-btn-gradient {
-        transition:
-          background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
-          transform 0.3s ease,
-          opacity 0.3s ease;
-      }
-
-      .memory-export-btn .export-icon {
-        transition:
-          transform 0.3s ease,
-          color 0.3s ease;
-      }
-
-      .memory-export-btn .export-main-text,
-      .memory-export-btn .export-sub-text {
-        transition:
-          color 0.3s ease,
-          transform 0.3s ease;
-      }
-
-      /* 確保 disabled 狀態不會變暗 */
-      .memory-export-btn:disabled {
-        opacity: 1 !important;
-      }
-
-      /* 增強的按鈕狀態樣式 */
-      .memory-export-btn.memory-full-urgent .export-btn-gradient {
-        background: linear-gradient(
-          135deg,
-          #f59e0b 0%,
-          #f97316 50%,
-          #ef4444 100%
-        );
-        background-size: 300% 300%;
-        animation: urgentGradientShift 3s ease-in-out infinite;
-      }
-
-      .memory-export-btn.memory-full-urgent .export-btn-particles .particle {
-        background: rgba(255, 255, 255, 0.9);
-        animation-duration: 1.5s;
-        animation-timing-function: ease-in-out;
-      }
-
-      .memory-export-btn.memory-full-urgent .export-main-text {
-        animation: urgentTextPulse 2s ease-in-out infinite;
-      }
-
-      .memory-export-btn.memory-full-urgent .export-icon {
-        animation: urgentIconBounce 2s ease-in-out infinite;
-      }
-
-      @keyframes urgentGradientShift {
-        0%,
-        100% {
-          background-position: 0% 50%;
-        }
-        50% {
-          background-position: 100% 50%;
-        }
-      }
-
-      @keyframes urgentTextPulse {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.8;
-          transform: scale(1.05);
-        }
-      }
-
-      @keyframes urgentIconBounce {
-        0%,
-        100% {
-          transform: scale(1) rotate(0deg);
-        }
-        25% {
-          transform: scale(1.1) rotate(5deg);
-        }
-        75% {
-          transform: scale(1.1) rotate(-5deg);
-        }
-      }
-
-      /* 載入狀態增強 - 依照當前狀態顏色 */
-      .memory-export-btn.loading:not(.memory-full-urgent) .export-btn-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        animation: loadingSpinPulse 1.5s ease-in-out infinite;
-      }
-
-      .memory-export-btn.loading.memory-full-urgent .export-btn-gradient {
-        background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
-        animation: loadingSpinPulse 1.5s ease-in-out infinite;
-      }
-
-      .memory-export-btn.loading .export-icon {
-        animation: loadingSpin 1s linear infinite;
-      }
-
-      .memory-export-btn.loading .export-btn-particles .particle {
-        animation: loadingParticles 2s ease-in-out infinite;
-      }
-
-      @keyframes loadingSpinPulse {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.02);
-        }
-      }
-
-      @keyframes loadingSpin {
-        0% {
-          transform: rotate(0deg) scale(1);
-        }
-        50% {
-          transform: rotate(180deg) scale(1.1);
-        }
-        100% {
-          transform: rotate(360deg) scale(1);
-        }
-      }
-
-      @keyframes loadingParticles {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(0.8);
-        }
-      }
-
-      /* 成功狀態增強 */
-      .memory-export-btn.success .export-btn-gradient {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        animation: successGlow 0.8s ease-out;
-      }
-
-      .memory-export-btn.success .export-icon {
-        animation: successBounce 0.6s ease-out;
-      }
-
-      .memory-export-btn.success .export-btn-particles .particle {
-        background: rgba(255, 255, 255, 0.9);
-        animation: successSparkle 1s ease-out;
-      }
-
-      @keyframes successGlow {
-        0% {
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-        }
-      }
-
-      @keyframes successBounce {
-        0% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.3);
-        }
-        100% {
-          transform: scale(1);
-        }
-      }
-
-      @keyframes successSparkle {
-        0% {
-          transform: scale(0) rotate(0deg);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.2) rotate(180deg);
-          opacity: 0.8;
-        }
-        100% {
-          transform: scale(0) rotate(360deg);
-          opacity: 0;
-        }
-      }
-
-      /* 錯誤狀態增強 */
-      .memory-export-btn.error .export-btn-gradient {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        animation: errorFlash 0.5s ease-in-out;
-      }
-
-      .memory-export-btn.error .export-icon {
-        animation: errorShake 0.5s ease-in-out;
-      }
-
-      .memory-export-btn.error .export-btn-particles .particle {
-        background: rgba(255, 255, 255, 0.7);
-        animation: errorScatter 0.8s ease-out;
-      }
-
-      @keyframes errorFlash {
-        0%,
-        100% {
-          transform: scale(1);
-        }
-        50% {
-          transform: scale(1.02);
-        }
-      }
-
-      @keyframes errorShake {
-        0%,
-        100% {
-          transform: translateX(0);
-        }
-        25% {
-          transform: translateX(-4px);
-        }
-        75% {
-          transform: translateX(4px);
-        }
-      }
-
-      @keyframes errorScatter {
-        0% {
-          transform: scale(1) translate(0, 0);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(0.5)
-            translate(var(--random-x, 20px), var(--random-y, -20px));
-          opacity: 0;
-        }
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
+      /* 展示頁面專用樣式 - 按鈕狀態樣式已移至 button-states.css */
 
       /* 響應式設計 */
       @media (max-width: 1400px) {
@@ -1164,7 +923,26 @@
       </div>
     </div>
 
+    <script src="../src/ui/components/ButtonStateManager.js"></script>
+    <script src="../src/ui/components/ToastManager.js"></script>
     <script>
+      // 初始化組件管理器
+      let demoButtonManager;
+      let testButtonManager;
+
+      // 等待 DOM 載入完成後初始化
+      document.addEventListener('DOMContentLoaded', function () {
+        const demoExportBtn = document.getElementById('demoExportBtn');
+        const testExportBtn = document.getElementById('testExportBtn');
+
+        if (demoExportBtn) {
+          demoButtonManager = new ButtonStateManager(demoExportBtn);
+        }
+        if (testExportBtn) {
+          testButtonManager = new ButtonStateManager(testExportBtn);
+        }
+      });
+
       // 主介面狀態切換
       function showNormalState() {
         const statusCard = document.getElementById('demoStatusCard');
@@ -1248,165 +1026,71 @@
         });
       }
 
-      // 按鈕狀態測試
+      // 按鈕狀態測試 - 使用 ButtonStateManager
       function testButtonLoading() {
-        const exportBtn = document.getElementById('testExportBtn');
-
-        // 重置所有狀態
-        exportBtn.classList.remove('success', 'error');
-        exportBtn.classList.add('loading');
-        exportBtn.disabled = true;
-        exportBtn.querySelector('.export-main-text').textContent = '匯出中...';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Processing...';
+        if (!testButtonManager) return;
+        testButtonManager.setLoading('匯出中...', 'Processing...');
 
         setTimeout(() => {
-          exportBtn.classList.remove('loading');
-          exportBtn.disabled = false;
-          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          exportBtn.querySelector('.export-sub-text').textContent =
-            'Export Memory';
+          testButtonManager.reset();
         }, 3000);
       }
 
       function testButtonSuccess() {
-        const exportBtn = document.getElementById('testExportBtn');
-
-        // 重置所有狀態
-        exportBtn.classList.remove('loading', 'error');
-        exportBtn.classList.add('success');
-        exportBtn.querySelector('.export-main-text').textContent = '匯出完成';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Export Completed';
-
-        setTimeout(() => {
-          exportBtn.classList.remove('success');
-          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          exportBtn.querySelector('.export-sub-text').textContent =
-            'Export Memory';
-        }, 2000);
+        if (!testButtonManager) return;
+        testButtonManager.setSuccess('匯出完成', 'Export Completed', 2000);
       }
 
       function testButtonError() {
-        const exportBtn = document.getElementById('testExportBtn');
-
-        // 重置所有狀態
-        exportBtn.classList.remove('loading', 'success');
-        exportBtn.classList.add('error');
-        exportBtn.querySelector('.export-main-text').textContent = '匯出失敗';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Export Failed';
-
-        setTimeout(() => {
-          exportBtn.classList.remove('error');
-          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          exportBtn.querySelector('.export-sub-text').textContent =
-            'Export Memory';
-        }, 2000);
+        if (!testButtonManager) return;
+        testButtonManager.setError('匯出失敗', 'Export Failed', 2000);
       }
 
       function resetButtonStates() {
-        const exportBtn = document.getElementById('testExportBtn');
-
-        exportBtn.classList.remove(
-          'loading',
-          'success',
-          'error',
-          'memory-full-urgent'
-        );
-        exportBtn.disabled = false;
-        exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Export Memory';
+        if (!testButtonManager) return;
+        testButtonManager.reset();
       }
 
       // 新增記憶已滿狀態測試
       function testMemoryFullUrgent() {
-        const exportBtn = document.getElementById('testExportBtn');
-
-        // 重置所有狀態
-        exportBtn.classList.remove('loading', 'success', 'error');
-        exportBtn.classList.add('memory-full-urgent');
-        exportBtn.querySelector('.export-main-text').textContent = '立即匯出';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Memory Full - Export Now';
+        if (!testButtonManager) return;
+        testButtonManager.setMemoryFullUrgent(
+          '立即匯出',
+          'Memory Full - Export Now'
+        );
 
         setTimeout(() => {
-          exportBtn.classList.remove('memory-full-urgent');
-          exportBtn.querySelector('.export-main-text').textContent = '匯出記憶';
-          exportBtn.querySelector('.export-sub-text').textContent =
-            'Export Memory';
+          testButtonManager.reset();
         }, 4000);
       }
 
-      // 完整動畫效果演示
-      function demonstrateFullAnimation() {
-        const exportBtn = document.getElementById('demoExportBtn');
+      // 完整動畫效果演示 - 使用 ButtonStateManager
+      async function demonstrateFullAnimation() {
+        if (!demoButtonManager) return;
 
         // 更新控制按鈕狀態
         updateDemoControls(3);
 
-        // 第一階段：開始載入（保持當前狀態的顏色）
-        exportBtn.classList.add('loading');
-        exportBtn.disabled = true;
-        exportBtn.querySelector('.export-main-text').textContent = '匯出中...';
-        exportBtn.querySelector('.export-sub-text').textContent =
-          'Processing...';
+        // 使用 ButtonStateManager 執行完整動畫
+        const isSuccess = await demoButtonManager.executeFullAnimation({
+          loadingDuration: 2500,
+          successDuration: 2000,
+          errorDuration: 2000,
+          successCallback: () => {
+            // 成功時自動展開匯出結果
+            showExportResult();
+          },
+          errorCallback: () => {
+            // 失敗時顯示 Toast 通知
+            toastManager.error('匯出失敗，請稍後再試');
+          },
+          successProbability: 0.6, // 60% 成功率
+        });
 
-        // 第二階段：模擬成功或失敗
-        setTimeout(() => {
-          exportBtn.classList.remove('loading');
-
-          // 隨機決定成功或失敗
-          const isSuccess = Math.random() > 0.5;
-
-          if (isSuccess) {
-            // 成功狀態
-            exportBtn.classList.add('success');
-            exportBtn.querySelector('.export-main-text').textContent =
-              '匯出完成';
-            exportBtn.querySelector('.export-sub-text').textContent =
-              'Export Completed';
-
-            // 自動展開匯出結果
-            setTimeout(() => {
-              showExportResult();
-            }, 1000);
-
-            setTimeout(() => {
-              exportBtn.classList.remove('success');
-              exportBtn.disabled = false;
-              exportBtn.querySelector('.export-main-text').textContent =
-                exportBtn.classList.contains('memory-full-urgent')
-                  ? '立即匯出'
-                  : '匯出記憶';
-              exportBtn.querySelector('.export-sub-text').textContent =
-                exportBtn.classList.contains('memory-full-urgent')
-                  ? 'Memory Full - Export Now'
-                  : 'Export Memory';
-            }, 2000);
-          } else {
-            // 失敗狀態
-            exportBtn.classList.add('error');
-            exportBtn.querySelector('.export-main-text').textContent =
-              '匯出失敗';
-            exportBtn.querySelector('.export-sub-text').textContent =
-              'Export Failed';
-
-            setTimeout(() => {
-              exportBtn.classList.remove('error');
-              exportBtn.disabled = false;
-              exportBtn.querySelector('.export-main-text').textContent =
-                exportBtn.classList.contains('memory-full-urgent')
-                  ? '立即匯出'
-                  : '匯出記憶';
-              exportBtn.querySelector('.export-sub-text').textContent =
-                exportBtn.classList.contains('memory-full-urgent')
-                  ? 'Memory Full - Export Now'
-                  : 'Export Memory';
-            }, 2000);
-          }
-        }, 2500);
+        // 根據結果顯示不同的 Toast 通知
+        if (isSuccess) {
+          toastManager.success('記憶匯出成功完成！');
+        }
       }
 
       // 統一風格的模態窗功能
@@ -1988,129 +1672,34 @@
         showDemoToast('功能演示完成！', 'success');
       }
 
-      // Toast 通知
+      // Toast 通知 - 使用 ToastManager
       function showDemoToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
+        return toastManager.show(message, type);
+      }
 
-        const icon =
-          type === 'success'
-            ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/></svg>'
-            : type === 'error'
-              ? '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>'
-              : '<svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>';
-
-        toast.innerHTML = `
-          <div class="toast-content">
-            <div class="toast-icon">${icon}</div>
-            <div class="toast-message">${message}</div>
-            <button class="toast-close" data-action="closeToast">
-              <svg width="14" height="14" viewBox="0 0 24 24">
-                <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
-              </svg>
-            </button>
-          </div>
-        `;
-
-        // 添加 Toast 樣式
-        if (!document.getElementById('toastStyles')) {
-          const toastStyle = document.createElement('style');
-          toastStyle.id = 'toastStyles';
-          toastStyle.textContent = `
-            .toast {
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              background: var(--bg-card);
-              border: 1px solid var(--border-light);
-              border-radius: var(--radius-lg);
-              padding: 0;
-              min-width: 300px;
-              max-width: 400px;
-              box-shadow: var(--shadow-lg);
-              z-index: 1000000;
-              transform: translateX(100%);
-              transition: transform 0.3s ease;
-            }
-
-            .toast.show {
-              transform: translateX(0);
-            }
-
-            .toast-content {
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              padding: 16px;
-            }
-
-            .toast-icon {
-              flex-shrink: 0;
-              width: 20px;
-              height: 20px;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-
-            .toast-success .toast-icon {
-              background: var(--success-color);
-              color: white;
-            }
-
-            .toast-error .toast-icon {
-              background: var(--error-color);
-              color: white;
-            }
-
-            .toast-info .toast-icon {
-              background: var(--info-color);
-              color: white;
-            }
-
-            .toast-message {
-              flex: 1;
-              color: var(--text-primary);
-              font-size: 14px;
-              line-height: 1.4;
-            }
-
-            .toast-close {
-              flex-shrink: 0;
-              width: 24px;
-              height: 24px;
-              border: none;
-              background: none;
-              color: var(--text-tertiary);
-              cursor: pointer;
-              border-radius: 4px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              transition: all 0.2s ease;
-            }
-
-            .toast-close:hover {
-              background: var(--bg-overlay);
-              color: var(--text-secondary);
-            }
-          `;
-          document.head.appendChild(toastStyle);
-        }
-
-        document.body.appendChild(toast);
+      // 測試模組化組件
+      function testModularComponents() {
+        // 顯示不同類型的 Toast 通知
+        toastManager.success('ButtonStateManager 載入成功！');
 
         setTimeout(() => {
-          toast.classList.add('show');
-        }, 10);
+          toastManager.info('ToastManager 運行正常');
+        }, 500);
 
         setTimeout(() => {
-          toast.classList.remove('show');
+          toastManager.warning('模組化組件展示中...');
+        }, 1000);
+
+        // 如果有測試按鈕，執行一個快速的狀態循環
+        if (testButtonManager) {
           setTimeout(() => {
-            toast.remove();
-          }, 300);
-        }, 3000);
+            testButtonManager.setLoading('測試中...', 'Testing...');
+
+            setTimeout(() => {
+              testButtonManager.setSuccess('測試完成', 'Test Completed', 1500);
+            }, 1500);
+          }, 1500);
+        }
       }
 
       // 格式選擇
@@ -2204,6 +1793,12 @@
           case 'showInfoToast':
             showDemoToast('這是一個資訊通知', 'info');
             break;
+          case 'testModularComponents':
+            testModularComponents();
+            break;
+          case 'clearAllToasts':
+            toastManager.clear();
+            break;
           case 'closeToast':
             e.target.closest('.toast').classList.remove('show');
             setTimeout(() => {
@@ -2214,7 +1809,9 @@
       });
 
       // 初始化
-      showNormalState();
+      document.addEventListener('DOMContentLoaded', function () {
+        showNormalState();
+      });
     </script>
   </body>
 </html>

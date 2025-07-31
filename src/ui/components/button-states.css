@@ -1,0 +1,246 @@
+/* Button States Module - 按鈕狀態模組 */
+/* 可重用的按鈕狀態樣式和動畫 */
+
+/* 基礎按鈕過渡效果 */
+.memory-export-btn .export-btn-gradient {
+  transition:
+    background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s ease,
+    opacity 0.3s ease;
+}
+
+.memory-export-btn .export-icon {
+  transition:
+    transform 0.3s ease,
+    color 0.3s ease;
+}
+
+.memory-export-btn .export-main-text,
+.memory-export-btn .export-sub-text {
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
+}
+
+/* 確保 disabled 狀態不會變暗 */
+.memory-export-btn:disabled {
+  opacity: 1 !important;
+}
+
+/* 記憶已滿緊急狀態 */
+.memory-export-btn.memory-full-urgent .export-btn-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ef4444 100%);
+  background-size: 300% 300%;
+  animation: urgentGradientShift 3s ease-in-out infinite;
+}
+
+.memory-export-btn.memory-full-urgent .export-btn-particles .particle {
+  background: rgba(255, 255, 255, 0.9);
+  animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
+}
+
+.memory-export-btn.memory-full-urgent .export-main-text {
+  animation: urgentTextPulse 2s ease-in-out infinite;
+}
+
+.memory-export-btn.memory-full-urgent .export-icon {
+  animation: urgentIconBounce 2s ease-in-out infinite;
+}
+
+/* 載入狀態 - 依照當前狀態顏色 */
+.memory-export-btn.loading:not(.memory-full-urgent) .export-btn-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: loadingSpinPulse 1.5s ease-in-out infinite;
+}
+
+.memory-export-btn.loading.memory-full-urgent .export-btn-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 100%);
+  animation: loadingSpinPulse 1.5s ease-in-out infinite;
+}
+
+.memory-export-btn.loading .export-icon {
+  animation: loadingSpin 1s linear infinite;
+}
+
+.memory-export-btn.loading .export-btn-particles .particle {
+  animation: loadingParticles 2s ease-in-out infinite;
+}
+
+/* 成功狀態 */
+.memory-export-btn.success .export-btn-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  animation: successGlow 0.8s ease-out;
+}
+
+.memory-export-btn.success .export-icon {
+  animation: successBounce 0.6s ease-out;
+}
+
+.memory-export-btn.success .export-btn-particles .particle {
+  background: rgba(255, 255, 255, 0.9);
+  animation: successSparkle 1s ease-out;
+}
+
+/* 錯誤狀態 */
+.memory-export-btn.error .export-btn-gradient {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  animation: errorFlash 0.5s ease-in-out;
+}
+
+.memory-export-btn.error .export-icon {
+  animation: errorShake 0.5s ease-in-out;
+}
+
+.memory-export-btn.error .export-btn-particles .particle {
+  background: rgba(255, 255, 255, 0.7);
+  animation: errorScatter 0.8s ease-out;
+}
+
+/* 動畫關鍵幀 */
+@keyframes urgentGradientShift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes urgentTextPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes urgentIconBounce {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+}
+
+@keyframes loadingSpinPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes loadingSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes loadingParticles {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.8);
+  }
+}
+
+@keyframes successGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+@keyframes successBounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes successSparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes errorFlash {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes errorShake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@keyframes errorScatter {
+  0% {
+    transform: scale(1) translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5)
+      translate(var(--random-x, 20px), var(--random-y, -20px));
+    opacity: 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
