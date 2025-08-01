@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatGPT Memory Manager</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- App Header -->
+      <header class="app-header">
+        <div class="app-icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" class="icon-brain">
+            <defs>
+              <linearGradient
+                id="brain-gradient"
+                x1="0%"
+                y1="0%"
+                x2="100%"
+                y2="100%"
+              >
+                <stop
+                  offset="0%"
+                  style="stop-color: #667eea; stop-opacity: 1"
+                />
+                <stop
+                  offset="100%"
+                  style="stop-color: #764ba2; stop-opacity: 1"
+                />
+              </linearGradient>
+            </defs>
+            <circle cx="16" cy="16" r="15" fill="url(#brain-gradient)" />
+            <path
+              d="M 8 12 C 7 8 11 6 16 7 C 21 6 25 8 24 12 C 25 16 23 20 20 22 C 18 24 14 24 12 22 C 9 20 7 16 8 12 Z"
+              fill="white"
+              opacity="0.9"
+            />
+            <circle cx="12" cy="14" r="1.5" fill="#4f46e5" opacity="0.8">
+              <animate
+                attributeName="opacity"
+                values="0.8;0.4;0.8"
+                dur="2s"
+                repeatCount="indefinite"
+              />
+            </circle>
+            <circle cx="20" cy="15" r="1" fill="#4f46e5" opacity="0.6">
+              <animate
+                attributeName="opacity"
+                values="0.6;0.3;0.6"
+                dur="2.5s"
+                repeatCount="indefinite"
+              />
+            </circle>
+            <circle cx="14" cy="18" r="1.2" fill="#4f46e5" opacity="0.7">
+              <animate
+                attributeName="opacity"
+                values="0.7;0.4;0.7"
+                dur="3s"
+                repeatCount="indefinite"
+              />
+            </circle>
+          </svg>
+        </div>
+        <div class="app-title">
+          <h1>Memory Manager</h1>
+          <p>智能記憶管理助手</p>
+        </div>
+        <div class="app-status" id="appStatus">
+          <div class="status-dot" id="statusDot"></div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main class="app-main">
+        <!-- Memory Status Card -->
+        <div class="status-card modern" id="statusCard">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                class="status-icon"
+              >
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                />
+                <path
+                  d="M6 10l3 3 6-6"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  fill="none"
+                />
+              </svg>
+            </div>
+            <div class="card-title">記憶狀態</div>
+          </div>
+          <div class="card-content">
+            <div class="status-value" id="memoryStatus">檢查中...</div>
+            <div class="status-time" id="lastCheck">--</div>
+          </div>
+        </div>
+
+        <!-- Memory Info Grid -->
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M16,11V3H8V9H2V21H22V11H16M10,5H14V9H10V5M20,19H4V11H6V9H8V11H16V9H18V11H20V19Z"
+                />
+              </svg>
+            </div>
+            <div class="info-content">
+              <div class="info-label">使用量</div>
+              <div class="info-value" id="usagePercent">--</div>
+            </div>
+          </div>
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12,2C13.1,2 14,2.9 14,4C14,5.1 13.1,6 12,6C10.9,6 10,5.1 10,4C10,2.9 10.9,2 12,2M21,9V7L15,1H5C3.89,1 3,1.89 3,3V21A2,2 0 0,0 5,23H19A2,2 0 0,0 21,21V9M19,9H14V4H5V21H19V9Z"
+                />
+              </svg>
+            </div>
+            <div class="info-content">
+              <div class="info-label">記憶數量</div>
+              <div class="info-value" id="memoryCount">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <!-- Memory Export Button with Modern Design -->
+          <button class="memory-export-btn" id="exportBtn">
+            <div class="export-btn-background">
+              <div class="export-btn-gradient"></div>
+              <div class="export-btn-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+              </div>
+            </div>
+            <div class="export-btn-content">
+              <div class="export-icon-container">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  class="export-icon"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                  />
+                </svg>
+                <div class="export-icon-glow"></div>
+              </div>
+              <div class="export-text-container">
+                <span class="export-main-text">匯出記憶</span>
+                <span class="export-sub-text">Export Memory</span>
+              </div>
+              <div class="export-arrow">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"
+                  />
+                </svg>
+              </div>
+            </div>
+            <div class="export-btn-ripple"></div>
+          </button>
+
+          <!-- Export Result Section (Dynamic Display) -->
+          <div
+            class="export-result-section"
+            id="exportResultSection"
+            style="display: none"
+          >
+            <div class="export-result-header">
+              <div class="export-result-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"
+                  />
+                </svg>
+              </div>
+              <div class="export-result-content">
+                <div class="export-result-title">匯出完成</div>
+                <div class="export-result-stats" id="exportResultStats">
+                  共 24 筆記憶
+                </div>
+              </div>
+              <button class="export-result-close" id="exportResultClose">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div class="export-format-selection">
+              <div class="format-option" data-format="markdown">
+                <div class="format-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M22.269,19.385H1.731a1.73,1.73,0,0,1-1.73-1.73V6.345a1.73,1.73,0,0,1,1.73-1.73H22.269a1.73,1.73,0,0,1,1.73,1.73V17.655A1.73,1.73,0,0,1,22.269,19.385ZM3.462,16.923H20.538V7.077H3.462ZM5.769,15.385V8.615h2.31L10.385,11.5l2.308-2.885h2.307v6.77H13.231V11.846L10.385,14.731,7.538,11.846v3.539Z"
+                    />
+                  </svg>
+                </div>
+                <div class="format-content">
+                  <div class="format-name">Markdown</div>
+                  <div class="format-desc">結構化格式</div>
+                </div>
+              </div>
+              <div class="format-option" data-format="text">
+                <div class="format-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                      fill="currentColor"
+                      d="M14,17H7V15H14M17,13H7V11H17M17,9H7V7H17M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3Z"
+                    />
+                  </svg>
+                </div>
+                <div class="format-content">
+                  <div class="format-name">純文字</div>
+                  <div class="format-desc">簡潔格式</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="export-actions">
+              <button class="btn-primary copy-result-btn" id="copyResultBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                  />
+                </svg>
+                複製到剪貼簿
+              </button>
+            </div>
+          </div>
+
+          <!-- Copy Button with Simplified Design -->
+          <button class="copy-btn modern" id="copyBtn" disabled>
+            <div class="copy-btn-content">
+              <svg width="16" height="16" viewBox="0 0 24 24" class="copy-icon">
+                <path
+                  fill="currentColor"
+                  d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z"
+                />
+              </svg>
+              <span class="copy-text">複製內容</span>
+            </div>
+            <div class="copy-btn-ripple"></div>
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <button class="quick-btn" id="refreshBtn" title="重新檢查狀態">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z"
+              />
+            </svg>
+          </button>
+          <button class="quick-btn" id="historyBtn" title="歷史記憶">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+              />
+            </svg>
+          </button>
+          <button class="quick-btn" id="appSettingsBtn" title="應用設定">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.22,15.05 2.27,14.78 2.46,14.63L4.57,12.97C4.53,12.65 4.5,12.33 4.5,12C4.5,11.67 4.53,11.34 4.57,11.03L2.46,9.37C2.27,9.22 2.22,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.78,8.95 21.73,9.22 21.54,9.37L19.43,11.03C19.47,11.34 19.5,11.67 19.5,12C19.5,12.33 19.47,12.65 19.43,12.97L21.54,14.63C21.73,14.78 21.78,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.03 19.05,18.95L16.56,17.94C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.64L7.86,15.6C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.38L17.2,13.82C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.37L16.15,8.41C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z"
+              />
+            </svg>
+          </button>
+          <button class="quick-btn" id="settingsBtn" title="前往 ChatGPT 設定">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section" id="historySection" style="display: none">
+          <div class="section-header">
+            <div class="section-title">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                class="section-icon"
+              >
+                <path
+                  fill="currentColor"
+                  d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+                />
+              </svg>
+              <span>歷史記憶</span>
+            </div>
+            <div class="section-actions">
+              <button class="section-btn" id="clearHistoryBtn" title="清空歷史">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"
+                  />
+                </svg>
+              </button>
+              <button class="section-btn" id="closeHistoryBtn" title="關閉">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="history-list" id="historyList">
+            <div class="history-empty">
+              <svg
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                class="empty-icon"
+              >
+                <path
+                  fill="currentColor"
+                  d="M13.5,8H12V13L16.28,15.54L17,14.33L13.5,12.25V8M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3"
+                />
+              </svg>
+              <div class="empty-text">尚無歷史記錄</div>
+              <div class="empty-desc">匯出記憶後會自動儲存到這裡</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div
+          class="settings-section"
+          id="settingsSection"
+          style="display: none"
+        >
+          <div class="section-header">
+            <div class="section-title">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                class="section-icon"
+              >
+                <path
+                  fill="currentColor"
+                  d="M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10"
+                />
+              </svg>
+              <span>應用設定</span>
+            </div>
+            <div class="section-actions">
+              <button class="section-btn" id="closeSettingsBtn" title="關閉">
+                <svg width="14" height="14" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="settings-list">
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">自動提醒</div>
+                <div class="setting-desc">記憶已滿時自動顯示提醒模態窗</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="autoShowModalToggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">歷史記錄數量</div>
+                <div class="setting-desc">最多保留的歷史記錄數量</div>
+              </div>
+              <div class="setting-control">
+                <select id="maxHistorySelect" class="setting-select">
+                  <option value="20">20 筆</option>
+                  <option value="50" selected>50 筆</option>
+                  <option value="100">100 筆</option>
+                  <option value="200">200 筆</option>
+                </select>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">自動清理</div>
+                <div class="setting-desc">自動清理超過數量限制的舊記錄</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="autoCleanupToggle" checked />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting-item">
+              <div class="setting-info">
+                <div class="setting-title">開發者模式</div>
+                <div class="setting-desc">啟用開發者工具和調試功能</div>
+              </div>
+              <div class="setting-control">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="developerModeToggle" />
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="settings-footer">
+            <div class="storage-info">
+              <div class="storage-label">儲存使用量</div>
+              <div class="storage-usage">
+                <div class="storage-bar">
+                  <div
+                    class="storage-fill"
+                    id="storageBar"
+                    style="width: 0%"
+                  ></div>
+                </div>
+                <div class="storage-text" id="storageText">0 / 10 MB</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="help-section">
+          <div class="help-item">
+            <div class="help-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12,2A7,7 0 0,1 19,9C19,11.38 17.81,13.47 16,14.74V17A1,1 0 0,1 15,18H9A1,1 0 0,1 8,17V14.74C6.19,13.47 5,11.38 5,9A7,7 0 0,1 12,2M9,21V20H15V21A1,1 0 0,1 14,22H10A1,1 0 0,1 9,21M12,4A5,5 0 0,0 7,9C7,11.05 8.23,12.81 10,13.58V16H14V13.58C15.77,12.81 17,11.05 17,9A5,5 0 0,0 12,4Z"
+                />
+              </svg>
+            </div>
+            <div class="help-text">
+              <div class="help-title">自動檢測</div>
+              <div class="help-desc">當記憶已滿時會自動匯出</div>
+            </div>
+          </div>
+          <div class="help-item">
+            <div class="help-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4L13.09,8.26L22,12L13.09,15.74L12,20L10.91,15.74L2,12L10.91,8.26L12,4Z"
+                />
+              </svg>
+            </div>
+            <div class="help-text">
+              <div class="help-title">使用方式</div>
+              <div class="help-desc">前往 ChatGPT 記憶管理頁面</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- App Footer -->
+      <footer class="app-footer">
+        <div class="footer-info">
+          <span class="version">v1.6.2</span>
+          <span class="separator">•</span>
+          <span class="status-text" id="connectionStatus">已連接</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- 載入常數定義 -->
+    <script src="../utils/constants.js"></script>
+
+    <!-- 載入組件系統 -->
+    <script src="components/ModalManager.js"></script>
+    <script src="components/ToastManager.js"></script>
+    <script src="components/ButtonStateManager.js"></script>
+    <script src="components/index.js"></script>
+
+    <!-- 載入工具類 -->
+    <script src="../utils/storage-manager.js"></script>
+
+    <!-- 載入動作處理器 -->
+    <script src="popup-actions.js"></script>
+
+    <!-- 載入主要腳本 -->
+    <script src="popup.js"></script>
+  </body>
+</html>

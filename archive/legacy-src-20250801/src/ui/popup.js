@@ -522,13 +522,9 @@ class PopupManagerImpl {
   }
 }
 
-// 擴展 ModernPopupManager 類別
-if (typeof window !== 'undefined' && window.ModernPopupManager) {
-  // 將實現方法添加到原型
-  Object.assign(
-    window.ModernPopupManager.prototype,
-    PopupManagerImpl.prototype
-  );
+// 將 PopupManagerImpl 設置為 ModernPopupManager
+if (typeof window !== 'undefined') {
+  window.ModernPopupManager = PopupManagerImpl;
 }
 
 // 初始化管理器
