@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chrome 擴充套件訊息傳遞測試</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #1a1a2e;
+        --bg-card: #16213e;
+        --text-primary: #ffffff;
+        --text-secondary: #b4bcd8;
+        --border-light: #2d3748;
+        --primary-color: #667eea;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --warning-color: #f59e0b;
+        --radius-lg: 0.75rem;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background: var(--bg-primary);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-primary);
+        padding: 20px;
+      }
+
+      .test-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .test-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .test-section h2 {
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .test-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+      }
+
+      .test-btn {
+        padding: 10px 16px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .test-btn:hover {
+        opacity: 0.8;
+      }
+
+      .test-btn.success {
+        background: var(--success-color);
+      }
+
+      .test-btn.error {
+        background: var(--error-color);
+      }
+
+      .status-info {
+        background: var(--bg-secondary);
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        border: 1px solid var(--border-light);
+        white-space: pre-wrap;
+      }
+
+      .connection-status {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .connection-status.connected {
+        background: var(--success-color);
+      }
+
+      .connection-status.disconnected {
+        background: var(--error-color);
+      }
+
+      .connection-status.unknown {
+        background: var(--warning-color);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-container">
+      <header>
+        <h1>Chrome 擴充套件訊息傳遞測試</h1>
+        <p>測試 Background Script 與 Content Script 的通信修正</p>
+      </header>
+
+      <!-- 連接狀態 -->
+      <div class="test-section">
+        <h2>
+          <span
+            class="connection-status unknown"
+            id="connection-indicator"
+          ></span>
+          連接狀態檢查
+        </h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testBackgroundConnection()">
+            測試 Background Script
+          </button>
+          <button class="test-btn" onclick="testContentScriptConnection()">
+            測試 Content Script (需在 ChatGPT 頁面)
+          </button>
+          <button class="test-btn" onclick="checkExtensionStatus()">
+            檢查擴充套件狀態
+          </button>
+        </div>
+        <div id="connection-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- 訊息傳遞測試 -->
+      <div class="test-section">
+        <h2>訊息傳遞功能測試</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testGetMemoryStatus()">
+            測試獲取記憶狀態
+          </button>
+          <button class="test-btn" onclick="testExportMemories()">
+            測試匯出記憶
+          </button>
+          <button class="test-btn" onclick="testPingPong()">
+            測試 Ping/Pong
+          </button>
+        </div>
+        <div id="message-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- 錯誤診斷 -->
+      <div class="test-section">
+        <h2>錯誤診斷</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="diagnoseManifest()">
+            診斷 Manifest 配置
+          </button>
+          <button class="test-btn" onclick="diagnosePermissions()">
+            診斷權限設定
+          </button>
+          <button class="test-btn" onclick="clearLogs()">清除日誌</button>
+        </div>
+        <div id="diagnostic-result" class="status-info">等待診斷...</div>
+      </div>
+    </div>
+
+    <script>
+      let logs = [];
+
+      function updateStatus(elementId, message, isError = false) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          const timestamp = new Date().toLocaleTimeString();
+          const logEntry = `[${timestamp}] ${message}`;
+          logs.push(logEntry);
+          element.textContent = logs.join('\n');
+
+          // 更新連接指示器
+          if (elementId === 'connection-result') {
+            const indicator = document.getElementById('connection-indicator');
+            if (message.includes('✅') || message.includes('成功')) {
+              indicator.className = 'connection-status connected';
+            } else if (message.includes('❌') || message.includes('失敗')) {
+              indicator.className = 'connection-status disconnected';
+            } else {
+              indicator.className = 'connection-status unknown';
+            }
+          }
+        }
+      }
+
+      // 測試 Background Script 連接
+      async function testBackgroundConnection() {
+        try {
+          updateStatus(
+            'connection-result',
+            '🔄 測試 Background Script 連接...'
+          );
+
+          const response = await chrome.runtime.sendMessage({
+            action: 'ping',
+          });
+
+          if (response && response.success) {
+            updateStatus(
+              'connection-result',
+              `✅ Background Script 連接成功！\n回應: ${response.message}\n時間: ${response.timestamp}`
+            );
+          } else {
+            updateStatus(
+              'connection-result',
+              '❌ Background Script 回應格式異常'
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            'connection-result',
+            `❌ Background Script 連接失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 測試 Content Script 連接 (透過 Background Script)
+      async function testContentScriptConnection() {
+        try {
+          updateStatus(
+            'connection-result',
+            '🔄 測試 Content Script 連接 (透過 Background Script)...'
+          );
+
+          const response = await chrome.runtime.sendMessage({
+            action: 'getMemoryStatus',
+          });
+
+          if (response && response.success) {
+            updateStatus(
+              'connection-result',
+              `✅ Content Script 連接成功！\n狀態: ${JSON.stringify(response.status, null, 2)}`
+            );
+          } else {
+            updateStatus(
+              'connection-result',
+              `⚠️ Content Script 回應:\n${response?.error || '未知錯誤'}`
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            'connection-result',
+            `❌ Content Script 連接失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 檢查擴充套件狀態
+      async function checkExtensionStatus() {
+        try {
+          updateStatus('connection-result', '🔄 檢查擴充套件狀態...');
+
+          const manifest = chrome.runtime.getManifest();
+          const extensionId = chrome.runtime.id;
+
+          updateStatus(
+            'connection-result',
+            `✅ 擴充套件資訊:\n名稱: ${manifest.name}\n版本: ${manifest.version}\nID: ${extensionId}\nManifest 版本: ${manifest.manifest_version}\nBackground Script: ${manifest.background?.service_worker || '未設定'}`
+          );
+        } catch (error) {
+          updateStatus(
+            'connection-result',
+            `❌ 無法獲取擴充套件資訊:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 測試獲取記憶狀態
+      async function testGetMemoryStatus() {
+        try {
+          updateStatus('message-result', '🔄 測試獲取記憶狀態...');
+
+          const response = await chrome.runtime.sendMessage({
+            action: 'getMemoryStatus',
+          });
+
+          updateStatus(
+            'message-result',
+            `📊 記憶狀態測試結果:\n${JSON.stringify(response, null, 2)}`
+          );
+        } catch (error) {
+          updateStatus(
+            'message-result',
+            `❌ 獲取記憶狀態失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 測試匯出記憶
+      async function testExportMemories() {
+        try {
+          updateStatus('message-result', '🔄 測試匯出記憶...');
+
+          const response = await chrome.runtime.sendMessage({
+            action: 'exportMemories',
+          });
+
+          updateStatus(
+            'message-result',
+            `📤 匯出記憶測試結果:\n${JSON.stringify(response, null, 2)}`
+          );
+        } catch (error) {
+          updateStatus(
+            'message-result',
+            `❌ 匯出記憶失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 測試 Ping/Pong
+      async function testPingPong() {
+        try {
+          updateStatus('message-result', '🔄 測試 Ping/Pong...');
+
+          const startTime = performance.now();
+          const response = await chrome.runtime.sendMessage({
+            action: 'ping',
+          });
+          const endTime = performance.now();
+          const latency = Math.round(endTime - startTime);
+
+          if (response && response.success) {
+            updateStatus(
+              'message-result',
+              `🏓 Ping/Pong 測試成功！\n延遲: ${latency}ms\n回應: ${response.message}`
+            );
+          } else {
+            updateStatus('message-result', '❌ Ping/Pong 測試失敗');
+          }
+        } catch (error) {
+          updateStatus(
+            'message-result',
+            `❌ Ping/Pong 測試失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 診斷 Manifest 配置
+      function diagnoseManifest() {
+        try {
+          updateStatus('diagnostic-result', '🔍 診斷 Manifest 配置...');
+
+          const manifest = chrome.runtime.getManifest();
+          const diagnostics = [];
+
+          // 檢查必要配置
+          diagnostics.push(`Manifest 版本: ${manifest.manifest_version}`);
+          diagnostics.push(
+            `Background Script: ${manifest.background?.service_worker || '❌ 未設定'}`
+          );
+          diagnostics.push(`權限: ${manifest.permissions?.join(', ') || '無'}`);
+          diagnostics.push(
+            `主機權限: ${manifest.host_permissions?.join(', ') || '無'}`
+          );
+          diagnostics.push(
+            `Content Scripts: ${manifest.content_scripts?.length || 0} 個`
+          );
+
+          // 檢查是否有必要的權限
+          const requiredPermissions = [
+            'activeTab',
+            'scripting',
+            'storage',
+            'tabs',
+          ];
+          const missingPermissions = requiredPermissions.filter(
+            perm => !manifest.permissions?.includes(perm)
+          );
+
+          if (missingPermissions.length > 0) {
+            diagnostics.push(`❌ 缺少權限: ${missingPermissions.join(', ')}`);
+          } else {
+            diagnostics.push('✅ 所有必要權限已設定');
+          }
+
+          updateStatus('diagnostic-result', diagnostics.join('\n'));
+        } catch (error) {
+          updateStatus(
+            'diagnostic-result',
+            `❌ Manifest 診斷失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 診斷權限設定
+      async function diagnosePermissions() {
+        try {
+          updateStatus('diagnostic-result', '🔍 診斷權限設定...');
+
+          const diagnostics = [];
+
+          // 檢查基本 API 可用性
+          diagnostics.push(
+            `chrome.runtime API: ${typeof chrome.runtime !== 'undefined' ? '✅' : '❌'}`
+          );
+          diagnostics.push(
+            `chrome.tabs API: ${typeof chrome.tabs !== 'undefined' ? '✅' : '❌'}`
+          );
+          diagnostics.push(
+            `chrome.storage API: ${typeof chrome.storage !== 'undefined' ? '✅' : '❌'}`
+          );
+
+          // 檢查當前標籤頁
+          try {
+            const tabs = await chrome.tabs.query({
+              active: true,
+              currentWindow: true,
+            });
+            const currentTab = tabs[0];
+
+            if (currentTab) {
+              diagnostics.push(
+                `當前標籤頁 URL: ${currentTab.url || '無法獲取'}`
+              );
+              diagnostics.push(
+                `是否為 ChatGPT 頁面: ${currentTab.url?.includes('chatgpt.com') ? '✅' : '❌'}`
+              );
+            } else {
+              diagnostics.push('❌ 無法獲取當前標籤頁');
+            }
+          } catch (error) {
+            diagnostics.push(`❌ 標籤頁查詢失敗: ${error.message}`);
+          }
+
+          updateStatus('diagnostic-result', diagnostics.join('\n'));
+        } catch (error) {
+          updateStatus(
+            'diagnostic-result',
+            `❌ 權限診斷失敗:\n${error.message}`,
+            true
+          );
+        }
+      }
+
+      // 清除日誌
+      function clearLogs() {
+        logs = [];
+        document.getElementById('connection-result').textContent = '日誌已清除';
+        document.getElementById('message-result').textContent = '日誌已清除';
+        document.getElementById('diagnostic-result').textContent = '日誌已清除';
+        document.getElementById('connection-indicator').className =
+          'connection-status unknown';
+      }
+
+      // 頁面載入時自動檢查基本狀態
+      document.addEventListener('DOMContentLoaded', () => {
+        updateStatus('connection-result', '🚀 訊息傳遞測試頁面已載入');
+        setTimeout(checkExtensionStatus, 500);
+      });
+    </script>
+  </body>
+</html>

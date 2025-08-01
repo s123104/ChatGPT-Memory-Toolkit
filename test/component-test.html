@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Component Loading Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #1f2937;
+        color: white;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 20px;
+        border: 1px solid #374151;
+        border-radius: 8px;
+        background: #374151;
+      }
+      .status {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .success {
+        background: #059669;
+        color: white;
+      }
+      .error {
+        background: #dc2626;
+        color: white;
+      }
+      .info {
+        background: #2563eb;
+        color: white;
+      }
+      button {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #4338ca;
+      }
+      .test-button {
+        margin: 10px 0;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Component Loading Test</h1>
+
+    <div class="test-section">
+      <h2>Constants Loading Test</h2>
+      <div id="constantsStatus" class="status info">Testing constants...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>Component Availability Test</h2>
+      <div id="componentsStatus" class="status info">Testing components...</div>
+    </div>
+
+    <div class="test-section">
+      <h2>ButtonStateManager Test</h2>
+      <button class="test-button" id="testButton">
+        <span class="export-main-text">Test Button</span>
+        <span class="export-sub-text">Click to Test</span>
+      </button>
+      <div id="buttonStatus" class="status info">Ready to test...</div>
+      <div>
+        <button onclick="testLoading()">Test Loading</button>
+        <button onclick="testSuccess()">Test Success</button>
+        <button onclick="testError()">Test Error</button>
+        <button onclick="testReset()">Reset</button>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Component Manager Test</h2>
+      <div id="componentManagerStatus" class="status info">
+        Testing component manager...
+      </div>
+    </div>
+
+    <!-- Load scripts in correct order -->
+    <script src="../src/utils/constants.js"></script>
+    <script src="../src/ui/components/ButtonStateManager.js"></script>
+    <script src="../src/ui/components/ToastManager.js"></script>
+    <script src="../src/ui/components/ModalManager.js"></script>
+    <script src="../src/ui/components/index.js"></script>
+
+    <script>
+      let testButtonManager = null;
+
+      function updateStatus(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        element.textContent = message;
+        element.className = `status ${type}`;
+      }
+
+      // Test constants loading
+      function testConstants() {
+        try {
+          if (typeof window.TIMING_CONSTANTS !== 'undefined') {
+            updateStatus(
+              'constantsStatus',
+              `✅ TIMING_CONSTANTS loaded with ${Object.keys(window.TIMING_CONSTANTS).length} properties`,
+              'success'
+            );
+          } else {
+            updateStatus(
+              'constantsStatus',
+              '❌ TIMING_CONSTANTS not loaded',
+              'error'
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            'constantsStatus',
+            `❌ Constants error: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      // Test component availability
+      function testComponents() {
+        const components = [
+          'ButtonStateManager',
+          'ToastManager',
+          'ModalManager',
+          'ComponentManager',
+        ];
+        const available = [];
+        const missing = [];
+
+        components.forEach(comp => {
+          if (typeof window[comp] !== 'undefined') {
+            available.push(comp);
+          } else {
+            missing.push(comp);
+          }
+        });
+
+        if (missing.length === 0) {
+          updateStatus(
+            'componentsStatus',
+            `✅ All components loaded: ${available.join(', ')}`,
+            'success'
+          );
+        } else {
+          updateStatus(
+            'componentsStatus',
+            `⚠️ Available: ${available.join(', ')} | Missing: ${missing.join(', ')}`,
+            'error'
+          );
+        }
+      }
+
+      // Test ButtonStateManager
+      function initButtonManager() {
+        try {
+          const testButton = document.getElementById('testButton');
+          if (window.ButtonStateManager && testButton) {
+            testButtonManager = new window.ButtonStateManager(testButton);
+            updateStatus(
+              'buttonStatus',
+              '✅ ButtonStateManager initialized successfully',
+              'success'
+            );
+          } else {
+            updateStatus(
+              'buttonStatus',
+              '❌ ButtonStateManager or button element not found',
+              'error'
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            'buttonStatus',
+            `❌ ButtonStateManager error: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      // Test ComponentManager
+      function testComponentManager() {
+        try {
+          if (
+            window.componentManager &&
+            window.componentManager.isInitialized()
+          ) {
+            updateStatus(
+              'componentManagerStatus',
+              '✅ ComponentManager initialized successfully',
+              'success'
+            );
+          } else if (window.componentManager) {
+            updateStatus(
+              'componentManagerStatus',
+              '⏳ ComponentManager found but not initialized',
+              'info'
+            );
+            // Wait for initialization
+            window.componentManager
+              .waitForInitialization()
+              .then(() => {
+                updateStatus(
+                  'componentManagerStatus',
+                  '✅ ComponentManager initialized after waiting',
+                  'success'
+                );
+              })
+              .catch(error => {
+                updateStatus(
+                  'componentManagerStatus',
+                  `❌ ComponentManager initialization failed: ${error.message}`,
+                  'error'
+                );
+              });
+          } else {
+            updateStatus(
+              'componentManagerStatus',
+              '❌ ComponentManager not found',
+              'error'
+            );
+          }
+        } catch (error) {
+          updateStatus(
+            'componentManagerStatus',
+            `❌ ComponentManager error: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      // Button test functions
+      function testLoading() {
+        if (testButtonManager) {
+          testButtonManager.setLoading('Loading...', 'Processing...');
+          setTimeout(() => testButtonManager.reset(), 3000);
+        }
+      }
+
+      function testSuccess() {
+        if (testButtonManager) {
+          testButtonManager.setSuccess('Success!', 'Completed', 2000);
+        }
+      }
+
+      function testError() {
+        if (testButtonManager) {
+          testButtonManager.setError('Error!', 'Failed', 2000);
+        }
+      }
+
+      function testReset() {
+        if (testButtonManager) {
+          testButtonManager.reset();
+        }
+      }
+
+      // Run all tests when page loads
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(() => {
+          testConstants();
+          testComponents();
+          initButtonManager();
+          testComponentManager();
+        }, 100);
+      });
+    </script>
+  </body>
+</html>

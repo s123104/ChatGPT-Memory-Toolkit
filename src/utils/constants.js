@@ -1,0 +1,290 @@
+/**
+ * 應用程式常數定義
+ * 統一管理所有魔術數字和配置常數
+ */
+
+// 時間相關常數
+const TIMING_CONSTANTS = {
+  // 動畫時間
+  ANIMATION_FAST: 150,
+  ANIMATION_NORMAL: 250,
+  ANIMATION_SLOW: 350,
+
+  // 按鈕狀態持續時間
+  BUTTON_SUCCESS_DURATION: 2000,
+  BUTTON_ERROR_DURATION: 2000,
+  BUTTON_LOADING_DURATION: 2500,
+
+  // Toast 通知時間
+  TOAST_DEFAULT_DURATION: 3000,
+  TOAST_SUCCESS_DURATION: 2000,
+  TOAST_ERROR_DURATION: 4000,
+
+  // 狀態檢查間隔
+  STATUS_CHECK_INTERVAL: 10000,
+
+  // 重新整理動畫時間
+  REFRESH_ANIMATION_DURATION: 500,
+
+  // 組件載入超時
+  COMPONENT_LOAD_TIMEOUT: 5000,
+  COMPONENT_CHECK_INTERVAL: 100,
+
+  // 滾動延遲
+  SCROLL_DELAY: 800,
+  SCROLL_HIGHLIGHT_DURATION: 2000,
+
+  // 動畫序列時間
+  FULL_ANIMATION_LOADING: 2500,
+  FULL_ANIMATION_SUCCESS: 2000,
+  FULL_ANIMATION_ERROR: 2000,
+  CALLBACK_DELAY: 1000,
+
+  // 時間單位
+  ONE_MINUTE: 60000,
+  ONE_HOUR: 3600000,
+
+  // 旋轉角度
+  ANIMATION_ROTATION_FULL: 360,
+};
+
+// UI 相關常數
+const UI_CONSTANTS = {
+  // 彈出視窗尺寸
+  POPUP_WIDTH: 380,
+  POPUP_MIN_WIDTH: 320,
+  POPUP_MIN_HEIGHT: 500,
+  POPUP_MAX_HEIGHT: 600,
+
+  // 使用量閾值
+  USAGE_WARNING_THRESHOLD: 80,
+  USAGE_CRITICAL_THRESHOLD: 100,
+  USAGE_NORMAL_MAX: 79,
+
+  // 成功機率（用於測試）
+  DEFAULT_SUCCESS_PROBABILITY: 0.8,
+
+  // 按鈕尺寸
+  BUTTON_MIN_HEIGHT: 48,
+  QUICK_BUTTON_SIZE: 40,
+  ICON_SIZE_SMALL: 16,
+  ICON_SIZE_MEDIUM: 20,
+  ICON_SIZE_LARGE: 24,
+  ICON_SIZE_XLARGE: 32,
+
+  // 間距常數
+  SPACE_UNIT: 4, // 基礎間距單位 (0.25rem)
+
+  // Z-index 層級
+  Z_INDEX_MODAL: 1000,
+  Z_INDEX_TOAST: 10000,
+  Z_INDEX_TOOLTIP: 1000,
+  Z_INDEX_OVERLAY: 999,
+};
+
+// 儲存相關常數
+const STORAGE_CONSTANTS = {
+  // 歷史記錄限制
+  MAX_HISTORY_ITEMS: 50,
+  DEFAULT_HISTORY_ITEMS: 20,
+
+  // 儲存配額
+  STORAGE_QUOTA_MB: 10,
+  BYTES_PER_MB: 1024 * 1024,
+  BYTES_PER_KB: 1024,
+
+  // 錯誤日誌限制
+  MAX_ERROR_LOGS: 50,
+
+  // 儲存鍵名
+  STORAGE_KEYS: {
+    SETTINGS: 'memoryManagerSettings',
+    HISTORY: 'memoryManagerHistory',
+    ERROR_LOGS: 'errorLogs',
+    LAST_STATUS: 'lastMemoryStatus',
+    USER_PREFERENCES: 'userPreferences',
+  },
+};
+
+// 網路和 API 相關常數
+const API_CONSTANTS = {
+  // 超時時間
+  DEFAULT_TIMEOUT: 5000,
+  LONG_TIMEOUT: 15000,
+
+  // 重試次數
+  MAX_RETRIES: 3,
+  RETRY_DELAY: 1000,
+
+  // Chrome 擴充套件 API
+  CHROME_API_TIMEOUT: 10000,
+};
+
+// 內容腳本相關常數
+const CONTENT_SCRIPT_CONSTANTS = {
+  // 等待時間
+  WAIT_SETTINGS_MS: 15000,
+  WAIT_TAB_MS: 12000,
+  WAIT_PANEL_MS: 10000,
+  WAIT_MEMORY_MS: 15000,
+  WAIT_MODAL_MS: 20000,
+  WAIT_TABLE_MS: 12000,
+  WAIT_ROWS_MS: 12000,
+
+  // 點擊延遲
+  CLICK_DELAY_MS: 100,
+
+  // 掃描設定
+  MAX_SCAN_MS: 40000,
+  STEP_RATIO: 0.6,
+  IDLE_ROUNDS_TO_STOP: 8,
+  SETTLE_MS: 70,
+  END_BOUNCE_MS: 140,
+
+  // 目標 URL
+  TARGET_URL: 'https://chatgpt.com/#settings/Personalization',
+  TRIGGER_TEXT: '儲存的記憶已滿',
+};
+
+// 驗證和安全相關常數
+const VALIDATION_CONSTANTS = {
+  // 文字長度限制
+  MAX_MEMORY_TEXT_LENGTH: 10000,
+  MAX_TITLE_LENGTH: 200,
+  MAX_ERROR_MESSAGE_LENGTH: 500,
+
+  // 數值範圍
+  MIN_PERCENTAGE: 0,
+  MAX_PERCENTAGE: 100,
+
+  // 正則表達式
+  VERSION_PATTERN: /^v?\d+\.\d+\.\d+$/,
+  PERCENTAGE_PATTERN: /(\d{1,3})\s*%\s*滿?/,
+  URL_PATTERN: /^https?:\/\/.+/,
+};
+
+// 動畫和視覺效果常數
+const ANIMATION_CONSTANTS = {
+  // 緩動函數
+  EASING_EASE_IN_OUT: 'cubic-bezier(0.4, 0, 0.2, 1)',
+  EASING_EASE_OUT: 'cubic-bezier(0, 0, 0.2, 1)',
+  EASING_EASE_IN: 'cubic-bezier(0.4, 0, 1, 1)',
+
+  // 變換屬性
+  SCALE_HOVER: 1.05,
+  SCALE_ACTIVE: 0.95,
+  SCALE_SUCCESS: 1.1,
+
+  // 透明度
+  OPACITY_DISABLED: 0.5,
+  OPACITY_HOVER: 0.8,
+  OPACITY_HIDDEN: 0,
+  OPACITY_VISIBLE: 1,
+
+  // 旋轉角度
+  ROTATION_FULL: 360,
+  ROTATION_SMALL: 5,
+};
+
+// 錯誤代碼和訊息
+const ERROR_CONSTANTS = {
+  // 錯誤類型
+  ERROR_TYPES: {
+    COMPONENT_LOAD_FAILED: 'COMPONENT_LOAD_FAILED',
+    NETWORK_ERROR: 'NETWORK_ERROR',
+    STORAGE_ERROR: 'STORAGE_ERROR',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    PERMISSION_ERROR: 'PERMISSION_ERROR',
+  },
+
+  // 錯誤訊息
+  ERROR_MESSAGES: {
+    COMPONENT_NOT_FOUND: '組件未找到',
+    INITIALIZATION_FAILED: '初始化失敗',
+    EXPORT_FAILED: '匯出失敗',
+    COPY_FAILED: '複製失敗',
+    NETWORK_UNAVAILABLE: '網路連接不可用',
+    STORAGE_FULL: '儲存空間已滿',
+    INVALID_DATA: '資料格式無效',
+    PERMISSION_DENIED: '權限被拒絕',
+  },
+};
+
+// 功能標誌
+const FEATURE_FLAGS = {
+  // 開發模式功能
+  ENABLE_DEBUG_LOGGING: true,
+  ENABLE_PERFORMANCE_MONITORING: false,
+  ENABLE_ERROR_REPORTING: true,
+
+  // 實驗性功能
+  ENABLE_LAZY_LOADING: true,
+  ENABLE_VIRTUAL_SCROLLING: false,
+  ENABLE_OFFLINE_MODE: false,
+
+  // UI 功能
+  ENABLE_ANIMATIONS: true,
+  ENABLE_TOOLTIPS: true,
+  ENABLE_KEYBOARD_SHORTCUTS: true,
+};
+
+// 預設配置
+const DEFAULT_CONFIG = {
+  // 用戶設定預設值
+  AUTO_SHOW_MODAL: true,
+  MAX_HISTORY: STORAGE_CONSTANTS.DEFAULT_HISTORY_ITEMS,
+  AUTO_CLEANUP: true,
+  DEVELOPER_MODE: false,
+
+  // UI 設定預設值
+  THEME: 'dark',
+  LANGUAGE: 'zh-TW',
+  ANIMATION_ENABLED: true,
+
+  // 功能設定預設值
+  AUTO_EXPORT: false,
+  NOTIFICATION_ENABLED: true,
+  SOUND_ENABLED: false,
+};
+
+// 導出所有常數的集合（用於調試和測試）
+const ALL_CONSTANTS = {
+  TIMING_CONSTANTS,
+  UI_CONSTANTS,
+  STORAGE_CONSTANTS,
+  API_CONSTANTS,
+  CONTENT_SCRIPT_CONSTANTS,
+  VALIDATION_CONSTANTS,
+  ANIMATION_CONSTANTS,
+  ERROR_CONSTANTS,
+  FEATURE_FLAGS,
+  DEFAULT_CONFIG,
+};
+
+// 凍結所有常數對象，防止意外修改
+Object.freeze(TIMING_CONSTANTS);
+Object.freeze(UI_CONSTANTS);
+Object.freeze(STORAGE_CONSTANTS);
+Object.freeze(API_CONSTANTS);
+Object.freeze(CONTENT_SCRIPT_CONSTANTS);
+Object.freeze(VALIDATION_CONSTANTS);
+Object.freeze(ANIMATION_CONSTANTS);
+Object.freeze(ERROR_CONSTANTS);
+Object.freeze(FEATURE_FLAGS);
+Object.freeze(DEFAULT_CONFIG);
+Object.freeze(ALL_CONSTANTS);
+
+// 導出到全域變數（瀏覽器環境）
+if (typeof window !== 'undefined') {
+  window.TIMING_CONSTANTS = TIMING_CONSTANTS;
+  window.UI_CONSTANTS = UI_CONSTANTS;
+  window.STORAGE_CONSTANTS = STORAGE_CONSTANTS;
+  window.API_CONSTANTS = API_CONSTANTS;
+  window.CONTENT_SCRIPT_CONSTANTS = CONTENT_SCRIPT_CONSTANTS;
+  window.VALIDATION_CONSTANTS = VALIDATION_CONSTANTS;
+  window.ANIMATION_CONSTANTS = ANIMATION_CONSTANTS;
+  window.ERROR_CONSTANTS = ERROR_CONSTANTS;
+  window.FEATURE_FLAGS = FEATURE_FLAGS;
+  window.DEFAULT_CONFIG = DEFAULT_CONFIG;
+  window.ALL_CONSTANTS = ALL_CONSTANTS;
+}

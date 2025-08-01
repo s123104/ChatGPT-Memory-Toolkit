@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Popup Test</title>
+    <style>
+      body {
+        width: 380px;
+        height: 500px;
+        margin: 0;
+        padding: 20px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #1a1a1a;
+        color: #ffffff;
+      }
+      .test-info {
+        background: #2d2d2d;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .test-result {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 4px;
+      }
+      .success {
+        background: #10b981;
+        color: white;
+      }
+      .error {
+        background: #ef4444;
+        color: white;
+      }
+      .warning {
+        background: #f59e0b;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-info">
+      <h2>Popup 載入測試</h2>
+      <p>檢查所有腳本是否正確載入且無語法錯誤</p>
+    </div>
+
+    <div id="test-results"></div>
+
+    <!-- 載入常數定義 -->
+    <script src="src/utils/constants.js"></script>
+
+    <!-- 載入組件系統 -->
+    <script src="src/ui/components/ModalManager.js"></script>
+    <script src="src/ui/components/ToastManager.js"></script>
+    <script src="src/ui/components/ButtonStateManager.js"></script>
+    <script src="src/ui/components/index.js"></script>
+
+    <!-- 載入工具類 -->
+    <script src="src/utils/storage-manager.js"></script>
+
+    <!-- 載入管理器和動作處理器 -->
+    <script src="src/ui/popup-manager.js"></script>
+    <script src="src/ui/popup-actions.js"></script>
+
+    <script>
+      const results = document.getElementById('test-results');
+
+      function addResult(message, type = 'success') {
+        const div = document.createElement('div');
+        div.className = `test-result ${type}`;
+        div.textContent = message;
+        results.appendChild(div);
+      }
+
+      // 測試常數載入
+      try {
+        if (typeof window.TIMING_CONSTANTS !== 'undefined') {
+          addResult('✓ TIMING_CONSTANTS 載入成功', 'success');
+        } else {
+          addResult('✗ TIMING_CONSTANTS 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ 常數載入錯誤: ' + e.message, 'error');
+      }
+
+      // 測試組件載入
+      try {
+        if (typeof window.ModalManager !== 'undefined') {
+          addResult('✓ ModalManager 載入成功', 'success');
+        } else {
+          addResult('✗ ModalManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ ModalManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.ToastManager !== 'undefined') {
+          addResult('✓ ToastManager 載入成功', 'success');
+        } else {
+          addResult('✗ ToastManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ ToastManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.ButtonStateManager !== 'undefined') {
+          addResult('✓ ButtonStateManager 載入成功', 'success');
+        } else {
+          addResult('✗ ButtonStateManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ ButtonStateManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.ComponentManager !== 'undefined') {
+          addResult('✓ ComponentManager 載入成功', 'success');
+        } else {
+          addResult('✗ ComponentManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ ComponentManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.StorageManager !== 'undefined') {
+          addResult('✓ StorageManager 載入成功', 'success');
+        } else {
+          addResult('✗ StorageManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ StorageManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.ModernPopupManager !== 'undefined') {
+          addResult('✓ ModernPopupManager 載入成功', 'success');
+        } else {
+          addResult('✗ ModernPopupManager 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ ModernPopupManager 載入錯誤: ' + e.message, 'error');
+      }
+
+      try {
+        if (typeof window.PopupActions !== 'undefined') {
+          addResult('✓ PopupActions 載入成功', 'success');
+        } else {
+          addResult('✗ PopupActions 載入失敗', 'error');
+        }
+      } catch (e) {
+        addResult('✗ PopupActions 載入錯誤: ' + e.message, 'error');
+      }
+
+      // 檢查控制台錯誤
+      let errorCount = 0;
+      const originalError = console.error;
+      console.error = function (...args) {
+        errorCount++;
+        addResult('控制台錯誤: ' + args.join(' '), 'error');
+        originalError.apply(console, args);
+      };
+
+      setTimeout(() => {
+        if (errorCount === 0) {
+          addResult('✓ 無控制台錯誤', 'success');
+        } else {
+          addResult(`✗ 發現 ${errorCount} 個控制台錯誤`, 'error');
+        }
+      }, 1000);
+    </script>
+  </body>
+</html>

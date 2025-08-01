@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>重構組件測試 - ChatGPT Memory Manager</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #0a0a0f;
+        --bg-secondary: #1a1a2e;
+        --bg-card: #16213e;
+        --text-primary: #ffffff;
+        --text-secondary: #b4bcd8;
+        --border-light: #2d3748;
+        --primary-color: #667eea;
+        --success-color: #10b981;
+        --error-color: #ef4444;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+        --radius-lg: 0.75rem;
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        background: var(--bg-primary);
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: var(--text-primary);
+        padding: 20px;
+      }
+
+      .test-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .test-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .test-section h2 {
+        margin-bottom: 15px;
+        color: var(--primary-color);
+      }
+
+      .test-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 15px;
+      }
+
+      .test-btn {
+        padding: 10px 16px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .test-btn:hover {
+        opacity: 0.8;
+      }
+
+      .export-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #ffffff;
+        border: none;
+        border-radius: var(--radius-lg);
+        padding: 16px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        position: relative;
+        overflow: hidden;
+        margin: 10px;
+      }
+
+      .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-text {
+        display: block;
+      }
+
+      .btn-subtext {
+        display: block;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+
+      .status-info {
+        background: var(--bg-secondary);
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 12px;
+        border: 1px solid var(--border-light);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-container">
+      <header>
+        <h1>重構組件測試頁面</h1>
+        <p>測試所有重構後的組件功能</p>
+      </header>
+
+      <!-- 常數測試 -->
+      <div class="test-section">
+        <h2>1. 常數載入測試</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testConstants()">
+            檢查常數載入
+          </button>
+        </div>
+        <div id="constants-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- Toast 管理器測試 -->
+      <div class="test-section">
+        <h2>2. Toast 通知測試</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testToastSuccess()">
+            成功通知
+          </button>
+          <button class="test-btn" onclick="testToastError()">錯誤通知</button>
+          <button class="test-btn" onclick="testToastWarning()">
+            警告通知
+          </button>
+          <button class="test-btn" onclick="testToastInfo()">資訊通知</button>
+          <button class="test-btn" onclick="clearAllToasts()">清除所有</button>
+        </div>
+        <div id="toast-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- 按鈕狀態管理器測試 -->
+      <div class="test-section">
+        <h2>3. 按鈕狀態管理器測試</h2>
+        <div class="test-controls">
+          <button class="export-btn" id="test-export-btn">
+            <span class="btn-text export-main-text">匯出記憶</span>
+            <span class="btn-subtext export-sub-text">Export Memory</span>
+          </button>
+        </div>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testButtonLoading()">
+            載入狀態
+          </button>
+          <button class="test-btn" onclick="testButtonSuccess()">
+            成功狀態
+          </button>
+          <button class="test-btn" onclick="testButtonError()">錯誤狀態</button>
+          <button class="test-btn" onclick="testButtonReset()">重置狀態</button>
+          <button class="test-btn" onclick="testFullAnimation()">
+            完整動畫
+          </button>
+        </div>
+        <div id="button-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- 組件管理器測試 -->
+      <div class="test-section">
+        <h2>4. 組件管理器測試</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testComponentManager()">
+            檢查組件管理器
+          </button>
+          <button class="test-btn" onclick="testComponentCommunication()">
+            測試組件通信
+          </button>
+        </div>
+        <div id="component-result" class="status-info">等待測試...</div>
+      </div>
+
+      <!-- 儲存管理器測試 -->
+      <div class="test-section">
+        <h2>5. 儲存管理器測試</h2>
+        <div class="test-controls">
+          <button class="test-btn" onclick="testStorageManager()">
+            檢查儲存管理器
+          </button>
+          <button class="test-btn" onclick="testStorageOperations()">
+            測試儲存操作
+          </button>
+        </div>
+        <div id="storage-result" class="status-info">等待測試...</div>
+      </div>
+    </div>
+
+    <!-- 載入腳本 -->
+    <script src="../src/utils/constants.js"></script>
+    <script src="../src/ui/components/toast-styles.js" type="module"></script>
+    <script
+      src="../src/ui/components/ToastManager-new.js"
+      type="module"
+    ></script>
+    <script src="../src/ui/components/ButtonStateManager.js"></script>
+    <script src="../src/ui/components/index.js"></script>
+
+    <script>
+      let toastManager = null;
+      let buttonManager = null;
+
+      // 等待模組載入
+      document.addEventListener('DOMContentLoaded', async () => {
+        // 等待組件初始化
+        setTimeout(async () => {
+          try {
+            // 初始化 Toast 管理器
+            const { ToastManager } = await import(
+              '../src/ui/components/ToastManager-new.js'
+            );
+            toastManager = new ToastManager();
+
+            // 初始化按鈕管理器
+            const exportBtn = document.getElementById('test-export-btn');
+            if (exportBtn && window.ButtonStateManager) {
+              buttonManager = new window.ButtonStateManager(exportBtn);
+            }
+
+            updateStatus('toast-result', '✅ Toast 管理器已初始化');
+            updateStatus(
+              'button-result',
+              buttonManager
+                ? '✅ 按鈕管理器已初始化'
+                : '❌ 按鈕管理器初始化失敗'
+            );
+          } catch (error) {
+            console.error('組件初始化失敗:', error);
+            updateStatus('toast-result', '❌ 組件初始化失敗: ' + error.message);
+          }
+        }, 500);
+      });
+
+      function updateStatus(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        }
+      }
+
+      // 常數測試
+      function testConstants() {
+        const checks = [
+          'TIMING_CONSTANTS',
+          'UI_CONSTANTS',
+          'STORAGE_CONSTANTS',
+          'API_CONSTANTS',
+          'CONTENT_SCRIPT_CONSTANTS',
+          'VALIDATION_CONSTANTS',
+          'ANIMATION_CONSTANTS',
+          'ERROR_CONSTANTS',
+        ];
+
+        const results = checks.map(key => {
+          const exists = typeof window[key] !== 'undefined';
+          return `${key}: ${exists ? '✅' : '❌'}`;
+        });
+
+        updateStatus('constants-result', results.join('\n'));
+      }
+
+      // Toast 測試函數
+      function testToastSuccess() {
+        if (toastManager) {
+          toastManager.success('操作成功！', { title: '成功' });
+          updateStatus('toast-result', '✅ 成功通知已顯示');
+        } else {
+          updateStatus('toast-result', '❌ Toast 管理器未初始化');
+        }
+      }
+
+      function testToastError() {
+        if (toastManager) {
+          toastManager.error('發生錯誤！', { title: '錯誤' });
+          updateStatus('toast-result', '✅ 錯誤通知已顯示');
+        } else {
+          updateStatus('toast-result', '❌ Toast 管理器未初始化');
+        }
+      }
+
+      function testToastWarning() {
+        if (toastManager) {
+          toastManager.warning('請注意！', { title: '警告' });
+          updateStatus('toast-result', '✅ 警告通知已顯示');
+        } else {
+          updateStatus('toast-result', '❌ Toast 管理器未初始化');
+        }
+      }
+
+      function testToastInfo() {
+        if (toastManager) {
+          toastManager.info('這是資訊通知', { title: '資訊' });
+          updateStatus('toast-result', '✅ 資訊通知已顯示');
+        } else {
+          updateStatus('toast-result', '❌ Toast 管理器未初始化');
+        }
+      }
+
+      function clearAllToasts() {
+        if (toastManager) {
+          toastManager.clear();
+          updateStatus('toast-result', '✅ 所有通知已清除');
+        } else {
+          updateStatus('toast-result', '❌ Toast 管理器未初始化');
+        }
+      }
+
+      // 按鈕測試函數
+      function testButtonLoading() {
+        if (buttonManager) {
+          buttonManager.setLoading('載入中...', 'Loading...');
+          updateStatus('button-result', '✅ 按鈕載入狀態已設定');
+        } else {
+          updateStatus('button-result', '❌ 按鈕管理器未初始化');
+        }
+      }
+
+      function testButtonSuccess() {
+        if (buttonManager) {
+          buttonManager.setSuccess('成功！', 'Success!');
+          updateStatus('button-result', '✅ 按鈕成功狀態已設定');
+        } else {
+          updateStatus('button-result', '❌ 按鈕管理器未初始化');
+        }
+      }
+
+      function testButtonError() {
+        if (buttonManager) {
+          buttonManager.setError('失敗！', 'Failed!');
+          updateStatus('button-result', '✅ 按鈕錯誤狀態已設定');
+        } else {
+          updateStatus('button-result', '❌ 按鈕管理器未初始化');
+        }
+      }
+
+      function testButtonReset() {
+        if (buttonManager) {
+          buttonManager.reset();
+          updateStatus('button-result', '✅ 按鈕已重置');
+        } else {
+          updateStatus('button-result', '❌ 按鈕管理器未初始化');
+        }
+      }
+
+      function testFullAnimation() {
+        if (buttonManager) {
+          buttonManager.executeFullAnimation({
+            loadingDuration: 2000,
+            successText: '動畫完成',
+            successSubText: 'Animation Complete',
+          });
+          updateStatus('button-result', '✅ 完整動畫已開始');
+        } else {
+          updateStatus('button-result', '❌ 按鈕管理器未初始化');
+        }
+      }
+
+      // 組件管理器測試
+      function testComponentManager() {
+        const hasComponentManager =
+          typeof window.ComponentManager !== 'undefined';
+        const hasGlobalInstance =
+          typeof window.componentManager !== 'undefined';
+
+        updateStatus(
+          'component-result',
+          `組件管理器類別: ${hasComponentManager ? '✅' : '❌'}\n` +
+            `全域實例: ${hasGlobalInstance ? '✅' : '❌'}`
+        );
+      }
+
+      function testComponentCommunication() {
+        // 測試組件間通信
+        document.addEventListener('buttonStateChange', event => {
+          updateStatus(
+            'component-result',
+            `✅ 接收到按鈕狀態變更事件: ${event.detail.state}`
+          );
+        });
+
+        if (buttonManager) {
+          buttonManager.setSuccess('通信測試', 'Communication Test');
+          updateStatus('component-result', '✅ 組件通信測試已發送');
+        } else {
+          updateStatus(
+            'component-result',
+            '❌ 無法測試組件通信，按鈕管理器未初始化'
+          );
+        }
+      }
+
+      // 儲存管理器測試
+      function testStorageManager() {
+        const hasStorageManager = typeof window.StorageManager !== 'undefined';
+        updateStatus(
+          'storage-result',
+          `儲存管理器: ${hasStorageManager ? '✅' : '❌'}`
+        );
+      }
+
+      function testStorageOperations() {
+        updateStatus(
+          'storage-result',
+          '⚠️ 儲存操作測試需要在 Chrome 擴充環境中執行'
+        );
+      }
+    </script>
+  </body>
+</html>

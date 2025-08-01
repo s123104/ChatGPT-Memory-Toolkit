@@ -502,14 +502,29 @@
       <!-- App Footer -->
       <footer class="app-footer">
         <div class="footer-info">
-          <span class="version">v1.6.0</span>
+          <span class="version">v1.6.2</span>
           <span class="separator">•</span>
           <span class="status-text" id="connectionStatus">已連接</span>
         </div>
       </footer>
     </div>
 
+    <!-- 載入常數定義 -->
+    <script src="../utils/constants.js"></script>
+
+    <!-- 載入組件系統 -->
+    <script src="components/ModalManager.js"></script>
+    <script src="components/ToastManager.js"></script>
+    <script src="components/ButtonStateManager.js"></script>
+    <script src="components/index.js"></script>
+
+    <!-- 載入工具類 -->
     <script src="../utils/storage-manager.js"></script>
+
+    <!-- 載入動作處理器 -->
+    <script src="popup-actions.js"></script>
+
+    <!-- 載入主要腳本 -->
     <script src="popup.js"></script>
   </body>
 </html>

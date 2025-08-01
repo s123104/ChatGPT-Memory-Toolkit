@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>快速修正驗證</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #1a1a1a;
+        color: #fff;
+      }
+      .test-section {
+        background: #2a2a2a;
+        padding: 20px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border: 1px solid #444;
+      }
+      .test-btn {
+        padding: 10px 20px;
+        margin: 5px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .test-btn:hover {
+        opacity: 0.8;
+      }
+      .result {
+        background: #333;
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .success {
+        color: #4caf50;
+      }
+      .error {
+        color: #f44336;
+      }
+      .warning {
+        color: #ff9800;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🔧 Chrome 擴充套件修正驗證</h1>
+    <p>測試修正後的 Background Script 和 Content Script 通信</p>
+
+    <div class="test-section">
+      <h3>1. Background Script 測試</h3>
+      <button class="test-btn" onclick="testBackground()">
+        測試 Background Script Ping
+      </button>
+      <div id="bg-result" class="result">等待測試...</div>
+    </div>
+
+    <div class="test-section">
+      <h3>2. Content Script 測試 (需在 ChatGPT 頁面)</h3>
+      <button class="test-btn" onclick="testContentScript()">
+        測試 Content Script 連接
+      </button>
+      <button class="test-btn" onclick="testMemoryStatus()">
+        測試記憶狀態獲取
+      </button>
+      <div id="cs-result" class="result">等待測試...</div>
+    </div>
+
+    <div class="test-section">
+      <h3>3. 標籤頁檢測測試</h3>
+      <button class="test-btn" onclick="testTabDetection()">
+        測試標籤頁檢測
+      </button>
+      <div id="tab-result" class="result">等待測試...</div>
+    </div>
+
+    <div class="test-section">
+      <h3>4. 完整流程測試</h3>
+      <button class="test-btn" onclick="testFullFlow()">
+        執行完整測試流程
+      </button>
+      <div id="full-result" class="result">等待測試...</div>
+    </div>
+
+    <script>
+      function log(elementId, message, type = 'info') {
+        const element = document.getElementById(elementId);
+        const timestamp = new Date().toLocaleTimeString();
+        const className =
+          type === 'error'
+            ? 'error'
+            : type === 'success'
+              ? 'success'
+              : type === 'warning'
+                ? 'warning'
+                : '';
+
+        const logEntry = `[${timestamp}] ${message}`;
+        element.innerHTML += `<span class="${className}">${logEntry}</span>\n`;
+        element.scrollTop = element.scrollHeight;
+      }
+
+      function clearLog(elementId) {
+        document.getElementById(elementId).innerHTML = '';
+      }
+
+      async function testBackground() {
+        clearLog('bg-result');
+        log('bg-result', '🔄 測試 Background Script...');
+
+        try {
+          const response = await chrome.runtime.sendMessage({
+            action: 'ping',
+          });
+
+          if (response && response.success) {
+            log('bg-result', `✅ Background Script 正常運行`, 'success');
+            log('bg-result', `回應: ${response.message}`, 'success');
+            log('bg-result', `時間: ${response.timestamp}`, 'info');
+          } else {
+            log('bg-result', '❌ Background Script 回應異常', 'error');
+            log('bg-result', JSON.stringify(response, null, 2), 'error');
+          }
+        } catch (error) {
+          log(
+            'bg-result',
+            `❌ Background Script 連接失敗: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      async function testContentScript() {
+        clearLog('cs-result');
+        log('cs-result', '🔄 測試 Content Script 連接...');
+
+        try {
+          const response = await chrome.runtime.sendMessage({
+            action: 'getMemoryStatus',
+          });
+
+          if (response && response.success) {
+            log('cs-result', '✅ Content Script 連接成功', 'success');
+            log(
+              'cs-result',
+              `狀態: ${JSON.stringify(response.status, null, 2)}`,
+              'success'
+            );
+          } else {
+            log(
+              'cs-result',
+              `⚠️ Content Script 回應: ${response?.error || '未知錯誤'}`,
+              'warning'
+            );
+          }
+        } catch (error) {
+          log(
+            'cs-result',
+            `❌ Content Script 測試失敗: ${error.message}`,
+            'error'
+          );
+        }
+      }
+
+      async function testMemoryStatus() {
+        log('cs-result', '🔄 測試記憶狀態獲取...');
+
+        try {
+          const response = await chrome.runtime.sendMessage({
+            action: 'getMemoryStatus',
+          });
+
+          log('cs-result', `📊 記憶狀態結果:`, 'info');
+          log('cs-result', JSON.stringify(response, null, 2), 'info');
+        } catch (error) {
+          log('cs-result', `❌ 記憶狀態獲取失敗: ${error.message}`, 'error');
+        }
+      }
+
+      async function testTabDetection() {
+        clearLog('tab-result');
+        log('tab-result', '🔄 測試標籤頁檢測...');
+
+        try {
+          // 獲取當前標籤頁資訊
+          const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          const currentTab = tabs[0];
+
+          log('tab-result', `📄 當前標籤頁: ${currentTab.url}`, 'info');
+          log(
+            'tab-result',
+            `🎯 是否為 ChatGPT: ${currentTab.url?.includes('chatgpt.com') ? '✅ 是' : '❌ 否'}`,
+            currentTab.url?.includes('chatgpt.com') ? 'success' : 'warning'
+          );
+
+          // 測試 background script 是否能正確識別標籤頁
+          const response = await chrome.runtime.sendMessage({
+            action: 'ping',
+          });
+
+          if (response && response.success) {
+            log('tab-result', '✅ Background Script 可以正常通信', 'success');
+          } else {
+            log('tab-result', '❌ Background Script 通信異常', 'error');
+          }
+        } catch (error) {
+          log('tab-result', `❌ 標籤頁檢測失敗: ${error.message}`, 'error');
+        }
+      }
+
+      async function testFullFlow() {
+        clearLog('full-result');
+        log('full-result', '🚀 開始完整測試流程...');
+
+        // 1. 測試 Background Script
+        log('full-result', '步驟 1: 測試 Background Script');
+        try {
+          const bgResponse = await chrome.runtime.sendMessage({
+            action: 'ping',
+          });
+          if (bgResponse && bgResponse.success) {
+            log('full-result', '✅ Background Script 正常', 'success');
+          } else {
+            log('full-result', '❌ Background Script 異常', 'error');
+            return;
+          }
+        } catch (error) {
+          log(
+            'full-result',
+            `❌ Background Script 測試失敗: ${error.message}`,
+            'error'
+          );
+          return;
+        }
+
+        // 2. 檢查當前環境
+        log('full-result', '步驟 2: 檢查當前環境');
+        try {
+          const tabs = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+          });
+          const currentTab = tabs[0];
+          log('full-result', `📄 當前 URL: ${currentTab.url}`);
+
+          const isChatGPT = currentTab.url?.includes('chatgpt.com');
+          if (isChatGPT) {
+            log(
+              'full-result',
+              '✅ 在 ChatGPT 頁面，可以測試完整功能',
+              'success'
+            );
+          } else {
+            log(
+              'full-result',
+              '⚠️ 不在 ChatGPT 頁面，僅能測試基礎功能',
+              'warning'
+            );
+          }
+        } catch (error) {
+          log('full-result', `❌ 環境檢查失敗: ${error.message}`, 'error');
+        }
+
+        // 3. 測試 Content Script 通信
+        log('full-result', '步驟 3: 測試 Content Script 通信');
+        try {
+          const csResponse = await chrome.runtime.sendMessage({
+            action: 'getMemoryStatus',
+          });
+          if (csResponse && csResponse.success) {
+            log('full-result', '✅ Content Script 通信正常', 'success');
+            log(
+              'full-result',
+              `記憶狀態: ${JSON.stringify(csResponse.status)}`,
+              'info'
+            );
+          } else {
+            log(
+              'full-result',
+              `⚠️ Content Script 回應: ${csResponse?.error}`,
+              'warning'
+            );
+          }
+        } catch (error) {
+          log(
+            'full-result',
+            `❌ Content Script 測試失敗: ${error.message}`,
+            'error'
+          );
+        }
+
+        log('full-result', '🎉 完整測試流程結束', 'success');
+      }
+
+      // 頁面載入完成後自動執行基礎檢查
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(testBackground, 500);
+      });
+    </script>
+  </body>
+</html>

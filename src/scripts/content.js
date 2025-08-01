@@ -2044,7 +2044,7 @@
 
           sendResponse({
             success: true,
-            memoryFull: !!(memoryFullElement || hasMemoryFullText),
+            memoryFull: Boolean(memoryFullElement || hasMemoryFullText),
           });
         } catch (error) {
           sendResponse({

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>重構後UI測試 - ChatGPT Memory Manager</title>
+    <link rel="stylesheet" href="../src/ui/popup.css" />
+    <link rel="stylesheet" href="../src/ui/components/button-states.css" />
+    <link
+      rel="stylesheet"
+      href="../src/ui/components/toast-notifications.css"
+    />
+    <link rel="stylesheet" href="../src/ui/components/modal-styles.css" />
+    <style>
+      body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+        padding: 20px;
+        background: var(--bg-primary);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .test-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+      }
+
+      .test-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 15px;
+      }
+
+      .test-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .test-btn {
+        padding: 8px 16px;
+        border: 1px solid var(--border-light);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .test-btn:hover {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      .status-display {
+        margin-top: 15px;
+        padding: 10px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <h1 style="color: var(--text-primary); text-align: center">
+      重構後UI組件測試
+    </h1>
+
+    <!-- Toast Manager 測試 -->
+    <div class="test-section">
+      <div class="test-title">Toast Manager 測試</div>
+      <div class="test-controls">
+        <button class="test-btn" onclick="testToast('success')">
+          成功通知
+        </button>
+        <button class="test-btn" onclick="testToast('error')">錯誤通知</button>
+        <button class="test-btn" onclick="testToast('warning')">
+          警告通知
+        </button>
+        <button class="test-btn" onclick="testToast('info')">資訊通知</button>
+        <button class="test-btn" onclick="clearAllToasts()">清除所有</button>
+      </div>
+      <div class="status-display" id="toastStatus">等待測試...</div>
+    </div>
+
+    <!-- Modal Manager 測試 -->
+    <div class="test-section">
+      <div class="test-title">Modal Manager 測試</div>
+      <div class="test-controls">
+        <button class="test-btn" onclick="testModal('basic')">
+          基本模態窗
+        </button>
+        <button class="test-btn" onclick="testModal('memoryFull')">
+          記憶已滿模態窗
+        </button>
+        <button class="test-btn" onclick="closeAllModals()">關閉所有</button>
+      </div>
+      <div class="status-display" id="modalStatus">等待測試...</div>
+    </div>
+
+    <!-- Button State Manager 測試 -->
+    <div class="test-section">
+      <div class="test-title">Button State Manager 測試</div>
+      <div class="test-controls">
+        <button class="memory-export-btn" id="testExportBtn">
+          <div class="export-btn-background">
+            <div class="export-btn-gradient"></div>
+            <div class="export-btn-particles">
+              <div class="particle"></div>
+              <div class="particle"></div>
+              <div class="particle"></div>
+            </div>
+          </div>
+          <div class="export-btn-content">
+            <div class="export-icon-container">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                class="export-icon"
+              >
+                <path
+                  fill="currentColor"
+                  d="M12 2L13.09 8.26L22 12L13.09 15.74L12 22L10.91 15.74L2 12L10.91 8.26L12 2Z"
+                />
+              </svg>
+            </div>
+            <div class="export-text-container">
+              <span class="export-main-text">測試按鈕</span>
+              <span class="export-sub-text">Test Button</span>
+            </div>
+          </div>
+        </button>
+      </div>
+      <div style="margin-top: 15px">
+        <button class="test-btn" onclick="testButtonState('loading')">
+          載入狀態
+        </button>
+        <button class="test-btn" onclick="testButtonState('success')">
+          成功狀態
+        </button>
+        <button class="test-btn" onclick="testButtonState('error')">
+          錯誤狀態
+        </button>
+        <button class="test-btn" onclick="testButtonState('memoryFull')">
+          記憶已滿
+        </button>
+        <button class="test-btn" onclick="testButtonState('reset')">
+          重置
+        </button>
+        <button class="test-btn" onclick="testButtonState('animation')">
+          完整動畫
+        </button>
+      </div>
+      <div class="status-display" id="buttonStatus">等待測試...</div>
+    </div>
+
+    <!-- Storage Manager 測試 -->
+    <div class="test-section">
+      <div class="test-title">Storage Manager 測試</div>
+      <div class="test-controls">
+        <button class="test-btn" onclick="testStorage('save')">
+          儲存測試資料
+        </button>
+        <button class="test-btn" onclick="testStorage('load')">載入資料</button>
+        <button class="test-btn" onclick="testStorage('usage')">
+          儲存使用量
+        </button>
+        <button class="test-btn" onclick="testStorage('clear')">
+          清除資料
+        </button>
+      </div>
+      <div class="status-display" id="storageStatus">等待測試...</div>
+    </div>
+
+    <!-- 載入所有組件 -->
+    <script src="../src/ui/components/ModalManager.js"></script>
+    <script src="../src/ui/components/ToastManager.js"></script>
+    <script src="../src/ui/components/ButtonStateManager.js"></script>
+    <script src="../src/ui/components/index.js"></script>
+    <script src="../src/utils/storage-manager.js"></script>
+
+    <script>
+      // 全域變數
+      let buttonManager = null;
+      let storageManager = null;
+
+      // 等待組件載入完成
+      document.addEventListener('DOMContentLoaded', async () => {
+        try {
+          // 等待組件系統初始化
+          if (window.componentManager) {
+            await window.componentManager.waitForInitialization();
+          }
+
+          // 初始化按鈕管理器
+          const testBtn = document.getElementById('testExportBtn');
+          if (testBtn && window.ButtonStateManager) {
+            buttonManager = new window.ButtonStateManager(testBtn);
+            updateStatus('buttonStatus', '按鈕管理器已初始化');
+          }
+
+          // 初始化儲存管理器
+          if (window.StorageManager) {
+            storageManager = new window.StorageManager();
+            updateStatus('storageStatus', '儲存管理器已初始化');
+          }
+
+          updateStatus('toastStatus', 'Toast管理器已準備就緒');
+          updateStatus('modalStatus', 'Modal管理器已準備就緒');
+
+          console.log('所有組件測試準備完成');
+        } catch (error) {
+          console.error('組件初始化失敗:', error);
+        }
+      });
+
+      // 更新狀態顯示
+      function updateStatus(elementId, message) {
+        const element = document.getElementById(elementId);
+        if (element) {
+          const timestamp = new Date().toLocaleTimeString();
+          element.textContent = `[${timestamp}] ${message}`;
+        }
+      }
+
+      // Toast 測試
+      function testToast(type) {
+        if (!window.toastManager) {
+          updateStatus('toastStatus', '錯誤: ToastManager 未初始化');
+          return;
+        }
+
+        const messages = {
+          success: '操作成功完成！',
+          error: '發生錯誤，請稍後再試',
+          warning: '請注意這個警告訊息',
+          info: '這是一個資訊通知',
+        };
+
+        window.toastManager.show(messages[type], type, {
+          duration: 3000,
+          showProgress: true,
+        });
+
+        updateStatus('toastStatus', `顯示 ${type} 通知`);
+      }
+
+      function clearAllToasts() {
+        if (window.toastManager) {
+          window.toastManager.clear();
+          updateStatus('toastStatus', '已清除所有通知');
+        }
+      }
+
+      // Modal 測試
+      function testModal(type) {
+        if (!window.modalManager) {
+          updateStatus('modalStatus', '錯誤: ModalManager 未初始化');
+          return;
+        }
+
+        if (type === 'basic') {
+          window.modalManager.show({
+            id: 'testModal',
+            content: `
+                        <div style="padding: 20px; text-align: center;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">測試模態窗</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 20px;">這是一個基本的模態窗測試</p>
+                            <button onclick="window.modalManager.hide('testModal')" 
+                                    style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                關閉
+                            </button>
+                        </div>
+                    `,
+            type: 'default',
+          });
+          updateStatus('modalStatus', '顯示基本模態窗');
+        } else if (type === 'memoryFull') {
+          window.modalManager.showMemoryFullModal({
+            memoryCount: 25,
+            usage: '100%',
+            onExport: () => {
+              updateStatus('modalStatus', '用戶選擇匯出');
+              if (window.toastManager) {
+                window.toastManager.success('開始匯出記憶...');
+              }
+            },
+            onCancel: () => {
+              updateStatus('modalStatus', '用戶選擇稍後處理');
+            },
+          });
+          updateStatus('modalStatus', '顯示記憶已滿模態窗');
+        }
+      }
+
+      function closeAllModals() {
+        if (window.modalManager) {
+          window.modalManager.hideAll();
+          updateStatus('modalStatus', '已關閉所有模態窗');
+        }
+      }
+
+      // Button State 測試
+      function testButtonState(state) {
+        if (!buttonManager) {
+          updateStatus('buttonStatus', '錯誤: ButtonStateManager 未初始化');
+          return;
+        }
+
+        switch (state) {
+          case 'loading':
+            buttonManager.setLoading('載入中...', 'Loading...');
+            updateStatus('buttonStatus', '設置載入狀態');
+            break;
+          case 'success':
+            buttonManager.setSuccess('操作成功', 'Success');
+            updateStatus('buttonStatus', '設置成功狀態');
+            break;
+          case 'error':
+            buttonManager.setError('操作失敗', 'Failed');
+            updateStatus('buttonStatus', '設置錯誤狀態');
+            break;
+          case 'memoryFull':
+            buttonManager.setMemoryFullUrgent('立即匯出', 'Export Now');
+            updateStatus('buttonStatus', '設置記憶已滿狀態');
+            break;
+          case 'reset':
+            buttonManager.reset();
+            updateStatus('buttonStatus', '重置按鈕狀態');
+            break;
+          case 'animation':
+            buttonManager.executeFullAnimation({
+              successProbability: 0.7,
+              loadingDuration: 2000,
+              successDuration: 2000,
+            });
+            updateStatus('buttonStatus', '執行完整動畫序列');
+            break;
+        }
+      }
+
+      // Storage 測試
+      async function testStorage(action) {
+        if (!storageManager) {
+          updateStatus('storageStatus', '錯誤: StorageManager 未初始化');
+          return;
+        }
+
+        try {
+          switch (action) {
+            case 'save':
+              const testData = {
+                markdown: '# 測試記憶\n\n這是一個測試記憶項目。',
+                usage: '75%',
+                count: 10,
+              };
+              const result = await storageManager.saveMemoryHistory(testData);
+              updateStatus(
+                'storageStatus',
+                `儲存成功: ${result ? result.id : '失敗'}`
+              );
+              break;
+
+            case 'load':
+              const history = await storageManager.getMemoryHistory();
+              updateStatus('storageStatus', `載入 ${history.length} 筆記錄`);
+              break;
+
+            case 'usage':
+              const usage = await storageManager.getStorageUsage();
+              updateStatus(
+                'storageStatus',
+                `使用量: ${usage.formattedUsed} / ${usage.formattedTotal} (${usage.percentage}%)`
+              );
+              break;
+
+            case 'clear':
+              await storageManager.clearHistory();
+              updateStatus('storageStatus', '已清除所有歷史記錄');
+              break;
+          }
+        } catch (error) {
+          updateStatus('storageStatus', `錯誤: ${error.message}`);
+        }
+      }
+    </script>
+  </body>
+</html>
