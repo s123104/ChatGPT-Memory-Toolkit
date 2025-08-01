@@ -14,6 +14,9 @@ export default [
       '*.min.js',
       'chatgpt-memory-manager.js', // Legacy file
       'logs/**',
+      'archive/**',
+      'test/**',
+      '.kiro/**',
     ],
   },
 

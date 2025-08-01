@@ -16,25 +16,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   // 處理不同類型的消息
   switch (message.action) {
-    case 'getMemoryStatus':
-      handleGetMemoryStatus(message, sender, sendResponse);
-      break;
+  case 'getMemoryStatus':
+    handleGetMemoryStatus(message, sender, sendResponse);
+    break;
 
-    case 'exportMemories':
-      handleExportMemories(message, sender, sendResponse);
-      break;
+  case 'exportMemories':
+    handleExportMemories(message, sender, sendResponse);
+    break;
 
-    case 'ping':
-      handlePing(message, sender, sendResponse);
-      break;
+  case 'ping':
+    handlePing(message, sender, sendResponse);
+    break;
 
-    case 'getMarkdown':
-      handleGetMarkdown(message, sender, sendResponse);
-      break;
+  case 'getMarkdown':
+    handleGetMarkdown(message, sender, sendResponse);
+    break;
 
-    default:
-      console.warn('[Background] 未知的消息類型:', message.action);
-      sendResponse({ success: false, error: '未知的消息類型' });
+  default:
+    console.warn('[Background] 未知的消息類型:', message.action);
+    sendResponse({ success: false, error: '未知的消息類型' });
   }
 
   // 返回 true 表示將異步發送回應

@@ -195,10 +195,14 @@ async function handleRefresh(manager) {
  * 顯示匯出結果
  */
 function displayExportResult(data) {
-  if (!data) return;
+  if (!data) {
+    return;
+  }
 
   const resultContainer = document.getElementById('exportResult');
-  if (!resultContainer) return;
+  if (!resultContainer) {
+    return;
+  }
 
   const stats = analyzeExportData(data);
 
