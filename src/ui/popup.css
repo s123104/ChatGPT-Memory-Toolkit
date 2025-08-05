@@ -806,13 +806,22 @@ body {
 }
 
 /* Success State for Export Button */
+.memory-export-btn.success {
+  animation: none !important;
+}
+
 .memory-export-btn.success .export-btn-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  animation: none;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  background-size: 100% 100% !important;
+  animation: none !important;
 }
 
 .memory-export-btn.success .export-icon {
   animation: successBounce 0.6s ease-out;
+}
+
+.memory-export-btn.success .export-main-text {
+  animation: none !important;
 }
 
 @keyframes successBounce {
@@ -828,13 +837,22 @@ body {
 }
 
 /* Error State for Export Button */
+.memory-export-btn.error {
+  animation: none !important;
+}
+
 .memory-export-btn.error .export-btn-gradient {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  animation: none;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  background-size: 100% 100% !important;
+  animation: none !important;
 }
 
 .memory-export-btn.error .export-icon {
   animation: errorShake 0.5s ease-in-out;
+}
+
+.memory-export-btn.error .export-main-text {
+  animation: none !important;
 }
 
 @keyframes errorShake {
@@ -980,6 +998,56 @@ body {
   transform: translateY(0);
 }
 
+/* Success State */
+.export-result-section.success {
+  border-color: var(--success-color);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  animation: successPulse 2s ease-in-out;
+}
+
+.export-result-section.success .export-result-header {
+  background: rgba(16, 185, 129, 0.1);
+  border-bottom-color: rgba(16, 185, 129, 0.2);
+}
+
+/* Error State */
+.export-result-section.error {
+  border-color: var(--error-color);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  animation: errorPulse 2s ease-in-out;
+}
+
+.export-result-section.error .export-result-header {
+  background: rgba(239, 68, 68, 0.1);
+  border-bottom-color: rgba(239, 68, 68, 0.2);
+}
+
+.export-result-section.error .export-result-icon {
+  background: var(--error-color);
+}
+
+.export-result-section.error .export-result-title {
+  color: var(--error-color);
+}
+
+@keyframes successPulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
+  }
+}
+
+@keyframes errorPulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.25);
+  }
+}
+
 .export-result-header {
   display: flex;
   align-items: center;
@@ -987,6 +1055,7 @@ body {
   padding: var(--space-4);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-light);
+  transition: all var(--transition-normal);
 }
 
 .export-result-icon {
@@ -999,6 +1068,7 @@ body {
   justify-content: center;
   color: white;
   flex-shrink: 0;
+  transition: all var(--transition-normal);
 }
 
 .export-result-content {

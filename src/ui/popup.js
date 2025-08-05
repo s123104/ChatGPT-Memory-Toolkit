@@ -292,8 +292,16 @@ class ModernPopupManager {
       // 檢查是否是連接錯誤
       if (error.message.includes('Could not establish connection')) {
         this.setButtonError(exportBtn, '請重新整理頁面');
+        // 顯示失敗狀態的匯出結果區塊
+        this.showExportResult({
+          error: '無法連接到 ChatGPT 頁面，請重新整理頁面後再試'
+        }, false);
       } else {
         this.setButtonError(exportBtn, '匯出失敗');
+        // 顯示失敗狀態的匯出結果區塊
+        this.showExportResult({
+          error: error.message || '匯出過程發生未知錯誤'
+        }, false);
       }
     } finally {
       // Remove the timeout to keep the success state
@@ -301,22 +309,62 @@ class ModernPopupManager {
   }
 
   // 顯示匯出結果區塊
-  showExportResult(data) {
+  showExportResult(data, isSuccess = true) {
     const exportResultSection = document.getElementById('exportResultSection');
     const exportResultStats = document.getElementById('exportResultStats');
+    const exportResultTitle = document.querySelector('.export-result-title');
+    const exportResultIcon = document.querySelector('.export-result-icon');
 
     if (exportResultSection && exportResultStats) {
-      exportResultStats.textContent = `共 ${data.count} 筆記憶`;
+      // 清除之前的狀態類別
+      exportResultSection.classList.remove('success', 'error');
+      
+      if (isSuccess) {
+        // 成功狀態
+        exportResultSection.classList.add('success');
+        exportResultStats.textContent = `共 ${data.count} 筆記憶`;
+        if (exportResultTitle) {
+          exportResultTitle.textContent = '匯出完成';
+        }
+        if (exportResultIcon) {
+          exportResultIcon.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M9,20.42L2.79,14.21L5.62,11.38L9,14.77L18.88,4.88L21.71,7.71L9,20.42Z"/>
+            </svg>
+          `;
+        }
+      } else {
+        // 失敗狀態
+        exportResultSection.classList.add('error');
+        exportResultStats.textContent = data.error || '匯出過程發生錯誤';
+        if (exportResultTitle) {
+          exportResultTitle.textContent = '匯出失敗';
+        }
+        if (exportResultIcon) {
+          exportResultIcon.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+            </svg>
+          `;
+        }
+      }
+
       exportResultSection.style.display = 'block';
 
       // 添加顯示動畫
       setTimeout(() => {
         exportResultSection.classList.add('show');
-        exportResultSection.scrollIntoView({ behavior: 'smooth' });
+        // 滾動到整個 action-section 區域，讓匯出按鈕和結果區塊在畫面中央
+        const actionSection = document.querySelector('.action-section');
+        if (actionSection) {
+          actionSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }, 10);
 
-      // 設定預設選中的格式
-      this.selectFormat('markdown');
+      // 只有成功時才設定預設選中的格式
+      if (isSuccess) {
+        this.selectFormat('markdown');
+      }
     }
   }
 
@@ -427,22 +475,6 @@ class ModernPopupManager {
     await this.updateStatus();
   }
 
-  handleSettings() {
-    if (this.currentTab?.url?.includes('chatgpt.com')) {
-      // 在當前分頁中添加hash參數
-      const currentUrl = this.currentTab.url;
-      const newUrl = `${currentUrl.split('#')[0]}#settings/Personalization`;
-      chrome.tabs.update(this.currentTab.id, {
-        url: newUrl,
-      });
-      window.close();
-    } else {
-      // 開啟新分頁
-      chrome.tabs.create({
-        url: 'https://chatgpt.com/#settings/Personalization',
-      });
-    }
-  }
 
   setButtonLoading(button, loading = true) {
     if (loading) {
@@ -456,7 +488,7 @@ class ModernPopupManager {
 
   setButtonSuccess(button, text) {
     button.disabled = false;
-    button.classList.remove('loading', 'error');
+    button.classList.remove('loading', 'error', 'memory-full-urgent');
     button.classList.add('success');
 
     // 處理匯出按鈕的文字更新
@@ -465,11 +497,13 @@ class ModernPopupManager {
     if (exportTextEl) {
       exportTextEl.textContent = text;
     }
+
+    // 不自動重置，等待用戶操作完成後手動重置
   }
 
   setButtonError(button, text) {
     button.disabled = false;
-    button.classList.remove('loading', 'success');
+    button.classList.remove('loading', 'success', 'memory-full-urgent');
     button.classList.add('error');
 
     // 處理匯出按鈕的文字更新
@@ -478,11 +512,19 @@ class ModernPopupManager {
     if (exportTextEl) {
       exportTextEl.textContent = text;
     }
+
+    // 錯誤狀態仍然保持2秒自動重置（因為用戶可能不會進行後續操作）
+    setTimeout(() => {
+      button.classList.remove('error');
+      if (exportTextEl) {
+        exportTextEl.textContent = '匯出記憶';
+      }
+    }, 2000);
   }
 
   resetButton(button, originalText) {
     button.disabled = false;
-    button.classList.remove('loading', 'success', 'error');
+    button.classList.remove('loading', 'success', 'error', 'memory-full-urgent');
 
     // 處理匯出按鈕的文字重置
     const exportTextEl = button.querySelector('.export-main-text');

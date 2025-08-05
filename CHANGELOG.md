@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.5] - 2025-08-05
+
+### Enhanced
+
+- ⏰ **Button State Duration** - Export success state now persists until user completes copy action and closes export result window
+- 🎯 **Scroll Anchor** - Improved scroll animation to focus on export button area, providing better view of both button and result section
+- 🎨 **User Experience** - Enhanced workflow flow with better visual feedback continuity
+
+### Changed
+
+- 🔧 **Version Sync** - Updated all project files to version 1.5.5
+- 📝 **Documentation** - Synchronized version numbers across all documentation
+
+## [1.5.4] - 2025-08-05
+
+### Fixed
+
+- 🎨 **Export Button States** - Fixed export button success/error state display colors
+- 🔧 **CSS Priority** - Added `!important` rules to ensure proper state color display 
+- ⚡ **Animation Override** - Fixed memory-full-urgent styles interfering with success/error states
+- 🚀 **State Management** - Enhanced button state control to properly remove conflicting CSS classes
+
+### Changed
+
+- 🔧 **Version Sync** - Updated all project files to version 1.5.4
+- 📝 **Documentation** - Synchronized version numbers across all documentation
+
+## [1.5.3] - 2025-08-05
+
+### Changed
+
+- 🔧 **Version Sync** - Updated all project files to version 1.5.3
+- 📝 **Documentation** - Synchronized version numbers across all documentation
+
 ## [1.5.2] - 2025-07-30
 
 ### Changed
