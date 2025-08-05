@@ -45,18 +45,14 @@ class ModernPopupManager {
   setupEventListeners() {
     // 主要按鈕
     const exportBtn = document.getElementById('exportBtn');
-    const copyBtn = document.getElementById('copyBtn');
     const refreshBtn = document.getElementById('refreshBtn');
     const historyBtn = document.getElementById('historyBtn');
     const appSettingsBtn = document.getElementById('appSettingsBtn');
-    const settingsBtn = document.getElementById('settingsBtn');
 
     exportBtn?.addEventListener('click', () => this.handleExport());
-    copyBtn?.addEventListener('click', () => this.handleCopy());
     refreshBtn?.addEventListener('click', () => this.handleRefresh());
     historyBtn?.addEventListener('click', () => this.toggleHistory());
     appSettingsBtn?.addEventListener('click', () => this.toggleSettings());
-    settingsBtn?.addEventListener('click', () => this.handleSettings());
 
     // 匯出結果區塊
     const exportResultClose = document.getElementById('exportResultClose');
@@ -110,19 +106,6 @@ class ModernPopupManager {
     if (exportBtn) {
       exportBtn.addEventListener('click', _e => {
         const ripple = exportBtn.querySelector('.export-btn-ripple');
-        if (ripple) {
-          ripple.style.animation = 'none';
-          ripple.offsetHeight; // 觸發重排
-          ripple.style.animation = null;
-        }
-      });
-    }
-
-    // 為複製按鈕添加點擊效果
-    const copyBtn = document.querySelector('.copy-btn.modern');
-    if (copyBtn) {
-      copyBtn.addEventListener('click', _e => {
-        const ripple = copyBtn.querySelector('.copy-btn-ripple');
         if (ripple) {
           ripple.style.animation = 'none';
           ripple.offsetHeight; // 觸發重排
@@ -192,12 +175,6 @@ class ModernPopupManager {
         // 更新最後檢查時間
         this.lastStatusCheck = new Date();
         lastCheckEl.textContent = this.formatTime(this.lastStatusCheck);
-
-        // 如果有資料，啟用複製按鈕
-        const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) {
-          copyBtn.disabled = count === 0 && !response.markdown;
-        }
 
         // 如果記憶已滿，為匯出按鈕添加特殊樣式和文字
         const exportBtn = document.getElementById('exportBtn');
@@ -319,7 +296,7 @@ class ModernPopupManager {
         this.setButtonError(exportBtn, '匯出失敗');
       }
     } finally {
-      setTimeout(() => this.resetButton(exportBtn, '匯出記憶'), 2500);
+      // Remove the timeout to keep the success state
     }
   }
 
@@ -335,6 +312,7 @@ class ModernPopupManager {
       // 添加顯示動畫
       setTimeout(() => {
         exportResultSection.classList.add('show');
+        exportResultSection.scrollIntoView({ behavior: 'smooth' });
       }, 10);
 
       // 設定預設選中的格式
@@ -352,6 +330,7 @@ class ModernPopupManager {
         exportResultSection.style.display = 'none';
       }, 250);
     }
+    this.resetButton(document.getElementById('exportBtn'), '匯出記憶');
   }
 
   // 選擇格式
@@ -430,43 +409,6 @@ class ModernPopupManager {
       .trim();
   }
 
-  async handleCopy() {
-    const copyBtn = document.getElementById('copyBtn');
-    if (!copyBtn || copyBtn.disabled) {
-      return;
-    }
-
-    try {
-      let markdown = window.__lastMarkdown;
-
-      // 如果沒有快取的 markdown，嘗試從 content script 取得
-      if (!markdown) {
-        const response = await chrome.tabs.sendMessage(this.currentTab.id, {
-          action: 'getMarkdown',
-        });
-        markdown = response?.markdown;
-      }
-
-      if (!markdown) {
-        throw new Error('沒有可複製的資料');
-      }
-
-      await navigator.clipboard.writeText(markdown);
-      this.setButtonSuccess(copyBtn, '已複製');
-    } catch (error) {
-      console.error('[Popup] 複製失敗:', error);
-
-      // 檢查是否是連接錯誤
-      if (error.message.includes('Could not establish connection')) {
-        this.setButtonError(copyBtn, '請重新整理頁面');
-      } else {
-        this.setButtonError(copyBtn, '複製失敗');
-      }
-    } finally {
-      setTimeout(() => this.resetButton(copyBtn, '複製內容'), 1500);
-    }
-  }
-
   async handleRefresh() {
     const refreshBtn = document.getElementById('refreshBtn');
     if (!refreshBtn) {
@@ -519,12 +461,9 @@ class ModernPopupManager {
 
     // 處理匯出按鈕的文字更新
     const exportTextEl = button.querySelector('.export-main-text');
-    const copyTextEl = button.querySelector('.copy-text');
 
     if (exportTextEl) {
       exportTextEl.textContent = text;
-    } else if (copyTextEl) {
-      copyTextEl.textContent = text;
     }
   }
 
@@ -535,12 +474,9 @@ class ModernPopupManager {
 
     // 處理匯出按鈕的文字更新
     const exportTextEl = button.querySelector('.export-main-text');
-    const copyTextEl = button.querySelector('.copy-text');
 
     if (exportTextEl) {
       exportTextEl.textContent = text;
-    } else if (copyTextEl) {
-      copyTextEl.textContent = text;
     }
   }
 
@@ -550,12 +486,9 @@ class ModernPopupManager {
 
     // 處理匯出按鈕的文字重置
     const exportTextEl = button.querySelector('.export-main-text');
-    const copyTextEl = button.querySelector('.copy-text');
 
     if (exportTextEl) {
       exportTextEl.textContent = originalText;
-    } else if (copyTextEl) {
-      copyTextEl.textContent = originalText;
     }
   }
 
@@ -584,12 +517,8 @@ class ModernPopupManager {
 
     // 禁用所有按鈕
     const exportBtn = document.getElementById('exportBtn');
-    const copyBtn = document.getElementById('copyBtn');
     if (exportBtn) {
       exportBtn.disabled = true;
-    }
-    if (copyBtn) {
-      copyBtn.disabled = true;
     }
   }
 
