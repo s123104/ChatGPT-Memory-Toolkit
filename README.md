@@ -33,18 +33,22 @@
 ### 🛠️ Installation
 
 #### From Chrome Web Store (Recommended)
+
 1. Visit the [Chrome Web Store](https://chrome.google.com/webstore)
 2. Search for "ChatGPT Memory Toolkit"
 3. Click "Add to Chrome"
 
 #### Manual Installation (Development)
+
 1. Clone this repository
+
    ```bash
    git clone https://github.com/your-username/chatgpt-memory-toolkit.git
    cd chatgpt-memory-toolkit
    ```
 
 2. Install dependencies and build
+
    ```bash
    npm install
    npm run build
@@ -58,17 +62,19 @@
 ### 🎯 Usage
 
 1. **Automatic Detection**: Extension automatically monitors ChatGPT memory status
-2. **Manual Export**: Click extension icon and select "Export Memory" 
+2. **Manual Export**: Click extension icon and select "Export Memory"
 3. **View History**: Access export history in the popup window
 4. **Customize Settings**: Configure auto-alerts and history management preferences
 
 ### 🔧 Development
 
 #### Prerequisites
+
 - Node.js 16+
 - Chrome 88+
 
 #### Commands
+
 ```bash
 npm run dev      # Development mode (lint + build)
 npm run lint     # Code linting with ESLint
@@ -77,6 +83,7 @@ npm run build    # Build extension for production
 ```
 
 #### Project Structure
+
 ```
 src/
 ├── scripts/
@@ -128,18 +135,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### 🛠️ 安裝方式
 
 #### 從 Chrome Web Store 安裝（推薦）
+
 1. 前往 [Chrome Web Store](https://chrome.google.com/webstore)
 2. 搜尋「ChatGPT Memory Toolkit」
 3. 點擊「加到 Chrome」
 
 #### 手動安裝（開發版本）
+
 1. 複製此專案
+
    ```bash
    git clone https://github.com/your-username/chatgpt-memory-toolkit.git
    cd chatgpt-memory-toolkit
    ```
 
 2. 安裝依賴並建置
+
    ```bash
    npm install
    npm run build
@@ -160,10 +171,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### 🔧 開發
 
 #### 前置需求
+
 - Node.js 16+
 - Chrome 88+
 
 #### 開發指令
+
 ```bash
 npm run dev      # 開發模式（檢查 + 建置）
 npm run lint     # 使用 ESLint 進行程式碼檢查
@@ -172,6 +185,7 @@ npm run build    # 建置生產版本
 ```
 
 #### 專案結構
+
 ```
 src/
 ├── scripts/
@@ -218,6 +232,7 @@ src/
 ## Privacy Policy
 
 This extension respects your privacy:
+
 - **No Data Collection**: We don't collect, store, or transmit any personal data
 - **Local Storage Only**: All data is stored locally in your browser
 - **No External Servers**: The extension works entirely offline

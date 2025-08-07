@@ -293,15 +293,21 @@ class ModernPopupManager {
       if (error.message.includes('Could not establish connection')) {
         this.setButtonError(exportBtn, '請重新整理頁面');
         // 顯示失敗狀態的匯出結果區塊
-        this.showExportResult({
-          error: '無法連接到 ChatGPT 頁面，請重新整理頁面後再試'
-        }, false);
+        this.showExportResult(
+          {
+            error: '無法連接到 ChatGPT 頁面，請重新整理頁面後再試',
+          },
+          false
+        );
       } else {
         this.setButtonError(exportBtn, '匯出失敗');
         // 顯示失敗狀態的匯出結果區塊
-        this.showExportResult({
-          error: error.message || '匯出過程發生未知錯誤'
-        }, false);
+        this.showExportResult(
+          {
+            error: error.message || '匯出過程發生未知錯誤',
+          },
+          false
+        );
       }
     } finally {
       // Remove the timeout to keep the success state
@@ -318,7 +324,7 @@ class ModernPopupManager {
     if (exportResultSection && exportResultStats) {
       // 清除之前的狀態類別
       exportResultSection.classList.remove('success', 'error');
-      
+
       if (isSuccess) {
         // 成功狀態
         exportResultSection.classList.add('success');
@@ -475,7 +481,6 @@ class ModernPopupManager {
     await this.updateStatus();
   }
 
-
   setButtonLoading(button, loading = true) {
     if (loading) {
       button.disabled = true;
@@ -524,7 +529,12 @@ class ModernPopupManager {
 
   resetButton(button, originalText) {
     button.disabled = false;
-    button.classList.remove('loading', 'success', 'error', 'memory-full-urgent');
+    button.classList.remove(
+      'loading',
+      'success',
+      'error',
+      'memory-full-urgent'
+    );
 
     // 處理匯出按鈕的文字重置
     const exportTextEl = button.querySelector('.export-main-text');

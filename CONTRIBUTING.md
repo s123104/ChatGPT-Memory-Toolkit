@@ -9,6 +9,7 @@ Thank you for considering contributing to ChatGPT Memory Toolkit! We welcome con
 Before creating bug reports, please check the [existing issues](https://github.com/your-username/chatgpt-memory-toolkit/issues) to see if the problem has already been reported.
 
 When filing a bug report, please include:
+
 - A clear and descriptive title
 - Steps to reproduce the behavior
 - Expected behavior
@@ -20,6 +21,7 @@ When filing a bug report, please include:
 ### Suggesting Enhancements
 
 Enhancement suggestions are welcome! Please provide:
+
 - A clear and descriptive title
 - A detailed description of the proposed feature
 - Explain why this enhancement would be useful
@@ -38,11 +40,13 @@ Enhancement suggestions are welcome! Please provide:
 ## 🛠️ Development Setup
 
 ### Prerequisites
+
 - Node.js 16 or higher
 - npm or yarn
 - Chrome 88 or higher (for testing)
 
 ### Getting Started
+
 ```bash
 # Clone your fork
 git clone https://github.com/your-username/chatgpt-memory-toolkit.git
@@ -61,6 +65,7 @@ npm run dev
 ```
 
 ### Available Scripts
+
 - `npm run dev` - Development mode (lint + watch)
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
@@ -69,6 +74,7 @@ npm run dev
 ## 📝 Coding Standards
 
 ### JavaScript/HTML/CSS
+
 - Follow the existing code style
 - Use ESLint and Prettier (configs are included in the project)
 - Use meaningful variable and function names
@@ -76,7 +82,9 @@ npm run dev
 - Keep functions small and focused
 
 ### Commit Messages
+
 Use clear and descriptive commit messages:
+
 - `feat: add new export format option`
 - `fix: resolve popup display issue on Chrome 88`
 - `docs: update README installation instructions`
@@ -84,6 +92,7 @@ Use clear and descriptive commit messages:
 - `refactor: simplify memory detection logic`
 
 ### Code Structure
+
 - Keep components modular and reusable
 - Place utility functions in the `utils/` directory
 - Follow the existing directory structure
@@ -92,6 +101,7 @@ Use clear and descriptive commit messages:
 ## 🧪 Testing
 
 ### Manual Testing
+
 1. Load the extension in Chrome
 2. Navigate to ChatGPT
 3. Test the core functionality:
@@ -101,6 +111,7 @@ Use clear and descriptive commit messages:
    - History management
 
 ### Automated Testing
+
 While we don't have automated tests yet, we welcome contributions to add them!
 
 ## 🎨 UI/UX Guidelines
@@ -114,6 +125,7 @@ While we don't have automated tests yet, we welcome contributions to add them!
 ## 📚 Documentation
 
 When contributing, please:
+
 - Update relevant documentation
 - Add JSDoc comments for new functions
 - Update README.md if adding new features
@@ -122,6 +134,7 @@ When contributing, please:
 ## 🚀 Release Process
 
 Releases are handled by maintainers:
+
 1. Version bump in `package.json` and `manifest.json`
 2. Update CHANGELOG.md
 3. Create release tag
@@ -135,9 +148,11 @@ Releases are handled by maintainers:
 ## 📜 Code of Conduct
 
 ### Our Pledge
+
 We pledge to make participation in our project a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 ### Our Standards
+
 - Using welcoming and inclusive language
 - Being respectful of differing viewpoints and experiences
 - Gracefully accepting constructive criticism
@@ -145,11 +160,13 @@ We pledge to make participation in our project a harassment-free experience for 
 - Showing empathy towards other community members
 
 ### Enforcement
+
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team. All complaints will be reviewed and investigated promptly and fairly.
 
 ## 🏆 Recognition
 
 Contributors will be recognized in:
+
 - Release notes
 - Contributors section (coming soon)
 - Special thanks in major releases

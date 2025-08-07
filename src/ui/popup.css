@@ -1031,19 +1031,21 @@ body {
 }
 
 @keyframes successPulse {
-  0%, 100% { 
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 30px rgba(16, 185, 129, 0.25);
   }
 }
 
 @keyframes errorPulse {
-  0%, 100% { 
+  0%,
+  100% {
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
   }
-  50% { 
+  50% {
     box-shadow: 0 0 30px rgba(239, 68, 68, 0.25);
   }
 }

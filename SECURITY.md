@@ -68,16 +68,19 @@ Our extension implements several security measures:
 ## Security Best Practices for Users
 
 ### Installation
+
 - Only install from the official Chrome Web Store
 - Verify the publisher before installation
 - Review requested permissions
 
 ### Usage
+
 - Keep the extension updated to the latest version
 - Report any suspicious behavior immediately
 - Review export data before sharing
 
 ### Browser Security
+
 - Keep Chrome updated to the latest version
 - Use a secure, updated operating system
 - Be cautious with other installed extensions
@@ -87,6 +90,7 @@ Our extension implements several security measures:
 ### Browser Permissions
 
 The extension requires these permissions:
+
 - `activeTab`: To interact with ChatGPT pages
 - `scripting`: To inject content scripts
 - `storage`: To save settings and history locally
@@ -100,6 +104,7 @@ The extension requires these permissions:
 ## Security Contact
 
 For security-related questions or concerns:
+
 - **Security Email**: security@example.com (replace with actual)
 - **Response Time**: Within 48 hours
 - **Encryption**: PGP key available upon request
@@ -115,6 +120,7 @@ For security-related questions or concerns:
 ## Security Updates
 
 Security updates are released as patch versions (e.g., 1.5.1 → 1.5.2) and include:
+
 - Vulnerability fixes
 - Security enhancements
 - Updated dependencies
