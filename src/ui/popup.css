@@ -412,8 +412,14 @@ body {
 
 .action-btn.modern.primary {
   background: var(--primary-gradient);
-  color: var(--text-inverse);
+  color: var(--text-primary);
   box-shadow: var(--shadow-md);
+}
+
+/* Ensure inner text/icons inherit light color on primary button */
+.action-btn.modern.primary .btn-text,
+.action-btn.modern.primary .btn-icon {
+  color: inherit;
 }
 
 .action-btn.modern.primary:hover:not(:disabled) {
