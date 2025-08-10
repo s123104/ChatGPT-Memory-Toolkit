@@ -1071,10 +1071,21 @@
     // 綁定按鈕
     overlay.querySelector('[data-action="exportNow"]').addEventListener('click', async () => {
       try {
-        closeOverlay();
-        await mainFlow();
+        // 標記 popup 開啟後自動執行匯出（單次）
+        await chrome.storage.local.set({ autoExportOnOpen: true });
+
+        // 以新視窗開啟擴充的 popup 頁面
+        const popupUrl = chrome.runtime.getURL('src/ui/popup.html');
+        window.open(popupUrl, '_blank', 'width=420,height=640');
       } catch (e) {
-        warn('立即匯出失敗', e);
+        // 失敗時退回直接在內容頁執行匯出
+        try {
+          await mainFlow();
+        } catch (err) {
+          warn('立即匯出失敗', err);
+        }
+      } finally {
+        closeOverlay();
       }
     });
 
