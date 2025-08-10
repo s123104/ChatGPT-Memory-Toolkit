@@ -7,10 +7,10 @@
 ### 專案資訊
 
 - **名稱**: ChatGPT Memory Toolkit
-- **版本**: 1.2.0
+- **版本**: 1.6.0
 - **類型**: Chrome Extension
 - **主要語言**: JavaScript
-- **建置工具**: Node.js
+- **建置工具**: Node.js 18+
 - **程式碼檢查**: ESLint
 - **程式碼格式化**: Prettier
 

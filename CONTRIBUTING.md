@@ -41,7 +41,7 @@ Enhancement suggestions are welcome! Please provide:
 
 ### Prerequisites
 
-- Node.js 16 or higher
+- Node.js 18 or higher
 - npm or yarn
 - Chrome 88 or higher (for testing)
 
@@ -52,8 +52,8 @@ Enhancement suggestions are welcome! Please provide:
 git clone https://github.com/your-username/chatgpt-memory-toolkit.git
 cd chatgpt-memory-toolkit
 
-# Install dependencies
-npm install
+# Install dependencies (CI reliable)
+npm ci
 
 # Start development
 npm run dev

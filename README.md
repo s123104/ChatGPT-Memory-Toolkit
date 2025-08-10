@@ -1,8 +1,8 @@
-# ChatGPT Memory Toolkit
+# ChatGPT Memory Toolkit (v1.6.0)
 
 <div align="center">
 
-![ChatGPT Memory Toolkit](assets/icons/icon128.png)
+<img src="assets/icons/icon128.png" alt="ChatGPT Memory Toolkit" width="96" height="96" />
 
 **Professional Chrome Extension for ChatGPT Memory Management**
 
@@ -66,18 +66,29 @@
 3. **View History**: Access export history in the popup window
 4. **Customize Settings**: Configure auto-alerts and history management preferences
 
+#### UI Showcase (Design System Preview)
+
+Open in browser:
+
+```
+http://localhost:8080/test/ui-showcase.html
+```
+
+This page demonstrates unified UI components and states used by `src/ui/popup.html` with the same `popup.css`. Version label auto-syncs from `manifest.json`.
+
 ### 🔧 Development
 
 #### Prerequisites
 
-- Node.js 16+
+- Node.js 18+
 - Chrome 88+
 
 #### Commands
 
 ```bash
+npm ci
 npm run dev      # Development mode (lint + build)
-npm run lint     # Code linting with ESLint
+npm run lint     # Code linting with ESLLint
 npm run format   # Code formatting with Prettier
 npm run build    # Build extension for production
 ```
@@ -167,6 +178,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 2. **手動匯出**：點擊擴充套件圖示並選擇「匯出記憶」
 3. **查看歷史**：在彈出視窗中存取匯出歷史記錄
 4. **自訂設定**：配置自動提醒和歷史記錄管理偏好
+
+#### UI 展示頁（設計系統預覽）
+
+在瀏覽器開啟：
+
+```
+http://localhost:8080/test/ui-showcase.html
+```
+
+此頁使用與 `src/ui/popup.html` 相同的 `popup.css`，用來展示統一化元件與多種狀態。頁腳版本會自動從 `manifest.json` 同步顯示。
 
 ### 🔧 開發
 

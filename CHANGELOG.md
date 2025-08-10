@@ -7,11 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.6.0] - 2025-08-05
+## [1.6.0] - 2025-08-10
 
 ### Added
 
 - 📄 **Professional Documentation** - Added LICENSE, CONTRIBUTING.md, and SECURITY.md files
+
+### UI
+
+- 🧪 **UI Showcase** - 更新 `test/ui-showcase.html` 同步專案名稱、修正按鈕 DOM 結構錯誤、同步版本 `v1.6.0`
+
+### Maintenance
+
+- 🗃️ **Archive** - 將未被主應用引用的 `index.html` 標記為 Archive（避免與主介面混淆）
 - 🔒 **Security Policy** - Comprehensive security guidelines and vulnerability reporting process
 - 🤝 **Contribution Guidelines** - Detailed guidelines for community contributions
 
