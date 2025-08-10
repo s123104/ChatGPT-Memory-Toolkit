@@ -64,6 +64,19 @@ const filesToUpdate = [
     },
   },
   {
+    path: './src/ui/popup.html',
+    description: 'Popup HTML Version Footer',
+    update: content => {
+      const oldVersionMatch = content.match(/<span class="version">v([\d.]+)<\/span>/);
+      const oldVersion = oldVersionMatch ? oldVersionMatch[1] : null;
+      const newContent = content.replace(
+        /<span class="version">v[\d.]+<\/span>/,
+        `<span class="version">v${version}</span>`
+      );
+      return { content: newContent, changed: content !== newContent, oldVersion };
+    },
+  },
+  {
     path: './README.md',
     description: 'Project README Documentation',
     update: content => {

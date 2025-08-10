@@ -1074,9 +1074,8 @@
         // 標記 popup 開啟後自動執行匯出（單次）
         await chrome.storage.local.set({ autoExportOnOpen: true });
 
-        // 以新視窗開啟擴充的 popup 頁面
-        const popupUrl = chrome.runtime.getURL('src/ui/popup.html');
-        window.open(popupUrl, '_blank', 'width=420,height=640');
+        // 請 background 以 extension popup window 建立（避免被擋）
+        await chrome.runtime.sendMessage({ action: 'openPopupWindow' });
       } catch (e) {
         // 失敗時退回直接在內容頁執行匯出
         try {
