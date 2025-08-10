@@ -22,6 +22,7 @@ class ModernPopupManager {
       await this.getCurrentTab();
       this.setupEventListeners();
       await this.updateStatus();
+      await this.maybeAutoExportOnOpen();
       await this.updateStorageInfo();
       this.startStatusMonitoring();
       this.isInitialized = true;
@@ -30,6 +31,32 @@ class ModernPopupManager {
       console.error('[Popup] 初始化失敗:', error);
       this.showError('初始化失敗');
       this.updateConnectionStatus(false);
+    }
+  }
+
+  // 如果背景要求自動匯出（由 content 觸發），在啟動後立即執行
+  async maybeAutoExportOnOpen() {
+    try {
+      const { autoExportOnOpen } = await chrome.storage.local.get([
+        'autoExportOnOpen',
+      ]);
+      if (!autoExportOnOpen) return;
+
+      // 單次觸發，用後即清
+      await chrome.storage.local.remove('autoExportOnOpen');
+
+      // 僅在 ChatGPT 網站上自動執行
+      if (this.currentTab?.url?.includes('chatgpt.com')) {
+        const exportBtn = document.getElementById('exportBtn');
+        if (exportBtn) {
+          this.setButtonLoading(exportBtn, true);
+        }
+        await this.handleExport();
+      } else {
+        this.showNotOnChatGPT();
+      }
+    } catch (_e) {
+      // 忽略
     }
   }
 

@@ -992,11 +992,104 @@
   // 防止模態窗重複顯示的全域標記
   let isModalShowing = false;
 
-  // TODO: 實現新的記憶滿提醒機制
+  // 實現新的記憶滿提醒機制：兩鍵（立即匯出 / 稍後處理）
   function showAutoExportModal() {
-    log('舊的模態窗功能已移除，需要實現新的提醒機制');
-    // 待實現：直接觸發 popup 並自動執行匯出
-    return;
+    if (isModalShowing) return;
+    isModalShowing = true;
+
+    const OVERLAY_ID = 'memoryAutoExportModal';
+    const STYLE_ID = 'memory-auto-modal-styles';
+
+    // 若已存在，避免重複建立
+    if (document.getElementById(OVERLAY_ID)) return;
+
+    // 样式
+    if (!document.getElementById(STYLE_ID)) {
+      const styleEl = document.createElement('style');
+      styleEl.id = STYLE_ID;
+      styleEl.textContent = `
+        .memory-auto-overlay {
+          position: fixed; inset: 0; z-index: 2147483000;
+          background: rgba(0,0,0,0.45);
+          display: flex; align-items: center; justify-content: center;
+        }
+        .memory-auto-panel {
+          width: 360px; max-width: calc(100% - 40px);
+          background: #111827; color: #f9fafb; border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+          overflow: hidden; animation: memModalIn 200ms ease-out;
+        }
+        .memory-auto-header { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .memory-auto-title { font-size: 16px; font-weight: 700; }
+        .memory-auto-body { padding: 14px 18px; font-size: 14px; color: #d1d5db; line-height: 1.5; }
+        .memory-auto-usage { display:flex; align-items:center; gap:10px; margin-top:10px; }
+        .memory-auto-bar { flex:1; height:6px; background:#374151; border-radius: 3px; overflow:hidden; }
+        .memory-auto-fill { height:100%; background: linear-gradient(90deg,#f59e0b,#ef4444); width:100%; }
+        .memory-auto-actions { display:flex; gap:10px; padding: 14px 18px; background: rgba(255,255,255,0.02); border-top: 1px solid rgba(255,255,255,0.06); }
+        .memory-auto-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:8px; height:40px; border:none; border-radius:10px; cursor:pointer; font-weight:600; }
+        .memory-auto-btn.primary { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+        .memory-auto-btn.secondary { background: #1f2937; color:#f3f4f6; border:1px solid #374151; }
+        .memory-auto-close { position:absolute; top:10px; right:10px; width:28px; height:28px; border:none; border-radius:8px; background:transparent; color:#9ca3af; cursor:pointer; }
+        .memory-auto-close:hover { background: rgba(255,255,255,0.06); color:#e5e7eb; }
+        @keyframes memModalIn { from { opacity:0; transform: translateY(-8px) scale(0.98); } to { opacity:1; transform: translateY(0) scale(1); } }
+      `;
+      document.head.appendChild(styleEl);
+    }
+
+    // 組裝 DOM
+    const overlay = document.createElement('div');
+    overlay.id = OVERLAY_ID;
+    overlay.className = 'memory-auto-overlay';
+
+    overlay.innerHTML = `
+      <div class="memory-auto-panel">
+        <div class="memory-auto-header">
+          <div class="memory-auto-title">記憶已滿</div>
+        </div>
+        <div class="memory-auto-body">
+          您的 ChatGPT 記憶已達到上限。建議立即匯出記憶內容以釋放空間，避免遺失重要資訊。
+          <div class="memory-auto-usage">
+            <div class="memory-auto-bar"><div class="memory-auto-fill"></div></div>
+            <span style="font-weight:700;color:#f59e0b">100%</span>
+          </div>
+        </div>
+        <div class="memory-auto-actions">
+          <button class="memory-auto-btn secondary" data-action="later">稍後處理</button>
+          <button class="memory-auto-btn primary" data-action="exportNow">立即匯出</button>
+        </div>
+      </div>
+    `;
+
+    // 關閉處理
+    const closeOverlay = () => {
+      overlay.remove();
+      isModalShowing = false;
+    };
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay(); });
+
+    // 綁定按鈕
+    overlay.querySelector('[data-action="exportNow"]').addEventListener('click', async () => {
+      try {
+        closeOverlay();
+        await mainFlow();
+      } catch (e) {
+        warn('立即匯出失敗', e);
+      }
+    });
+
+    overlay.querySelector('[data-action="later"]').addEventListener('click', async () => {
+      try {
+        const oneDayLater = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await chrome.storage.local.set({ memoryFullReminderDisabled: oneDayLater.toISOString() });
+      } catch (e) {
+        // 忽略錯誤
+      } finally {
+        closeOverlay();
+      }
+    });
+
+    document.documentElement.appendChild(overlay);
   }
 
   // TODO: 實現新的匯出結果提醒機制
@@ -1043,32 +1136,13 @@
       }
 
       if (hasTriggerText()) {
-        // 觸發自動 popup 並執行匯出
-        try {
-          chrome.runtime.sendMessage({
-            action: 'triggerAutoExport',
-            timestamp: Date.now(),
-            reason: 'memoryFull',
-          });
-          log('已觸發自動匯出請求');
-        } catch (error) {
-          warn('觸發自動匯出失敗:', error);
-        }
+        // 顯示兩鍵提醒模態，而非直接觸發
+        showAutoExportModal();
       }
     } catch (error) {
       // 如果無法取得設定，預設執行提醒
       if (hasTriggerText()) {
-        // 觸發自動 popup 並執行匯出
-        try {
-          chrome.runtime.sendMessage({
-            action: 'triggerAutoExport',
-            timestamp: Date.now(),
-            reason: 'memoryFull',
-          });
-          log('已觸發自動匯出請求');
-        } catch (error) {
-          warn('觸發自動匯出失敗:', error);
-        }
+        showAutoExportModal();
       }
     }
   }
